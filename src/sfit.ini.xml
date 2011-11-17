@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+<FitIniParams>
+  
+  <annotation>Example ini file for semble_vfit</annotation>
+  <annotation>See semble_fit_ini_xml.h for more options</annotation>
+  
+  <version>0</version>
+  <dbInputType>dbnew</dbInputType>          <!--ensem,ensem_debug,ensem_onecorr,dbnew,dbnew_debug,redstar,redstar_debug-->
+  
+  <inputPropsEnsem>
+    <dbFname></dbFname>
+    <dim>5</dim>
+  </inputPropsEnsem>
+  
+  <inputPropsDB>
+    <dbFname>T1mm.edb</dbFname>
+    <opsListFname>T1mm.list</opsListFname>
+    <irrepDim>3</irrepDim>
+    <rephaseMode>auto</rephaseMode>    <!--auto,auto_positive,real-->
+    <foldTimeReversal>expected</foldTimeReversal>   <!--auto_majority,expected,none-->
+    <avgMode>lorentz</avgMode>                     <!--none,lorentz,spin-->
+    <avgTol>10</avgTol>
+    <badList>bad_list</badList>
+    <avgMom>false</avgMom>
+    <momListFname></momListFname>
+    <keys>
+      <!--  NOTE : src_name and snk_name specified here are NOT used(ops listed in opslistfile)
+	   if avgMode is "lorentz" then src_lorentz and snk_lorentz are ignored
+	   if avgMode is "spin" then src_spin and snk_spin are ignored.
+	   if avgMom is "true" then mom is ignored  -->
+      <num_vecs>64</num_vecs>
+      <src_name></src_name>
+      <src_smear></src_smear>
+      <src_lorentz></src_lorentz>
+      <src_spin>-1</src_spin>
+      <snk_name></snk_name>
+      <snk_smear></snk_smear>
+      <snk_lorentz></snk_lorentz>
+      <snk_spin>-1</snk_spin>
+      <mom>0 0 0</mom>
+      <mass>D-743</mass>
+      <ensemble>szscl3_16_128_b1p50_t_x4p300_um0p0743_n1p265_per</ensemble>
+    </keys>
+  </inputPropsDB>
+  
+  <inputPropsRedstar>
+    <dbFname>T1mm.edb</dbFname>
+    <opsListFname>T1mm.list</opsListFname>
+    <opsXMLFiles>ops_example.xml</opsXMLFiles>
+    <rephaseMode>auto_positive</rephaseMode>
+    <foldTimeReversal>none</foldTimeReversal>
+    <avgRows>1 2 3</avgRows>
+    <avgTol>10</avgTol>
+    <badList>bad_list</badList>
+    <avgMom>false</avgMom>
+    <momListFname></momListFname>
+    <redKeys>
+      <ensemble>szscl3_16_128_b1p50_t_x4p300_um0p0743_n1p265_per</ensemble>
+      <mom>0 0 0</mom> <!--Ignored if avgMom is true-->
+      <twoIz>0</twoIz>
+      <sourceTSlice>5</sourceTSlice>
+    </redKeys>
+  </inputPropsRedstar>
+  
+  
+  <sortingProps>
+    <sortEvecsCfg>Refvecs</sortEvecsCfg>                         <!--None,Refvecs-->
+    <sortEvecsTimeslice>Refvecs_Fixed</sortEvecsTimeslice>       <!--None,Refvecs_Moving,Refvecs_Fixed,Refvecs_Fixed_Auto-->
+    <deltaRef>1</deltaRef>
+  </sortingProps>
+  
+  <genEigProps>
+    <type>SvdCond</type>                                         <!--Cho,Cholesky,SvdCond,SvdValue,SvdSigma,SvdSigmaValue,SvdSigmaCond-->
+    <thresh>1e6</thresh>                                         <!--if SvdValue its the lowest to consider, if SvdCond its the max cond num-->
+    <sigma>3</sigma>                                             <!--if SvdSigma,SigmaValue,SigmaCond reset anything thats within sigma std deviations of 0-->
+    <svdHisto>true</svdHisto>
+    <nHistoBins>20</nHistoBins>
+  </genEigProps>
+  
+  <prinCorrProps>
+    <tmax>25</tmax>
+    <minTSlices>4</minTSlices>
+    <noiseCutoff>0.12</noiseCutoff>
+    <fitCrit>generic</fitCrit>                                    <!--chisq_per_dof,Q,splitN,generic,QN-->
+    <accChisq>3.0</accChisq>
+  </prinCorrProps>
+  
+  <zProps>
+    <fit>true</fit>
+    <tmax>25</tmax>
+    <minTSlices>4</minTSlices>
+    <fitCrit>QN</fitCrit>
+    <accChisq>3.0</accChisq>
+  </zProps>
+  
+  <t0FitProps>
+    <ZT0>true</ZT0>
+    <MT0>true</MT0>
+    <fitCrit>chisq_per_dof</fitCrit>
+    <accChisq>3.0</accChisq>
+  </t0FitProps>
+  
+  <t0Props>
+    <t0low>3</t0low>
+    <t0high>9</t0high>
+    <t0ref>7</t0ref>
+  </t0Props>
+  
+  <reconProps>
+    <recon>true</recon>
+    <type>fast</type>                                            <!--fast(no inverse covariance),full-->
+    <tmax>25</tmax>
+    <accChisq>5.0</accChisq>
+    <selectT0>cutoff</selectT0>
+  </reconProps>
+  
+  <outputProps>
+    <mass>true</mass>
+    <Z_t>true</Z_t>
+    <V_t>true</V_t>
+    <pcorrFiles>true</pcorrFiles>
+    <zFitFiles>true</zFitFiles>
+    <pcorrPlots>true</pcorrPlots>
+    <zFitPlots>true</zFitPlots>
+    <mT0Files>true</mT0Files>
+    <zT0Files>true</zT0Files>
+    <mT0Plots>true</mT0Plots>
+    <zT0Plots>true</zT0Plots>
+    <reconPlots>true</reconPlots>
+    <reconType>diag</reconType>
+    <logs>true</logs>
+  </outputProps>
+    
+  <shiftProps>
+    <shift>false</shift>
+    <dt>1</dt>
+  </shiftProps>
+  
+  <fixedCoeffProps>
+    <fixed>false</fixed>
+    <tstar>10</tstar>
+  </fixedCoeffProps>
+  
+  <weightProps>
+    <weight>false</weight>
+    <E>0.</E>
+  </weightProps>
+  
+  <globalProps>
+    <tmin>1</tmin>
+    <tmax>25</tmax>
+    <SVCut>1e-6</SVCut>
+    <verbose>true</verbose>
+  </globalProps>
+  
+</FitIniParams>

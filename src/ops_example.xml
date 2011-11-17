@@ -1,0 +1,23 @@
+<OpsList>
+
+  <elem>
+    <OpNameKey>rhoxD0_J0__J1_T1</OpNameKey>
+    <Irrep>
+      <smearedP>true</smearedP>
+      <creation_op>false</creation_op>   <!-- Ignored by reconfit -->
+      <mom></mom>                        <!-- Ignored by reconfit -->
+      <twoI_z>0</twoI_z>                 <!-- Ignored by reconfit -->
+      <row>0</row>                       <!-- Ignored by reconfit -->
+      <Operators>
+        <elem>
+          <name>rho_rhoxD0_J0__J1_T1</name>
+          <smear></smear>
+          <mom_type>0 0 0</mom_type>
+        </elem>
+      </Operators>
+      <CGs>
+      </CGs>
+    </Irrep>
+  </elem>
+
+</OpsList>
