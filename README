@@ -1,0 +1,8 @@
+11/17/11
+
+An example set of configure flags, assumes itpp is in $HOME/include
+
+NB itpp needs to be at least version 4.2 for reconfit_svd to compile
+
+./configure --prefix=$HOME LIBS="-lblas -llapack -lgfortran -lpthread" --with-itpp=$HOME CFLAGS="-O3 -fargument-noalias-global -finline-limit=50000 -funroll-all-loops -fpeel-loops -march=opteron -fopenmp -DUSE_OMP" CXXFLAGS="-O3 -fargument-noalias-global -finline-limit=50000 -funroll-all-loops -fpeel-loops -march=opteron -fopenmp -DUSE_OMP"
+
