@@ -426,7 +426,7 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, InputPropsRedstar_t &
     prop.avgMom = false;
 
   if(ptop.count("momListFname") > 0)
-    read(ptop, "momListFile", prop.momListFname);
+    read(ptop, "momListFname", prop.momListFname);
   else
     prop.momListFname = "";
 
