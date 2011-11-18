@@ -44,6 +44,8 @@ int main(int argc, char *argv[])
   SembleRCorrs twoPoints;
   loadCorr(twoPoints, inikeys);
 
+	cout << "LOADED " << endl;
+
   // do fits at all desired t0 values
   SMT0Fit<double> foo(twoPoints, inikeys);
 

@@ -1385,12 +1385,12 @@ namespace SEMBLE
     for(int bin = 0; bin < bins; ++bin)
       for(int elem = 0; elem < elems; ++elem)	
 	if(s[bin][elem] > tol*s[bin][0])                  //this could introduce a bias
-	  sinv[bin][elem] = i./s[bin][elem];
+	  sinv[bin][elem] = 1.0/s[bin][elem];
 	else
 	  ++nreset;
     
-    avgReset = double(nReset)/double(bins);
-    sinv.rescalEnsemUp;
+    avgReset = double(nreset)/double(bins);
+    sinv.rescaleEnsemUp();
     
     return V*diag(sinv)*adj(U);
   }
@@ -1411,7 +1411,7 @@ namespace SEMBLE
       }
     
     itpp::Mat<T> UU,VV;
-    itpp::Vec<double> ss
+    itpp::Vec<double> ss;
 
     for(int bin = 0; bin < bins; ++bin)
       {

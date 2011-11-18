@@ -34,11 +34,9 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = semble_vfit$(EXEEXT) timeslice_covariance$(EXEEXT) \
-	luescher_phase_shift$(EXEEXT) \
-	luescher_phase_shift_with_estimated_delta4$(EXEEXT)
+bin_PROGRAMS = semble_vfit$(EXEEXT) timeslice_covariance$(EXEEXT)
 noinst_PROGRAMS =
-check_PROGRAMS = test_luescher$(EXEEXT)
+check_PROGRAMS =
 EXTRA_PROGRAMS =
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
@@ -52,20 +50,6 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
-am_luescher_phase_shift_OBJECTS = luescher_phase_shift.$(OBJEXT) \
-	luescher.$(OBJEXT) ensem_data.$(OBJEXT) \
-	linear_algebra.$(OBJEXT)
-luescher_phase_shift_OBJECTS = $(am_luescher_phase_shift_OBJECTS)
-luescher_phase_shift_LDADD = $(LDADD)
-luescher_phase_shift_DEPENDENCIES =
-am_luescher_phase_shift_with_estimated_delta4_OBJECTS =  \
-	luescher_phase_shift_with_estimated_delta4.$(OBJEXT) \
-	luescher.$(OBJEXT) ensem_data.$(OBJEXT) \
-	linear_algebra.$(OBJEXT)
-luescher_phase_shift_with_estimated_delta4_OBJECTS =  \
-	$(am_luescher_phase_shift_with_estimated_delta4_OBJECTS)
-luescher_phase_shift_with_estimated_delta4_LDADD = $(LDADD)
-luescher_phase_shift_with_estimated_delta4_DEPENDENCIES =
 am_semble_vfit_OBJECTS = semble_vfit.$(OBJEXT) \
 	semble_load_correlators.$(OBJEXT) semble_fit_ini_xml.$(OBJEXT) \
 	semble_file_management.$(OBJEXT) semble_histogram.$(OBJEXT) \
@@ -75,10 +59,6 @@ am_semble_vfit_OBJECTS = semble_vfit.$(OBJEXT) \
 semble_vfit_OBJECTS = $(am_semble_vfit_OBJECTS)
 semble_vfit_LDADD = $(LDADD)
 semble_vfit_DEPENDENCIES =
-am_test_luescher_OBJECTS = test_luescher.$(OBJEXT) luescher.$(OBJEXT)
-test_luescher_OBJECTS = $(am_test_luescher_OBJECTS)
-test_luescher_LDADD = $(LDADD)
-test_luescher_DEPENDENCIES =
 am_timeslice_covariance_OBJECTS = timeslice_covariance.$(OBJEXT) \
 	linear_algebra.$(OBJEXT) ensem_data.$(OBJEXT)
 timeslice_covariance_OBJECTS = $(am_timeslice_covariance_OBJECTS)
@@ -92,18 +72,8 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(luescher_phase_shift_SOURCES) \
-	$(luescher_phase_shift_with_estimated_delta4_SOURCES) \
-	$(semble_vfit_SOURCES) $(test_luescher_SOURCES) \
-	$(timeslice_covariance_SOURCES)
-DIST_SOURCES = $(luescher_phase_shift_SOURCES) \
-	$(luescher_phase_shift_with_estimated_delta4_SOURCES) \
-	$(semble_vfit_SOURCES) $(test_luescher_SOURCES) \
-	$(timeslice_covariance_SOURCES)
+SOURCES = $(semble_vfit_SOURCES) $(timeslice_covariance_SOURCES)
+DIST_SOURCES = $(semble_vfit_SOURCES) $(timeslice_covariance_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -155,7 +125,6 @@ PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
-PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
@@ -165,6 +134,8 @@ STRIP = @STRIP@
 VERSION = @VERSION@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
+ac_ct_RANLIB = @ac_ct_RANLIB@
+ac_ct_STRIP = @ac_ct_STRIP@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
 am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
@@ -177,26 +148,19 @@ am__untar = @am__untar@
 bindir = @bindir@
 build_alias = @build_alias@
 datadir = @datadir@
-datarootdir = @datarootdir@
-docdir = @docdir@
-dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 host_alias = @host_alias@
-htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
 libdir = @libdir@
 libexecdir = @libexecdir@
-localedir = @localedir@
 localstatedir = @localstatedir@
 mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
-pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
-psdir = @psdir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
@@ -218,9 +182,6 @@ LDADD = @ADAT_LIBS@ @ITPP_LIBS@ @LIBS@
 #
 semble_vfit_SOURCES = semble_vfit.cc semble_load_correlators.cc semble_fit_ini_xml.cc semble_file_management.cc semble_histogram.cc fit_correlators.cc fit_forms.cc jackknife_fitter.cc ensem_data.cc plot.cc linear_algebra.cc semble_linear_algebra.cc
 timeslice_covariance_SOURCES = timeslice_covariance.cc linear_algebra.cc ensem_data.cc
-test_luescher_SOURCES = test_luescher.cpp luescher.h luescher.cpp
-luescher_phase_shift_SOURCES = luescher_phase_shift.cpp luescher.cpp ensem_data.cc linear_algebra.cc
-luescher_phase_shift_with_estimated_delta4_SOURCES = luescher_phase_shift_with_estimated_delta4.cpp luescher.cpp ensem_data.cc linear_algebra.cc
 
 #
 # The following rule will always try to rebuild libadat.a when you 
@@ -231,7 +192,7 @@ DEPENDENCIES = ${lib_LIBRARIES}
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .cc .cpp .o .obj
+.SUFFIXES: .cc .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -290,18 +251,9 @@ clean-checkPROGRAMS:
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
-luescher_phase_shift$(EXEEXT): $(luescher_phase_shift_OBJECTS) $(luescher_phase_shift_DEPENDENCIES) 
-	@rm -f luescher_phase_shift$(EXEEXT)
-	$(CXXLINK) $(luescher_phase_shift_LDFLAGS) $(luescher_phase_shift_OBJECTS) $(luescher_phase_shift_LDADD) $(LIBS)
-luescher_phase_shift_with_estimated_delta4$(EXEEXT): $(luescher_phase_shift_with_estimated_delta4_OBJECTS) $(luescher_phase_shift_with_estimated_delta4_DEPENDENCIES) 
-	@rm -f luescher_phase_shift_with_estimated_delta4$(EXEEXT)
-	$(CXXLINK) $(luescher_phase_shift_with_estimated_delta4_LDFLAGS) $(luescher_phase_shift_with_estimated_delta4_OBJECTS) $(luescher_phase_shift_with_estimated_delta4_LDADD) $(LIBS)
 semble_vfit$(EXEEXT): $(semble_vfit_OBJECTS) $(semble_vfit_DEPENDENCIES) 
 	@rm -f semble_vfit$(EXEEXT)
 	$(CXXLINK) $(semble_vfit_LDFLAGS) $(semble_vfit_OBJECTS) $(semble_vfit_LDADD) $(LIBS)
-test_luescher$(EXEEXT): $(test_luescher_OBJECTS) $(test_luescher_DEPENDENCIES) 
-	@rm -f test_luescher$(EXEEXT)
-	$(CXXLINK) $(test_luescher_LDFLAGS) $(test_luescher_OBJECTS) $(test_luescher_LDADD) $(LIBS)
 timeslice_covariance$(EXEEXT): $(timeslice_covariance_OBJECTS) $(timeslice_covariance_DEPENDENCIES) 
 	@rm -f timeslice_covariance$(EXEEXT)
 	$(CXXLINK) $(timeslice_covariance_LDFLAGS) $(timeslice_covariance_OBJECTS) $(timeslice_covariance_LDADD) $(LIBS)
@@ -317,9 +269,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fit_forms.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jackknife_fitter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/linear_algebra.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/luescher.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/luescher_phase_shift.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/luescher_phase_shift_with_estimated_delta4.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semble_file_management.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semble_fit_ini_xml.Po@am__quote@
@@ -327,7 +276,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semble_linear_algebra.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semble_load_correlators.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semble_vfit.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_luescher.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/timeslice_covariance.Po@am__quote@
 
 .cc.o:
@@ -338,20 +286,6 @@ distclean-compile:
 @am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
 
 .cc.obj:
-@am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ `$(CYGPATH_W) '$<'`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-.cpp.o:
-@am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ $<
-
-.cpp.obj:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ `$(CYGPATH_W) '$<'`; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@

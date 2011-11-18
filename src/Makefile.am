@@ -19,9 +19,9 @@ LDADD = @ADAT_LIBS@ @ITPP_LIBS@ @LIBS@
 ##   be built by 'make check' and is not installed.
 #noinst_PROGRAMS = spectrum
 
-bin_PROGRAMS = semble_vfit timeslice_covariance luescher_phase_shift luescher_phase_shift_with_estimated_delta4 
+bin_PROGRAMS = semble_vfit timeslice_covariance
 noinst_PROGRAMS = 
-check_PROGRAMS = test_luescher
+check_PROGRAMS =
 EXTRA_PROGRAMS = 
 
 
@@ -33,11 +33,6 @@ semble_vfit_SOURCES = semble_vfit.cc semble_load_correlators.cc semble_fit_ini_x
 
 timeslice_covariance_SOURCES = timeslice_covariance.cc linear_algebra.cc ensem_data.cc
 
-test_luescher_SOURCES = test_luescher.cpp luescher.h luescher.cpp
-
-luescher_phase_shift_SOURCES = luescher_phase_shift.cpp luescher.cpp ensem_data.cc linear_algebra.cc
-
-luescher_phase_shift_with_estimated_delta4_SOURCES = luescher_phase_shift_with_estimated_delta4.cpp luescher.cpp ensem_data.cc linear_algebra.cc
 
 
 #
