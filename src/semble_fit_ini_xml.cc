@@ -402,7 +402,7 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, InputPropsRedstar_t &
   else
     prop.foldTimeReversal = "";
 
-  if(ptop.count("avdRows") > 0)
+  if(ptop.count("avgRows") > 0)
     read(ptop, "avgRows", prop.avgRows);
   else
     {
