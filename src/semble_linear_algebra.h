@@ -174,7 +174,7 @@ namespace SEMBLE
     reset only on the mean but are oterwise identical.  It is left to the user to decide which they want to use. 
   */
   
-  /*
+ 
   //do a moore penrose inverse (pseudo inverse)
   template<class T>
   SembleMatrix<T> invSVD(const SembleMatrix<T> &A, const double tol, double &avgReset);
@@ -205,7 +205,6 @@ namespace SEMBLE
   void solveLinearSVD_H(const SembleMatrix<T> &A, SembleVector<T> &x, const SembleVector<T> &b,
 		      SembleMatrix<T> &cov_x, const double tol, double &res, int &nReset);
 
-  */
 
 
 //generalized eigenproblem routines and helpers
@@ -1358,15 +1357,14 @@ namespace SEMBLE
 
   /*
     The routines invSVD, invSVDNorm and solveLinearSVD are the original routines from reconfit2, they seem to be 'cheating' in 
-    that there could exist cases in which we reset different numbers of singular values on a bin by bin basis, the though behind doing this 
+    that there could exist cases in which we reset different numbers of singular values on a bin by bin basis, the thought behind doing this 
     is that they are jackkniffed down (very little variance for reasonable sized ensembles) and so we would only be resetting 
-    extreme outliers, this may be true and the routines are left in place as they were in the original code.  
+    extreme outliers (or that it doesn't actually happen). This may be true and the routines are left in place as they were in the
+    original code.  
     
     New routines of using the same name with the suffix _H (for honest) are also below, instead of looking bin by bin they will 
     reset only on the mean but are oterwise identical.  It is left to the user to decide which they want to use. 
   */
-  
-  /*
 
   //do a moore penrose inverse (pseudo inverse)
   template<class T>
@@ -1386,7 +1384,7 @@ namespace SEMBLE
     
     for(int bin = 0; bin < bins; ++bin)
       for(int elem = 0; elem < elems; ++elem)	
-	if(s[bin][elem] > tol*s[bin][0])
+	if(s[bin][elem] > tol*s[bin][0])                  //this could introduce a bias
 	  sinv[bin][elem] = i./s[bin][elem];
 	else
 	  ++nreset;
@@ -1457,7 +1455,7 @@ namespace SEMBLE
     SembleVector<T> rres;
     res = A*x - b;
     typename PromoteEnsem<T>::Type dum = rres.dot(rres);
-    res = toScalar(mean(dum));
+    res = std::sqrt(toScalar(mean(dum)));
     nReset = int(avgResets);
   }
 
@@ -1474,8 +1472,6 @@ namespace SEMBLE
   void solveLinearSVD_H(const SembleMatrix<T> &A, SembleVector<T> &x, const SembleVector<T> &b,
 		      SembleMatrix<T> &cov_x, const double tol, double &res, int &nReset);
 
-
-  */
 
 
 

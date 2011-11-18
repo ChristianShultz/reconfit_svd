@@ -34,10 +34,6 @@ namespace SEMBLE
     SembleMatrix<T>& operator=(const SembleMatrix<T> &other);
     SembleMatrix<T>& operator=(const itpp::Mat<T> &other);
 
-  private:
-    //lazy copy -> deep copy
-    void modify(void);
-
   public:
     //peek data
     itpp::Mat<T> operator[](const int bin_) const;
@@ -376,7 +372,6 @@ namespace SEMBLE
   template<class T>
   void SembleMatrix<T>::setElement(const int bin_, const int row_, const int col_, const typename PromoteScalar<T>::Type &scalar)
   {
-    modify();
     setElement(bin_, row_, col_, toScalar(scalar));
   }
 

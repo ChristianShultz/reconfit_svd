@@ -36,10 +36,6 @@ namespace SEMBLE
     SembleVector<T>& operator=(const typename PromoteEnsemVec<T>::Type &other);
     SembleVector<T>& operator=(const itpp::Vec<T> &other);
 
-  private:
-    //lazy copy -> deep copy
-    void modify(void);
-
   public:
     //peek data
     itpp::Vec<T> operator[](const int bin) const;                                                 //return the vector on a bin
