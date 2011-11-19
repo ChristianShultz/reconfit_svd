@@ -487,18 +487,18 @@ namespace SEMBLE
     typename std::vector<ST0Base<T>* >::iterator it;
     ST0Base<T> *ptr, *ptrRef;
 
+    //just order them to be ascending/descending based on relative position to t0
+    for(it = _data.begin(); it != _data.end(); ++it)
+      {
+	if((*it)->getT() >= t0)
+	  reorderEigenValues((*it)->evals(), (*it)->w(), (*it)->evecs(), false);
+	else
+	  reorderEigenValues((*it)->evals(), (*it)->w(), (*it)->evecs(), true);
+      }
+
     switch(lset_hash(inikeys.sortingProps.sortEvecsTimeslice))
       {
-      case eNone:   //just order them to be ascending/descending based on relative position to t0
-
-        for(it = _data.begin(); it != _data.end(); ++it)
-          {
-            if((*it)->getT() >= t0)
-              reorderEigenValues((*it)->evals(), (*it)->w(), (*it)->evecs(), false);
-            else
-              reorderEigenValues((*it)->evals(), (*it)->w(), (*it)->evecs(), true);
-          }
-
+      case eNone:   //do nothing since we already did it above
         break;
 
       case eRefvecs_Moving: //phase starting with t0 -1 and carry it forward (backwards)
