@@ -12,37 +12,33 @@ namespace SEMBLE
 //overloaded, not templated
   void rephaseEVectors(SembleMatrix<double> &vecs)
   {
-    int b = vecs.bins(), n = vecs.rows(), m = vecs.cols();
-    bool rephase;
+    int n = vecs.rows(), m = vecs.cols();
     double max;
+    std::map<int,bool> rephase;
+    itpp::Mat<double> mvec = mean(vecs);
 
-    for(int bin = 0; bin < b; ++bin)
+    for(int vec = 0; vec < m; ++vec)
       {
+	max = 0;
+	itpp::Vec<double> dum = mvec.get_col(vec);
 
-        for(int vec = 0; vec < m; ++vec)
-          {
-            rephase = false;
-            max = 0.;
+	for(int elem = 0; elem < n; ++elem)
+	  if(fabs(dum(elem)) > fabs(max))
+	    max = dum(elem);
 
-            for(int elem = 0; elem < n; ++elem)
-              {
-                if(fabs(vecs[bin](elem, vec)) > max)
-                  {
-                    max = vecs[bin](elem, vec);
-
-                    if(max < 0.)
-                      {
-                        max *= -1.;
-                        rephase = true;
-                      }
-                    else
-                      rephase = false;
-                  }
-
-                if(rephase)
-                  (vecs[bin]).set_col(vec, -(vecs[bin]).get_col(vec));
-              }
-          }
+	if(max < 0)
+	  rephase.insert(std::pair<int,bool>(vec,true));
+	else
+	  rephase.insert(std::pair<int,bool>(vec,false));
+      }
+    
+    std::map<int,bool>::const_iterator it;
+    
+    for(it = rephase.begin(); it != rephase.end(); ++it)
+      {
+	if(it->second)
+	  for(int row = 0; row < n; ++row)
+	    vecs.loadEnsemElement(row,it->first,toScalar(-1.0)*vecs.getEnsemElement(row,it->first));
       }
   }
 

@@ -436,11 +436,13 @@ namespace SEMBLE
   {
     initChk();
 
-    EnsemReal zero;
-    zero.resize(B);
+    /*    SembleVector<double> dum(B, 1);
+    EnsemReal one,zero;
 
-    for(int b = 0; b < B; ++b)
-      pokeEnsem(zero, toScalar(0), b);
+    dum.ones();
+    one = dum.getEnsemElement(0);
+    dum.zeros();
+    zero = dum.getEnsemElement(0);
 
     //clean out anything thats old
     mass_0.clear();
@@ -449,6 +451,8 @@ namespace SEMBLE
     pCorrFitName.clear();
     pCorrFitPlot.clear();
     pCorrChiSqPDoF.clear();
+
+    //reserve the space we need
     mass_0.resize(M, zero);
     mass_1.resize(M, zero);
     A.resize(M, zero);
@@ -475,9 +479,6 @@ namespace SEMBLE
             tslice.push_back(t);
           }
 
-        SembleVector<double> one(B, 1), zero(B, 1);
-        zero.zeros();
-        one.ones();
         EnsemData pCorrData(tslice, lambda);
         Handle<FitComparator> fitC = fitComp(inikeys.prinCorrProps.fitCrit);
         FitPrincipalCorrelator pCorrFit(pCorrData, t0, fitC, inikeys.prinCorrProps.noiseCutoff, inikeys.prinCorrProps.minTSlices);
@@ -485,7 +486,7 @@ namespace SEMBLE
         mass_0[state] = pCorrFit.getMass0();
 
         if(toScalar(mean(mass_0[state])) <= 0.0)
-          mass_0[state] = one.getEnsemElement(0);
+          mass_0[state] = one;
 
         if(pCorrFit.getNExp() == 2)
           {
@@ -502,8 +503,8 @@ namespace SEMBLE
           }
         else
           {
-            mass_1[state] = zero.getEnsemElement(0);
-            A[state] = zero.getEnsemElement(0);
+            mass_1[state] = zero;
+            A[state] = zero;
           }
 
         pCorrFitName[state] = pCorrFit.getFitName();
@@ -512,9 +513,89 @@ namespace SEMBLE
 
       }//next pcorr
 
+    */
+
+    int bins = B;
+    PrinCorrProps_t ini = inikeys.prinCorrProps;
+    std::vector<SembleVector<double> > lambda_t(eVals);
+
+    cout << "fit the principal correlators" << endl;
+    // loop over states
+    for(int i=0; i < M; i++){
+      cout << "... fitting state " << i << endl;
+      
+      stringstream log;
+      log << "** fitting state unordered # " << i << " **" << endl;
+      
+      
+      //make the data
+      EnsemVectorReal lambda; lambda.resize(bins); lambda.resizeObs(ini.tmax - inikeys.globalProps.tmin + 1);
+      vector<double> tslices;
+      for(int t = inikeys.globalProps.tmin; t <= ini.tmax; t++){
+	pokeObs(lambda, lambda_t[t](i), t - inikeys.globalProps.tmin);
+	tslices.push_back(t);
+      }
+      EnsemData prinCorrData(tslices, lambda);
+      
+      //make the possible fit comparators
+      map<string, Handle<FitComparator> > dum;
+      
+      CompareFitsByChisqPerNDoF* comp1 = new CompareFitsByChisqPerNDoF; Handle<FitComparator> comp1H(comp1);
+      dum.insert( make_pair("chisq_per_dof", comp1H) );
+      CompareFitsByQ* comp2 = new CompareFitsByQ; Handle<FitComparator> comp2H(comp2);
+      dum.insert( make_pair("Q", comp2H) );
+      CompareFitsBySplitN* comp3 = new CompareFitsBySplitN; Handle<FitComparator> comp3H(comp3);
+      dum.insert( make_pair("splitN", comp3H) );
+      CompareFitsByGeneric* comp4 = new CompareFitsByGeneric; Handle<FitComparator> comp4H(comp4);
+      dum.insert( make_pair("generic", comp4H) );
+      CompareFitsByQN* comp5 = new CompareFitsByQN; Handle<FitComparator> comp5H(comp5);
+      dum.insert( make_pair("QN", comp5H) );
+      if((ini.fitCrit != "chisq_per_dof") && (ini.fitCrit != "Q") && (ini.fitCrit != "splitN") && (ini.fitCrit != "generic") && (ini.fitCrit != "QN"))
+	{cerr << "fit criterion " << ini.fitCrit << " is not known" << endl; exit(1);}
+      
+      //do the fit
+      FitPrincipalCorrelator fitPrinCorr(prinCorrData, t0, dum[ini.fitCrit], ini.noiseCutoff, ini.minTSlices); 
+      
+      //the fit might have returned something stupid like:
+      //negative or zero mass
+      //second exp mass small than first ...
+      //check for these cases and kill them (send the mass to the cutoff)
+      EnsemReal m0 = fitPrinCorr.getMass0();
+      EnsemReal m1 = Real(0)*m0;
+      EnsemReal A1 = Real(0)*m0;
+      if(toDouble(mean(m0)) <= 0.0 ){m0 = (m0/m0);}
+      
+      if(fitPrinCorr.getNExp() == 2){
+	m1 = fitPrinCorr.getMass1();
+	A1 = fitPrinCorr.getA();
+	
+	if(toDouble(mean(m1 - m0)) < 0.0){ m0 = (m0/m0); m1 = Real(0)*m0; A1 = Real(0)*m0; }
+      }
+      
+      mass_0.push_back(m0);
+      mass_1.push_back(m1);
+      A.push_back(A1);
+      
+      
+      /*
+      fitnames.push_back(fitPrinCorr.getFitName());
+      chisq_per_ndof.push_back(fitPrinCorr.getChisq() / fitPrinCorr.getNDoF());
+      fit_plots.push_back(fitPrinCorr.getFitPlotString());
+      */
+
+      pCorrFitName.push_back(fitPrinCorr.getFitName());
+      pCorrChiSqPDoF.push_back(fitPrinCorr.getChisq() / fitPrinCorr.getNDoF());
+      pCorrFitPlot.push_back(fitPrinCorr.getFitPlotString());
+
+      log << fitPrinCorr.getFitSummary() << endl;
+      log << "** ensem fit value **   m= " << toDouble(mean(m0)) << " +/- " << toDouble(sqrt(variance(m0))) << endl;
+      
+    } //next prin corr
+    //==================================================
+    
     pcorr = true;
   }
-
+  
 //*** write out the spectrum in a nice format -  whatever order the genEig solver chose  ***
   template<class T>
   void ST0Fit<T>::printSpectrum(ostream &output) const
@@ -527,7 +608,7 @@ namespace SEMBLE
 
     output << endl << endl;
     output << "**********************" << endl;
-    output << "*      SPECTRUM      *" << endl;
+    output << "* UNORDERED SPECTRUM *" << endl;
     output << "**********************" << endl;
 
     output << "state|        mass         |           fit           |chisq/nDoF | " << endl;
@@ -792,14 +873,9 @@ namespace SEMBLE
     if(inikeys.globalProps.verbose)
       std::cout << "Making Z.." << std::endl;
 
-    SembleMatrix<T> dum(1, 1, 1);
-
-    for(int t = 0; t < inikeys.globalProps.tmin; ++t)
-      Z.push_back(dum);
-
 
     //make it for everything
-    for(int t = inikeys.globalProps.tmin; t < eVecs.size(); ++t)
+    for(int t = 0; t <= inikeys.zProps.tmax; ++t)
       {
         SembleVector<T> dum_vals(B, M);
         dum_vals.zeros();
@@ -1104,12 +1180,17 @@ namespace SEMBLE
         {
           typename PromoteEnsemVec<T>::Type evec;
           evec.resize(B);
-          evec.resizeObs(inikeys.prinCorrProps.tmax + 1);
+          evec.resizeObs(inikeys.globalProps.tmax + 1);
 
-          for(int t = 0; t < inikeys.globalProps.tmin; ++t)
-            pokeObs(evec, eVecs[0].getEnsemElement(0, 0) / eVecs[0].getEnsemElement(0, 0), t);
 
-          for(int t = inikeys.globalProps.tmin; t <= inikeys.prinCorrProps.tmax; ++t)
+	  for(int t = 0; t < inikeys.globalProps.tmin; ++ t)
+	    pokeObs(evec,
+		    eVecs[inikeys.globalProps.tmin].getEnsemElement(0,0)
+		    /eVecs[inikeys.globalProps.tmin].getEnsemElement(0,0),  //one
+		    t);
+	      
+	      
+          for(int t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
             pokeObs(evec, eVecs[t].getEnsemElement(op, state), t);
 
           std::ostringstream file;
@@ -1149,12 +1230,15 @@ namespace SEMBLE
               {
                 typename PromoteEnsemVec<T>::Type evec;
                 evec.resize(B);
-                evec.resizeObs(inikeys.prinCorrProps.tmax + 1);
+                evec.resizeObs(inikeys.globalProps.tmax + 1);
 
-                for(int t = 0; t < inikeys.globalProps.tmin; ++t)
-                  pokeObs(evec, eVecs[0].getEnsemElement(0, 0) / eVecs[0].getEnsemElement(0, 0), t);
+		for(int t = 0; t < inikeys.globalProps.tmin; ++ t)
+		  pokeObs(evec,
+			  eVecs[inikeys.globalProps.tmin].getEnsemElement(0,0)
+			  /eVecs[inikeys.globalProps.tmin].getEnsemElement(0,0),  //one
+			  t);
 
-                for(int t = inikeys.globalProps.tmin; t <= inikeys.prinCorrProps.tmax; ++t)
+                for(int t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
                   pokeObs(evec, eVecs[t].getEnsemElement(op, it->second), t);
 
                 std::ostringstream file;

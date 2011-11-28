@@ -487,7 +487,7 @@ namespace SEMBLE
     typename std::vector<ST0Base<T>* >::iterator it;
     ST0Base<T> *ptr, *ptrRef;
 
-    //just order them to be ascending/descending based on relative position to t0
+    //just order them to be ascending/descending based on relative position to t0, also enforces the phase convention
     for(it = _data.begin(); it != _data.end(); ++it)
       {
 	if((*it)->getT() >= t0)
@@ -732,7 +732,7 @@ namespace SEMBLE
 
     std::vector<SembleVector<double> > dum;
 
-    SembleVector<double> one(1, 1);
+    SembleVector<double> one(B, M);
     one.ones();
 
     for(int i = 0; i < inikeys.globalProps.tmin; ++i)
@@ -757,7 +757,7 @@ namespace SEMBLE
 
     typename std::vector<SembleMatrix<T> > dum;
 
-    SembleMatrix<T> one(1, 1, 1);
+    SembleMatrix<T> one(B,N, M);
     one.ones();
 
     for(int i = 0; i < inikeys.globalProps.tmin; ++i)

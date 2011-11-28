@@ -114,8 +114,11 @@ namespace SEMBLE
   template<class T> //order eigenvalues by magnitude, asc or dsc
   void reorderEigenValues(SembleVector<double> &eVals, SembleMatrix<T> &w, SembleMatrix<T> &eVec, bool orderAsc);
 
-  template<class T> //enforce a phase convenction -- calls overloaded rephaseEVectors
-  void rephaseEigenVectors(SembleMatrix<T> &vecs, bool rescale = true);
+  template<class T> //attach a phase, largest element by modulus is real & positive
+  void rephaseEigenVectors(itpp::Mat<T> &evecs);
+
+  template<class T> //enforce a phase convenction on the mean -- calls overloaded rephaseEVectors
+  void rephaseEigenVectors(SembleMatrix<T> &vecs);
 
 //rephase doubles, need to overload for complex types
   void rephaseEVectors(SembleMatrix<double> &vecs);
@@ -565,10 +568,9 @@ namespace SEMBLE
     int maxr, maxv, dim = ref.cols();
     T max_lap;
     std::map<int, int> lap_map;
-    std::map<int, bool> resign;
     std::vector<bool> ur(dim, false), uv(dim, false);
 
-    laps = itpp::hermitian_transpose(vecs) * ref;
+    laps = itpp::hermitian_transpose(ref) * vecs;
 
     for(int state = 0; state < dim; ++ state)
       {
@@ -586,7 +588,7 @@ namespace SEMBLE
                 if(uv[vec])
                   continue;
 
-                if(fabs(laps(ref, vec)) > max_lap)
+                if(fabs(laps(ref, vec)) >= max_lap)
                   {
                     max_lap = fabs(laps(ref, vec));
                     maxr = ref;
@@ -598,32 +600,23 @@ namespace SEMBLE
         lap_map[maxr] = maxv;
         ur[maxr] = true;
         uv[maxv] = true;
-
-        if(laps(maxr, maxv) < 0)
-          resign[maxv] = true;
-        else
-          resign[maxv] = false;
       }
 
-
-    for(int state = 0; state < dim; ++state)
+    std::map<int,int>::const_iterator it;
+    for(it = lap_map.begin(); it != lap_map.end(); ++it)
       {
-        if(state == lap_map[state])
-          {
-            if(!!!resign[state])
-              continue;
-
-            vecs.set_col(state, -vec_cp.get_col(state));
-          }
-        else
-          {
-            vals.set(lap_map[state], val_cp.get(state));
-
-            if(resign[lap_map[state]])
-              vecs.set_col(lap_map[state], -vec_cp.get_col(state));
-            else
-              vecs.set_col(lap_map[state], vec_cp.get_col(state));
-          }
+	if(it->first == it->second)
+	  {
+	    T factor = (laps(it->first,it->second)/fabs(laps(it->first, it->second)));
+	    if(factor != T(1.))
+	      vecs.set_col(it->first,factor*vec_cp.get_col(it->second));
+	  }
+	else
+	  {
+	    vals.set(it->first, val_cp.get(it->second));
+	    T factor = (laps(it->first,it->second)/fabs(laps(it->first, it->second)));
+	    vecs.set_col(it->first,factor*vec_cp.get_col(it->second));
+	  }
       }
   }
 
@@ -645,8 +638,13 @@ namespace SEMBLE
 
     int bin_ = inV.getB();
 
+    //set a phase on bin 0
+    rephaseEigenVectors(inM[0]);
+
+    //set an ordering on bin 0
     matchEigenValueSize(inM[0], inV[0], true);
 
+    //enforce the phase/ordering
     for(int bin = 1; bin < bin_; ++bin)
       {
         matchEigenVectors(inM[0], inM[bin], inV[bin]);
@@ -713,16 +711,15 @@ namespace SEMBLE
       }
   }
 
-  template<class T> //match eigen systems of the same size  ------------------------------------------------------------------THIS ONE
+  template<class T> //match eigen systems of the same size  
   void matchEigenVectorsEnsemble(const SembleMatrix<T> &ref, SembleMatrix<T> &vecs, SembleVector<double> &vals)
   {
 
     int dim_ = ref.getM();
-    itpp::Mat<T> laps = mean(adj(vecs) * ref); // this checks the dim
+    itpp::Mat<T> laps = mean(adj(ref) * vecs); // this checks the dim
     int maxr, maxv, dim = laps.cols();
     std::vector<bool> ur(dim, false), uv(dim, false);
     std::map<int, int> lap_map;
-    std::map<int, bool> resign;
     T max_lap;
 
     if(laps.rows() != laps.cols())
@@ -748,7 +745,7 @@ namespace SEMBLE
                 if(uv[vec])
                   continue;
 
-                if(fabs(laps(ref, vec)) > max_lap)
+                if(fabs(laps(ref, vec)) >= max_lap)
                   {
                     max_lap = fabs(laps(ref, vec));
                     maxr = ref;
@@ -760,43 +757,32 @@ namespace SEMBLE
         lap_map[maxr] = maxv;
         ur[maxr] = true;
         uv[maxv] = true;
-
-        if(laps(maxr, maxv) < 0)
-          resign[maxv] = true;
-        else
-          resign[maxv] = false;
       }
 
     int row_ = vecs.rows();
     SembleMatrix<T> vec_cp(vecs);
     SembleVector<double> val_cp(vals);
+    std::map<int,int>::const_iterator it;
 
-    for(int col = 0; col < dim; ++col)
+    //technically the factor is an ensemble object, the old code didn't use an ensemble so we won't either, we 
+    //assume that since this is all done jackknife down that the ensemble factor is basically an ensemble of the mean..
+    for(it = lap_map.begin(); it != lap_map.end(); ++it)
       {
+	if(it->first == it->second)
+	  {
+	    typename PromoteScalar<T>::Type factor = toScalar(laps(it->first,it->second)/fabs(laps(it->first,it->second)));
+	    if(toScalar(factor) != T(1.))
+	      for(int row(0); row < row_; ++row)
+		vecs.loadEnsemElement(row,it->first,factor*vec_cp.getEnsemElement(row,it->second));
+	  }
+	else
+	  {
+	    typename PromoteScalar<T>::Type factor = toScalar(laps(it->first,it->second)/fabs(laps(it->first,it->second)));
+	    vals.loadEnsemElement(it->first,val_cp.getEnsemElement(it->second));
+	    for(int row(0); row < row_; ++row)
+		vecs.loadEnsemElement(row,it->first,factor*vec_cp.getEnsemElement(row,it->second));
+	  }
 
-        if(col == lap_map[col])
-          {
-            if(!!!resign[col])
-              continue;
-
-            for(int row = 0; row < row_; ++row)
-              vecs.loadEnsemElement(row, col, -vec_cp.getEnsemElement(row, col));
-          }
-        else
-          {
-            vals.loadEnsemElement(lap_map[col], val_cp.getEnsemElement(col));
-
-            if(resign[lap_map[col]])
-              {
-                for(int row = 0; row < row_; ++row)
-                  vecs.loadEnsemElement(row, lap_map[col], -vec_cp.getEnsemElement(row, col));
-              }
-            else
-              {
-                for(int row = 0; row < row_; ++row)
-                  vecs.loadEnsemElement(row, lap_map[col], vec_cp.getEnsemElement(row, col));
-              }
-          }
       }
   }
 
@@ -841,18 +827,30 @@ namespace SEMBLE
       }
   }
 
-  template<class T>
-  void rephaseEigenVectors(SembleMatrix<T> &vecs, bool rescale = true)
+  template<class T> //attach a phase, largest element by modulus is real & positive
+  void rephaseEigenVectors(itpp::Mat<T> &evecs)
   {
+    int nvecs = evecs.cols(); 
+    int nelem = evecs.rows();
 
-    if(rescale)
-      vecs.rescaleSembleDown();
+    for(int vec = 0; vec < nvecs; ++vec)
+      {
+	itpp::Vec<T> v = evecs.get_col(vec);
+	T max = T(0.);
 
+	for(int elem = 0; elem < nelem; ++elem)
+	  if(abs(v(elem)) > abs(max))
+	    max = v(elem);
+
+	v *= max/abs(max);
+	evecs.set_col(vec,v);
+      }
+  }
+
+  template<class T>
+  void rephaseEigenVectors(SembleMatrix<T> &vecs)
+  {
     rephaseEVectors(vecs);
-
-    if(rescale)
-      vecs.rescaleSembleUp();
-
   }
 
 //these can be of differing sizes, map is where it goes, pair is which state and phase
@@ -885,11 +883,11 @@ namespace SEMBLE
                 if(uv[v])
                   continue;
 
-                if(abs(lap(r, v)) >= maxlap)
+                if(fabs(lap(r, v)) >= maxlap)
                   {
                     maxr = r;
                     maxv = v;
-                    maxlap = abs(lap(r, v));
+                    maxlap = fabs(lap(r, v));
                   }
               }
 
@@ -1102,7 +1100,14 @@ namespace SEMBLE
       if(!!!itpp::eig_sym(dum[bin], vals[bin], V[bin]))
         success = false;
 
-    rephaseEigenVectors(V, false); // dont rescale them, they already are/aren't, largest element is positive, need to make for complex types
+    //match everything to bin 0 and put bin 0 phase convention
+    matchEigenVectorsEnsemble(V,vals,false);
+
+
+    //now do the largest element by modulus overall phase convention on the mean
+    //this enforces a new phase convention, its a bit stupid since another new one gets enforced later for the GEVP
+    //but eig_sym is a separate routine so it should have some phase convention attached to it for the sake of linear algebra
+    rephaseEigenVectors(V); 
 
 
     if(!!!success)
@@ -1514,6 +1519,9 @@ namespace SEMBLE
       matchEigenValueSizeEnsemble(wVecs, eVals);
 
     eVecs = Finv * wVecs;
+
+    //enforce a phase convention
+    //rephaseEigenVectors(eVecs);
   }
 
 //cho
@@ -1548,6 +1556,9 @@ namespace SEMBLE
       matchEigenValueSizeEnsemble(wVecs, eVals);
 
     eVecs = Finv * wVecs;
+
+    //enforce a phase convention
+    //rephaseEigenVectors(eVecs);
   }
 
 //cho
@@ -1587,6 +1598,9 @@ namespace SEMBLE
     matchEigenVectorsEnsemble(refW, wVecs, eVals);
 
     eVecs = Finv * wVecs;
+
+    //enforce a phase convention
+    //rephaseEigenVectors(eVecs);
   }
 
 
@@ -1637,6 +1651,9 @@ namespace SEMBLE
       matchEigenValueSizeEnsemble(wVecs, eVals);
 
     eVecs = U * adj(RSIP) * wVecs;
+
+    //enforce a phase convention
+    //rephaseEigenVectors(eVecs);
   }
 
   template<class T>
@@ -1687,6 +1704,9 @@ namespace SEMBLE
       matchEigenValueSizeEnsemble(wVecs, eVals);
 
     eVecs = U * adj(RSIP) * wVecs;
+
+    //enforce a phase convention
+    //rephaseEigenVectors(eVecs);
   }
 
   template<class T> //nb only for hermitian matricies
@@ -1724,6 +1744,9 @@ namespace SEMBLE
 
     eVecs = U * adj(rootSinvPlus) * wVecs;
 
+    //enforce a phase convention
+    //rephaseEigenVectors(eVecs);
+
   }
 
   template<class T> //nb only for hermitian matricies
@@ -1760,10 +1783,13 @@ namespace SEMBLE
     else
       matchEigenValueSizeEnsemble(wVecs, eVals);
 
-    eVecs = U * adj(rootSinvPlus) * wVecs;
-
     //this orders the ensemble
     matchEigenVectorsEnsemble(refW, wVecs, eVals);
+ 
+    eVecs = U * adj(rootSinvPlus) * wVecs;
+
+    //enforce a phase convention
+    //rephaseEigenVectors(eVecs);
 
   }
 
