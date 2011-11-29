@@ -498,7 +498,7 @@ namespace SEMBLE
     for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
         if(reordered)
-          t0_fits[t0]->printPrinCorrFiles(reorder[t0]);
+          t0_fits[t0]->printPrinCorrFilesReorder(reorder[t0]);
         else
           t0_fits[t0]->printPrinCorrFiles();
       }
@@ -878,10 +878,10 @@ std:
 
     reorder.clear();
 
-    int nops = tp.begin()->getN();
-    int B = tp.begin()->getB();
-    int nvecs = max_states;
-    int t0_ref = inikeys.t0Props.t0ref;
+    const int nops = tp.end()->getN();
+    const int B = tp.end()->getB();
+    const int nvecs = max_states;
+    const int t0_ref = inikeys.t0Props.t0ref;
 
     typename std::map<int, SembleMatrix<T> > metric;
 
@@ -894,118 +894,125 @@ std:
         metric.insert(std::make_pair(t0, sqrt(s)*adj(U)));
       }
 
-    std::vector<std::vector<std::vector<int> > > state_map;  //outter is t0, next is state, inner is ref counts
-    std::vector<int> zero(nvecs, 0);
-    std::vector<std::vector<int> > state_zero(nvecs, zero);
-    state_map.resize(inikeys.t0Props.t0high - inikeys.t0Props.t0low + 1, state_zero);
+    std::vector<int> zero(nvecs,0);
+    std::vector<std::vector<int> > dum(nvecs,zero);
+    std::vector<std::vector<std::vector<int> > > counts(inikeys.t0Props.t0high - inikeys.t0Props.t0low + 1, dum);
 
+    //use counts to keep a tally for a maximum likelyhood overlap map
+    //outter vector is t0, inner vector is the ref state, innermost vector is the state on that t0
 
-    //loop over each time to get a maximum likelyhood map
-    for(int t = t0_ref; t <= inikeys.prinCorrProps.tmax; ++t)
+    //now lets loop over each t0 value
+    for(int t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
       {
-        std::map<int, int> mapp;
-        std::map<int, int>::const_iterator it;
-        SembleMatrix<T> Wt_t0 = metric[t0_ref] * t0_fits[t0_ref]->peekVecs(t);
+	if(t == t0_ref) //no eigenvectors, don't want to contaminate map with junk
+	  continue;
 
-        for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
-          {
-            mapp = makeRemap(Wt_t0, metric[t0] * t0_fits[t0]->peekVecs(t), nvecs);
+	const SembleMatrix<T> W_t_ref = metric[t0_ref]*t0_fits[t0_ref]->peekVecs(t);
 
-            for(it = mapp.begin(); it != mapp.end(); ++it)
-              {
-                if(it->second == -1)  //no mapping
-                  continue;
-                else
-                  ++state_map[t0 - inikeys.t0Props.t0low][it->first][it->second];
-              }
-          }
+	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  {
+	    if(t == t0) //no eigenvectors, don't want to contaminate map with junk
+	      continue;
+	    
+	    std::map<int,int> mapp = makeRemap(W_t_ref,metric[t0]*t0_fits[t0]->peekVecs(t),nvecs);
+	    std::map<int,int>::const_iterator it;
+
+	    for(it = mapp.begin(); it != mapp.end(); ++it)
+	      if(it->second == -1)    
+		continue;                             //no mapping
+	      else
+		++counts[t0 - inikeys.t0Props.t0low][it->first][it->second];  //increment
+	  }
       }
+
+    const int refdim = t0_fits[t0_ref]->getM();
 
     for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
-        state_zero = state_map[t0 - inikeys.t0Props.t0low];
-        std::map<int, int> t0map;
-        std::vector<bool> ur, uv;
-        int maxr, maxv, count;
-	int vecdim = t0_fits[t0]->getM();
-	int refdim = t0_fits[t0_ref]->getM();
-	int bound = (vecdim < refdim) ? vecdim : refdim;
-        ur.resize(refdim, false);
-        uv.resize(vecdim, false);
+	const int vecdim = t0_fits[t0]->getM();
+	const int bound = (refdim < vecdim) ? refdim : vecdim;
+	std::vector<bool> ur(nvecs,false),uv(nvecs,false);
+	int mr,mv,m;
+	std::map<int,int> rmap_t0;
 
-        for(int state = 0; state < bound; ++state)
-          {
-            maxr = 0;
-            maxv = 0;
-            count = 0;
+	dum = counts[t0 - inikeys.t0Props.t0low];
 
-            for(int ref = 0; ref < refdim; ++ref)
-              {
-                if(ur[ref])
-                  continue;
+	for(int state = 0; state < bound; ++state)
+	  {
+	    mr = 0;
+	    mv = 0;
+	    m = 0;
 
-                for(int vec = 0; vec < vecdim; ++vec) 
-                  {
-                    if(uv[vec])
-                      continue;
+	    for(int r = 0; r < nvecs; ++r)
+	      if(ur[r]) 
+		continue;
+	      else
+		for(int v = 0; v < nvecs; ++v)
+		  {
+		    if(uv[v])
+		      continue;
+		    
+		    if(dum[r][v] > m)
+		      {
+			m = dum[r][v];
+			mr = r;
+			mv = v;
+		      }
+		  }
 
-                    if(state_zero[ref][vec] >= count) //the geq op could match something with zero counts..
-                      {
-			count = state_zero[maxr][maxv];
-                        maxr = ref;
-                        maxv = vec;
-                      }
-                  }
-              }
+	    ur[mr] = true;
+	    uv[mv] = true;
+	    rmap_t0[mr] = mv;
+	  }
 
-	    ur[maxr] = true;
-	    uv[maxv] = true;
-	    t0map.insert(std::make_pair(maxr, maxv));
-	      
-          }
 
-	/*Three cases
-	  refdim = vecdim - do nothing
-	  refdim < vecdim - match lowest leftover to lowest
-	  refdim > vecdim - match then fill in -1 for unused states
+	/*
+	    CASES
+	           1) refdim = vecdim - do nothing
+		   2) refdim < vecdim - pile anything that didn't map on top with a lowest to lowest convention
+		   3) refdim > vecdim - don't need to do anything, the map takes care of itself
 	 */
 
-	if(refdim != vecdim)
+	if(refdim < vecdim)
 	  {
-	    if(refdim > vecdim)
-	      {
-		for(int index(0); index < refdim; ++index)
-		  if(!!!ur[index])
-		    t0map.insert(std::make_pair(index,-1));
-	      }
-	    else
-	      {
-		std::vector<int> availablev, availabler;
-		
-		for(int index = 0; index < vecdim; ++index)
-		  {
-		    if(!!!uv[index])
-		      availablev.push_back(index);
-		    
-		    if(index < refdim)
-		      {
-			if(!!!ur[index])
-			  availabler.push_back(index);
-		      }
-		    else
-		      availabler.push_back(index);
-		  }
-		
-		for(int index = 0; index < availablev.size(); ++index)
-		  t0map.insert(std::make_pair(availabler[index],availablev[index]));
+	    ur.clear();
+	    uv.clear();
 
+	    ur.resize(vecdim,false);
+	    uv.resize(vecdim,false);
+	    
+	    std::map<int,int>::const_iterator it;
+	    
+	    for(it = rmap_t0.begin(); it != rmap_t0.end(); ++it)
+	      {
+		ur[it->first] = true;
+		uv[it->second] = true;
 	      }
 
-	  }//end cases
+	    std::vector<int> rr,vv;
 
-        reorder.insert(std::make_pair(t0, t0map));
+	    for(int i = 0; i < vecdim; ++i)
+	      {
+		if(ur[i])
+		  rr.push_back(i);
+		if(uv[i])
+		  vv.push_back(i);
+	      }
 
-      }//end t0
+	    if(rr.size() != vv.size())
+	      {
+		std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
+		std::cout << " If you see this something went horribly wrong" << std::endl;
+		exit(1);
+	      }
+
+	    for(int i = 0; i < rr.size(); ++i)
+	      rmap_t0[rr[i]] = vv[i];
+	  }
+
+	reorder[t0] = rmap_t0;
+
+      }//end t0 loop
 
     reordered = true;
   }

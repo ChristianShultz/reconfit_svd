@@ -488,6 +488,10 @@ namespace SEMBLE
     ST0Base<T> *ptr, *ptrRef;
 
     //just order them to be ascending/descending based on relative position to t0, also enforces the phase convention
+   
+    //THIS SHOULD BE ON, TEMP OFF TO CHECK T0 MATCHING..
+
+    /*
     for(it = _data.begin(); it != _data.end(); ++it)
       {
 	if((*it)->getT() >= t0)
@@ -495,6 +499,7 @@ namespace SEMBLE
 	else
 	  reorderEigenValues((*it)->evals(), (*it)->w(), (*it)->evecs(), true);
       }
+    */
 
     switch(lset_hash(inikeys.sortingProps.sortEvecsTimeslice))
       {

@@ -21,6 +21,23 @@
 #include<string>
 #include<utility>
 
+/*
+  A class that solves the GEVP for a single value of t0 then uses the 
+  generalized eigenvectors and generalized eigenvalues to solve for the 
+  spectrum and the overlaps (Z)
+  
+  The reorder maps used in multi-t0 fitting obey the following conventions
+  1) map keys are the number assigned to the ordered states, data is the 
+     state on this t0
+  2) When using SVD we could potentially have different numbers of 
+     states on each t0, a mapped value of -1 means the state did
+     not map to any state at this value of t0
+*/
+
+
+
+
+
 namespace SEMBLE
 {
 
@@ -51,7 +68,7 @@ namespace SEMBLE
     void printMassFile(void) const;                                        //print the unordered jack files
     void printMassFileReorder(const std::map<int, int> &mapp) const;       //print the reordered jack files
     void printPrinCorrFiles(void) const;                                   //print the unordered pcorr files
-    void printPrinCorrFiles(const std::map<int, int> &mapp) const;         //print the reordered pcorr files
+    void printPrinCorrFilesReorder(const std::map<int, int> &mapp) const;  //print the reordered pcorr files
 
   public:
     //overlap methods
@@ -131,7 +148,7 @@ namespace SEMBLE
     typename PromoteEnsem<T>::Type const peekZ(int s, int o) const
     {
       zfitChk();  //pull the ensemble from the fit
-      return zFit.getEnsemElement(s, o);
+      return zFit.getEnsemElement(s, o);          
     }
     SembleMatrix<T> getZFit(void) const
     {
@@ -436,7 +453,7 @@ namespace SEMBLE
   {
     initChk();
 
-    /*    SembleVector<double> dum(B, 1);
+    SembleVector<double> dum(B, 1);
     EnsemReal one,zero;
 
     dum.ones();
@@ -513,87 +530,6 @@ namespace SEMBLE
 
       }//next pcorr
 
-    */
-
-    int bins = B;
-    PrinCorrProps_t ini = inikeys.prinCorrProps;
-    std::vector<SembleVector<double> > lambda_t(eVals);
-
-    cout << "fit the principal correlators" << endl;
-    // loop over states
-    for(int i=0; i < M; i++){
-      cout << "... fitting state " << i << endl;
-      
-      stringstream log;
-      log << "** fitting state unordered # " << i << " **" << endl;
-      
-      
-      //make the data
-      EnsemVectorReal lambda; lambda.resize(bins); lambda.resizeObs(ini.tmax - inikeys.globalProps.tmin + 1);
-      vector<double> tslices;
-      for(int t = inikeys.globalProps.tmin; t <= ini.tmax; t++){
-	pokeObs(lambda, lambda_t[t](i), t - inikeys.globalProps.tmin);
-	tslices.push_back(t);
-      }
-      EnsemData prinCorrData(tslices, lambda);
-      
-      //make the possible fit comparators
-      map<string, Handle<FitComparator> > dum;
-      
-      CompareFitsByChisqPerNDoF* comp1 = new CompareFitsByChisqPerNDoF; Handle<FitComparator> comp1H(comp1);
-      dum.insert( make_pair("chisq_per_dof", comp1H) );
-      CompareFitsByQ* comp2 = new CompareFitsByQ; Handle<FitComparator> comp2H(comp2);
-      dum.insert( make_pair("Q", comp2H) );
-      CompareFitsBySplitN* comp3 = new CompareFitsBySplitN; Handle<FitComparator> comp3H(comp3);
-      dum.insert( make_pair("splitN", comp3H) );
-      CompareFitsByGeneric* comp4 = new CompareFitsByGeneric; Handle<FitComparator> comp4H(comp4);
-      dum.insert( make_pair("generic", comp4H) );
-      CompareFitsByQN* comp5 = new CompareFitsByQN; Handle<FitComparator> comp5H(comp5);
-      dum.insert( make_pair("QN", comp5H) );
-      if((ini.fitCrit != "chisq_per_dof") && (ini.fitCrit != "Q") && (ini.fitCrit != "splitN") && (ini.fitCrit != "generic") && (ini.fitCrit != "QN"))
-	{cerr << "fit criterion " << ini.fitCrit << " is not known" << endl; exit(1);}
-      
-      //do the fit
-      FitPrincipalCorrelator fitPrinCorr(prinCorrData, t0, dum[ini.fitCrit], ini.noiseCutoff, ini.minTSlices); 
-      
-      //the fit might have returned something stupid like:
-      //negative or zero mass
-      //second exp mass small than first ...
-      //check for these cases and kill them (send the mass to the cutoff)
-      EnsemReal m0 = fitPrinCorr.getMass0();
-      EnsemReal m1 = Real(0)*m0;
-      EnsemReal A1 = Real(0)*m0;
-      if(toDouble(mean(m0)) <= 0.0 ){m0 = (m0/m0);}
-      
-      if(fitPrinCorr.getNExp() == 2){
-	m1 = fitPrinCorr.getMass1();
-	A1 = fitPrinCorr.getA();
-	
-	if(toDouble(mean(m1 - m0)) < 0.0){ m0 = (m0/m0); m1 = Real(0)*m0; A1 = Real(0)*m0; }
-      }
-      
-      mass_0.push_back(m0);
-      mass_1.push_back(m1);
-      A.push_back(A1);
-      
-      
-      /*
-      fitnames.push_back(fitPrinCorr.getFitName());
-      chisq_per_ndof.push_back(fitPrinCorr.getChisq() / fitPrinCorr.getNDoF());
-      fit_plots.push_back(fitPrinCorr.getFitPlotString());
-      */
-
-      pCorrFitName.push_back(fitPrinCorr.getFitName());
-      pCorrChiSqPDoF.push_back(fitPrinCorr.getChisq() / fitPrinCorr.getNDoF());
-      pCorrFitPlot.push_back(fitPrinCorr.getFitPlotString());
-
-      log << fitPrinCorr.getFitSummary() << endl;
-      log << "** ensem fit value **   m= " << toDouble(mean(m0)) << " +/- " << toDouble(sqrt(variance(m0))) << endl;
-      
-    } //next prin corr
-    //==================================================
-    
-    pcorr = true;
   }
   
 //*** write out the spectrum in a nice format -  whatever order the genEig solver chose  ***
@@ -810,7 +746,7 @@ namespace SEMBLE
   }
 
   template<class T>
-  void ST0Fit<T>::printPrinCorrFiles(const std::map<int, int> &mapp) const
+  void ST0Fit<T>::printPrinCorrFilesReorder(const std::map<int, int> &mapp) const
   {
     if(!!!init)
       {
@@ -1181,16 +1117,9 @@ namespace SEMBLE
           typename PromoteEnsemVec<T>::Type evec;
           evec.resize(B);
           evec.resizeObs(inikeys.globalProps.tmax + 1);
-
-
-	  for(int t = 0; t < inikeys.globalProps.tmin; ++ t)
-	    pokeObs(evec,
-		    eVecs[inikeys.globalProps.tmin].getEnsemElement(0,0)
-		    /eVecs[inikeys.globalProps.tmin].getEnsemElement(0,0),  //one
-		    t);
 	      
 	      
-          for(int t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
+          for(int t = 0; t <= inikeys.globalProps.tmax; ++t)
             pokeObs(evec, eVecs[t].getEnsemElement(op, state), t);
 
           std::ostringstream file;
@@ -1232,13 +1161,7 @@ namespace SEMBLE
                 evec.resize(B);
                 evec.resizeObs(inikeys.globalProps.tmax + 1);
 
-		for(int t = 0; t < inikeys.globalProps.tmin; ++ t)
-		  pokeObs(evec,
-			  eVecs[inikeys.globalProps.tmin].getEnsemElement(0,0)
-			  /eVecs[inikeys.globalProps.tmin].getEnsemElement(0,0),  //one
-			  t);
-
-                for(int t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
+                for(int t = 0; t <= inikeys.globalProps.tmax; ++t)
                   pokeObs(evec, eVecs[t].getEnsemElement(op, it->second), t);
 
                 std::ostringstream file;
