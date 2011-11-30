@@ -954,7 +954,7 @@ namespace SEMBLE
 
         ur[maxr] = true;
         uv[maxv] = true;
-        ret.insert(std::pair<int, int>(maxr, maxv));
+        ret[maxr] = maxv;
       }
 
     /* Three cases
@@ -1040,7 +1040,7 @@ namespace SEMBLE
   template<class T>
   std::map<int, int> makeRemapMetric(const SembleMatrix<T> &metric, const SembleMatrix<T> &ref, const SembleMatrix<T> &vec, const int dim)
   {
-    return makeRemap(ref, metric * vec, dim);
+    return makeRemap(adj(metric)*ref,vec, dim);
   }
 
 

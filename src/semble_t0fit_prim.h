@@ -258,11 +258,10 @@ namespace SEMBLE
     t0 = t0_;
     inikeys = inikeys_;
     bool sort = sortEvecsCfg();
-    SembleMatrix<T> Cts, F, U, Ud, sCt;
+    SembleMatrix<T> Cts, F, U, Ud, sCt,Ur,Udr,Ct0r;
     SembleMatrix<double> RSP;
-    SembleVector<double> rsp;
+    SembleVector<double> rsp,sr;
     double thresh, sigma;
-
 
     Cts = tp_[t0];
     Ct0 = symmetrize(Cts);
@@ -277,6 +276,14 @@ namespace SEMBLE
     std::string path;
 
     //fill with the base class to solve the generalized eigen problem
+
+    //NB for svd if we have degenerate/near degenerate states then there could be an 
+    //ordering ambiguity across multiple values of t0, there also will always be a 
+    //multi-t0 phasing ambiguity in the matrix U, to enforce a consistent phase
+    //and ordering we can just match the U and Sigma to t0_ref's ordering
+    //and phasing conventions, we do this for each svd case below before we 
+    //do our resetting and move into the reduced subspace
+
     switch(lges_hash(inikeys.genEigProps.type))
       {
       case eCho:
@@ -292,6 +299,7 @@ namespace SEMBLE
         break;
 
       case eSvdCond:
+
         thresh = inikeys.genEigProps.thresh;
         svdRematchingLog << svd(Ct0, U, rsp, Ud);
 
@@ -302,6 +310,15 @@ namespace SEMBLE
         out.open(ss.str().c_str());
         out << svdRematchingLog.str();
         out.close();
+
+	//the multi-t0 ref used for phasing/ordering conventions
+	Cts = tp_[inikeys.t0Props.t0ref];
+	Ct0r = symmetrize(Cts);
+	svd(Ct0r,Ur,sr,Udr);
+
+	//order according to Ur, since svd is deterministic we have forced
+	//the same phasing and ordering on all the values of t0
+	matchEigenVectorsEnsemble(Ur,U,rsp);
 
         if(inikeys.genEigProps.svdHisto)
           makeSVDHistos(rsp);
@@ -332,6 +349,15 @@ namespace SEMBLE
         out << svdRematchingLog.str();
         out.close();
 
+	//the multi-t0 ref used for phasing/ordering conventions
+	Cts = tp_[inikeys.t0Props.t0ref];
+	Ct0r = symmetrize(Cts);
+	svd(Ct0r,Ur,sr,Udr);
+
+	//order according to Ur, since svd is deterministic we have forced
+	//the same phasing and ordering on all the values of t0
+	matchEigenVectorsEnsemble(Ur,U,rsp);
+
         if(inikeys.genEigProps.svdHisto)
           makeSVDHistos(rsp);
 
@@ -360,6 +386,15 @@ namespace SEMBLE
         out.open(ss.str().c_str());
         out << svdRematchingLog.str();
         out.close();
+
+	//the multi-t0 ref used for phasing/ordering conventions
+	Cts = tp_[inikeys.t0Props.t0ref];
+	Ct0r = symmetrize(Cts);
+	svd(Ct0r,Ur,sr,Udr);
+
+	//order according to Ur, since svd is deterministic we have forced
+	//the same phasing and ordering on all the values of t0
+	matchEigenVectorsEnsemble(Ur,U,rsp);
 
         if(inikeys.genEigProps.svdHisto)
           makeSVDHistos(rsp);
@@ -391,6 +426,15 @@ namespace SEMBLE
         out << svdRematchingLog.str();
         out.close();
 
+	//the multi-t0 ref used for phasing/ordering conventions
+	Cts = tp_[inikeys.t0Props.t0ref];
+	Ct0r = symmetrize(Cts);
+	svd(Ct0r,Ur,sr,Udr);
+
+	//order according to Ur, since svd is deterministic we have forced
+	//the same phasing and ordering on all the values of t0
+	matchEigenVectorsEnsemble(Ur,U,rsp);
+
         if(inikeys.genEigProps.svdHisto)
           makeSVDHistos(rsp);
 
@@ -421,6 +465,15 @@ namespace SEMBLE
         out.open(ss.str().c_str());
         out << svdRematchingLog.str();
         out.close();
+
+	//the multi-t0 ref used for phasing/ordering conventions
+	Cts = tp_[inikeys.t0Props.t0ref];
+	Ct0r = symmetrize(Cts);
+	svd(Ct0r,Ur,sr,Udr);
+
+	//order according to Ur, since svd is deterministic we have forced
+	//the same phasing and ordering on all the values of t0
+	matchEigenVectorsEnsemble(Ur,U,rsp);
 
         if(inikeys.genEigProps.svdHisto)
           makeSVDHistos(rsp);
@@ -487,26 +540,23 @@ namespace SEMBLE
     typename std::vector<ST0Base<T>* >::iterator it;
     ST0Base<T> *ptr, *ptrRef;
 
-    //just order them to be ascending/descending based on relative position to t0, also enforces the phase convention
-   
-    //THIS SHOULD BE ON, TEMP OFF TO CHECK T0 MATCHING..
-
-    /*
-    for(it = _data.begin(); it != _data.end(); ++it)
-      {
-	if((*it)->getT() >= t0)
-	  reorderEigenValues((*it)->evals(), (*it)->w(), (*it)->evecs(), false);
-	else
-	  reorderEigenValues((*it)->evals(), (*it)->w(), (*it)->evecs(), true);
-      }
-    */
-
     switch(lset_hash(inikeys.sortingProps.sortEvecsTimeslice))
       {
-      case eNone:   //do nothing since we already did it above
+      case eNone: 
+	for(it = _data.begin(); it != _data.end(); ++it)
+	  {
+	    if((*it)->getT() >= t0)
+	      reorderEigenValues((*it)->evals(), (*it)->w(), (*it)->evecs(), false);
+	    else
+	      reorderEigenValues((*it)->evals(), (*it)->w(), (*it)->evecs(), true);
+	  }
         break;
 
       case eRefvecs_Moving: //phase starting with t0 -1 and carry it forward (backwards)
+
+	//enforce the convention that the lowest state is indexed by 0
+	ptrRef = _data[t0 - 1 - inikeys.globalProps.tmin];
+	reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),true);
 
         for(int t = t0 - 2 - inikeys.globalProps.tmin; t >= 0; --t)
           {
@@ -531,7 +581,13 @@ namespace SEMBLE
         break;
 
       case eRefvecs_Fixed:
+
+	//enforce the convention that the lowest state is indexed by 0
         ptrRef = _data[t0 + inikeys.sortingProps.deltaRef - inikeys.globalProps.tmin];
+	if(ptrRef->getT() >= t0)
+	  reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),false);
+	else
+	  reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),true);
 
         for(int t = 0; t <= inikeys.globalProps.tmax  - inikeys.globalProps.tmin; ++t)
           {
@@ -549,7 +605,12 @@ namespace SEMBLE
 
       case eRefvecs_Fixed_Auto:
 
+	//enforce the convention that the lowest state is indexed by 0
         ptrRef = _data[findRefT() - inikeys.globalProps.tmin];
+	if(ptrRef->getT() >= t0)
+	  reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),false);
+	else
+	  reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),true);
 
         for(int t = 0; t <= inikeys.globalProps.tmax - inikeys.globalProps.tmin; ++t)
           {
@@ -693,7 +754,7 @@ namespace SEMBLE
   {
 
 
-    std::pair<std::vector<T>, std::vector<T> > range = findRange(svals);
+    std::pair<std::vector<double>, std::vector<double> > range = findRange(svals);
     std::vector<int> bins(svals.getN(), inikeys.genEigProps.nHistoBins);
 
     SembleMultiHisto histo(range.first, range.second, bins);

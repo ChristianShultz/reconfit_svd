@@ -115,50 +115,50 @@ namespace SEMBLE
 
     //peek methods
   public:
-    SembleVector<double> peekVals(int i) const
+    const SembleVector<double>& peekVals(int i) const
     {
       initChk();
-      return SembleVector<double>(eVals[i]);
+      return eVals[i];
     }
-    SembleMatrix<T> peekVecs(int i) const
+    const SembleMatrix<T>&  peekVecs(int i) const
     {
       initChk();
-      return SembleMatrix<T>(eVecs[i]);
+      return eVecs[i];
     }
-    SembleMatrix<T> peekZ(int i) const
+    const SembleMatrix<T>& peekZ(int i) const
     {
       zinitChk();  //look at on at a single time
-      return SembleMatrix<T>(Z[i]);
+      return Z[i];
     }
-    EnsemReal peekMass0(int i) const
+    const EnsemReal& peekMass0(int i) const
     {
       pcorrChk();
-      return EnsemReal(mass_0[i]);
+      return mass_0[i];
     }
-    EnsemReal peekMass1(int i) const
+    const EnsemReal& peekMass1(int i) const
     {
       pcorrChk();
-      return EnsemReal(mass_1[i]);
+      return mass_1[i];
     }
-    EnsemReal peekA(int i) const
+    const EnsemReal& peekA(int i) const
     {
       pcorrChk();
-      return EnsemReal(A[i]);
+      return A[i];
     }
     typename PromoteEnsem<T>::Type const peekZ(int s, int o) const
     {
       zfitChk();  //pull the ensemble from the fit
       return zFit.getEnsemElement(s, o);          
     }
-    SembleMatrix<T> getZFit(void) const
+    const SembleMatrix<T>& getZFit(void) const
     {
       zfitChk();
-      return SembleMatrix<T>(zFit);
+      return zFit;
     }
-    SembleMatrix<T> getCt0(void) const
+    const SembleMatrix<T>& getCt0(void) const
     {
       initChk();
-      return SembleMatrix<T>(Ct0);
+      return Ct0;
     }
     int getN(void) const
     {
@@ -529,7 +529,7 @@ namespace SEMBLE
         pCorrChiSqPDoF[state] = pCorrFit.getChisq() / pCorrFit.getNDoF();
 
       }//next pcorr
-
+    pcorr = true;
   }
   
 //*** write out the spectrum in a nice format -  whatever order the genEig solver chose  ***
@@ -547,7 +547,7 @@ namespace SEMBLE
     output << "* UNORDERED SPECTRUM *" << endl;
     output << "**********************" << endl;
 
-    output << "state|        mass         |           fit           |chisq/nDoF | " << endl;
+    output << "state|        mass         |           fit           |chisq/nDoF |  t0 = " << t0 << "|" << endl;
 
     //** MAKE THIS PRETTIER WITH prinf **
 

@@ -21,6 +21,34 @@
 namespace SEMBLE
 {
 
+  enum gen_eig_type
+    {
+      eUsedCho,
+      eUsedSvd,
+      eUsedGenErr
+    };
+
+    gen_eig_type get_gen_eig_enum(std::string &in)
+    {
+      if(in == "Cho") return eUsedCho;
+      
+      if(in == "Cholesky") return eUsedCho;
+      
+      if(in == "SvdCond") return eUsedSvd;
+      
+      if(in == "SvdValue") return eUsedSvd;
+      
+      if(in == "SvdSigma") return eUsedSvd;
+      
+      if(in == "SvdSigmaValue") return eUsedSvd;
+      
+      if(in == "SvdSigmaCond") return eUsedSvd;
+      
+      std::cout << __PRETTY_FUNCTION__ << "key: " << in << " is not a supported type" << std::endl;
+      
+      return eUsedGenErr;
+    }
+
   template<class T>
   struct SMT0Fit
   {
@@ -885,14 +913,39 @@ std:
 
     typename std::map<int, SembleMatrix<T> > metric;
 
+    SembleMatrix<T> U, V,Ur;
+    SembleVector<double> s;
+
     //determine the metric for each t0 once
-    for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+    switch(get_gen_eig_enum(inikeys.genEigProps.type))
       {
-        SembleMatrix<T> U, V;
-        SembleVector<T> s;
-        svd(t0_fits[t0]->getCt0(), U, s, V);
-        metric.insert(std::make_pair(t0, sqrt(s)*adj(U)));
+
+      case eUsedCho:
+      case eUsedGenErr:
+	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  {
+	    chol(t0_fits[t0]->getCt0(),U);
+	    metric[t0] = U;
+	  }
+	break;
+      case eUsedSvd:
+      default:
+
+	svd(t0_fits[t0_ref]->getCt0(),U,s,Ur);
+
+	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  {
+	    svd(t0_fits[t0]->getCt0(), U, s, V);
+	    
+	    //If we imagine U to be something like a projecton operator and the metric between different t0s
+	    //is given by U(t)sqrt(Sigma(t)) * sqrt(Sigma(t'))U^T(t') then we better make sure that we have the
+	    //same ordering in state space and the same phases, matching to Uref takes care of that
+
+	    matchEigenVectorsEnsemble(Ur,U,s); 
+	    metric[t0] = sqrt(s)*adj(U);
+	  }
       }
+
 
     std::vector<int> zero(nvecs,0);
     std::vector<std::vector<int> > dum(nvecs,zero);
@@ -952,7 +1005,7 @@ std:
 		    if(uv[v])
 		      continue;
 		    
-		    if(dum[r][v] > m)
+		    if(dum[r][v] >=  m)
 		      {
 			m = dum[r][v];
 			mr = r;
