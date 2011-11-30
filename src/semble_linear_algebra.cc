@@ -8,6 +8,16 @@
 namespace SEMBLE
 {
 
+  PromoteScalar<double>::Type eConjPhase(const double &in)
+  {
+    double dum = double((in > 0) - (in < 0))*in;
+    return toScalar(dum);
+  }
+
+  PromoteScalar<std::complex<double> >::Type eConjPhase(const std::complex<double> &in)
+  {
+    return toScalar(std::conj(in));
+  }
 
 //overloaded, not templated
   void rephaseEVectors(SembleMatrix<double> &vecs)

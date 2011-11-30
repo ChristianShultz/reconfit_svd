@@ -14,6 +14,16 @@
 namespace SEMBLE
 {
 //forward declarations
+  template<class T>  //return T  if real+, -T if real-, T* if complex, calls overloaded eConjPhase(T)
+  typename PromoteScalar<T>::Type evecConjPhase(const T &in);
+ 
+  //return toScalar(-T)
+  PromoteScalar<double>::Type eConjPhase(const double &in);
+  
+  //return toScalar(T*)
+  PromoteScalar<std::complex<double> >::Type eConjPhase(const std::complex<double> &in);
+
+//row/col operations
   template<class T>
   SembleVector<T> getRow(const SembleMatrix<T> &in, const int row);
 
@@ -124,10 +134,10 @@ namespace SEMBLE
   void rephaseEVectors(SembleMatrix<double> &vecs);
 
   template<class T> //return a rephase map
-  typename std::map<int, T> rephaseEigenVectorsEnsembleMap(const SembleMatrix<T> &ref, const SembleMatrix<T> &vecs);
+  typename std::map<int, typename PromoteScalar<T>::Type> rephaseEigenVectorsEnsembleMap(const SembleMatrix<T> &ref, const SembleMatrix<T> &vecs);
 
   template<class T>
-  typename std::map<int, T > rephaseEigenVectorsEnsembleMetricMap(const SembleMatrix<T> &metric, const SembleMatrix<T> &ref, const SembleMatrix<T> &vec);
+  typename std::map<int, typename PromoteScalar<T>::Type> rephaseEigenVectorsEnsembleMetricMap(const SembleMatrix<T> &metric, const SembleMatrix<T> &ref, const SembleMatrix<T> &vec);
 
   template<class T> //return a map, key is ref, data is vecnum, -1 means state didnt map, works for different sizes
   std::map<int, int> makeRemap(const SembleMatrix<T> &ref, const SembleMatrix<T> &vec);
@@ -337,6 +347,13 @@ namespace SEMBLE
 //implementation
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  template<class T>  //return -T  if real, T* if complex, calls overloaded eConjPhase(T)
+  typename PromoteScalar<T>::Type evecConjPhase(const T &in)
+  {
+    return eConjPhase(in);
+  }
+
 
 //semble linear algebra
   template<class T>
@@ -855,10 +872,10 @@ namespace SEMBLE
 
 //these can be of differing sizes, map is where it goes, pair is which state and phase
   template<class T>
-  typename std::map<int, T> rephaseEigenVectorsEnsembleMap(const SembleMatrix<T> &ref, const SembleMatrix<T> &vec)
+  typename std::map<int, typename  PromoteScalar<T>::Type> rephaseEigenVectorsEnsembleMap(const SembleMatrix<T> &ref, const SembleMatrix<T> &vec)
   {
 
-    typename std::map<int, T> ret;
+    typename std::map<int, typename PromoteScalar<T>::Type> ret;
     std::vector<bool> ur(ref.getM(), false), uv(vec.getM(), false);
     itpp::Mat<T> lap = mean(adj(ref) * vec);
     int maxr, maxv;
@@ -893,23 +910,26 @@ namespace SEMBLE
 
             ur[maxr] = true;
             uv[maxv] = true;
-            ret.insert(make_pair(maxv, lap(maxr, maxv) / maxlap));
+	    
+	    maxlap = toScalar(evecConjPhase(lap(maxr,maxv)/maxlap));
+	    
+            ret.insert(make_pair(maxv, toScalar(maxlap)));
 
-            if(std::isinf(ret[maxv]))
-              ret[maxv] = T((ret[maxv] > 0) - (ret[maxv] < 0)); //will fail if inf complex, pulls sign if inf
+            if(std::isinf(maxlap))
+              ret[maxv] = toScalar(T((maxlap > 0) - (maxlap < 0))); //will fail if inf complex, pulls sign if inf
           }
       }
 
     //fill in a phase of one in the case that the dims arent the same
     for(int i = 0; i < vdim; ++i)
       if(!!!uv[i])
-        ret[i] = T(1.);
+        ret[i] = toScalar(1.0);
 
     return ret;
   }
 
   template<class T>
-  typename std::map<int, T> rephaseEigenVectorsEnsembleMetricMap(const SembleMatrix<T> &metric, const SembleMatrix<T> &ref, const SembleMatrix<T> &vecs)
+  typename std::map<int, typename PromoteScalar<T>::Type> rephaseEigenVectorsEnsembleMetricMap(const SembleMatrix<T> &metric, const SembleMatrix<T> &ref, const SembleMatrix<T> &vecs)
   {
     return rephaseEigenVectorsEnsembleMap(adj(metric) * ref, vecs);
   }

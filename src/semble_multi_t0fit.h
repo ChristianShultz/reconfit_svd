@@ -66,8 +66,6 @@ namespace SEMBLE
     void load(const typename std::vector<SembleMatrix<T> > &tp_, const FitIniProps_t &inikeys_);
 
   public:
-    void rephaseAndReorder(void);
-
     void fitMassT0(void);                                //fit mass t0
     void printMass(void);                                //princorr plot
     void printMassT0(void);                              //mass t0 plot
@@ -89,6 +87,7 @@ namespace SEMBLE
 
     void printReconPlots(void);                          //print the recon plots
 
+    void rephaseStates(void);                            //rephase the states according to t0ref
     void reorderStates(void);                            //order the states according to t0ref
 
   private:
@@ -300,27 +299,7 @@ namespace SEMBLE
 
     max_states = max;
 
-    //rephase and reorder the states
-    SembleMatrix<T> Ct0_half, U, V;
-    SembleVector<T> s;
-
-    svd(t0_fits[t0_ref]->getCt0(), U, s, V);
-    Ct0_half = U * sqrt(s);
-    V = t0_fits[t0_ref]->peekVecs(tz_chisq[t0_ref].first);
-
-    #pragma omp parallel for private(t0) shared(std::cout,Ct0_half,U,V)
-
-    for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
-      {
-        SembleMatrix<T> metric, Up, Vp;
-        SembleVector<T> sp;
-
-        svd(t0_fits[t0]->getCt0(), Up, sp, Vp);
-        metric = Ct0_half * sqrt(sp) * adj(Up);
-        Vp = metric * t0_fits[t0]->peekVecs(tz_chisq[t0].first);
-
-        t0_fits[t0]->rephase(rephaseEigenVectorsEnsembleMap(V, Vp));
-      }
+    rephaseStates();
 
     reorderStates();
 
@@ -893,6 +872,72 @@ std:
       {
         t0_fits[t0]->printReconPlots();
       }
+  }
+
+  //the eigenvectors from eig_sym can have a different phase convention from t0 to t0
+  //which makes the Z(t0) have arbitrary phase, this routine sets them to t0_ref
+  template<class T>
+  void SMT0Fit<T>::rephaseStates(void)
+  {
+
+    if(!!!init)
+      {
+        std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << " can't reorder w/o init" << std::endl;
+        exit(1);
+      }
+
+    reorder.clear();
+
+    const int nops = tp.end()->getN();
+    const int B = tp.end()->getB();
+    const int nvecs = max_states;
+    const int t0_ref = inikeys.t0Props.t0ref;
+
+    typename std::map<int, SembleMatrix<T> > metric;
+
+    SembleMatrix<T> U, V,Ur;
+    SembleVector<double> s;
+
+    //determine the metric for each t0 once
+    switch(get_gen_eig_enum(inikeys.genEigProps.type))
+      {
+
+      case eUsedCho:
+      case eUsedGenErr:
+	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  {
+	    chol(t0_fits[t0]->getCt0(),U);
+	    metric[t0] = U;
+	  }
+	break;
+      case eUsedSvd:
+      default:
+
+	svd(t0_fits[t0_ref]->getCt0(),U,s,Ur);
+
+	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  {
+	    svd(t0_fits[t0]->getCt0(), U, s, V);
+	    
+	    //If we imagine U to be something like a projecton operator and the metric between different t0s
+	    //is given by U(t)sqrt(Sigma(t)) * sqrt(Sigma(t'))U^T(t') then we better make sure that we have the
+	    //same ordering in state space and the same phases, matching to Uref takes care of that
+
+	    matchEigenVectorsEnsemble(Ur,U,s); 
+	    metric[t0] = sqrt(s)*adj(U);
+	  }
+      }
+
+    const SembleMatrix<T> W_t_ref = metric[t0_ref]*t0_fits[t0_ref]->peekVecs(tz_chisq[t0_ref].first);
+
+    for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+      {
+	if(t0 == t0_ref)
+	  continue;
+
+	t0_fits[t0]->rephase(rephaseEigenVectorsEnsembleMap(W_t_ref,metric[t0]*t0_fits[t0]->peekVecs(tz_chisq[t0].first)));
+      }
+
   }
 
   template<class T>

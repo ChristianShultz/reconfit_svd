@@ -40,7 +40,7 @@ my %mold = ();
 
 foreach(@mold_names)
   {
-    my @tmp = split(/\s+/, qx (calcbc $_));
+    my @tmp = split(/\s+/, qx (calc $_));
     my ($trash,$state) = split(/state/,$_);
     my ($state,$trash) = split(/_/,$state);
     $mold{$tmp[1]} = $state;
@@ -50,7 +50,7 @@ my %mnew = ();
 
 foreach(@mnew_names)
   {
-    my @tmp = split(/\s+/, qx (calcbc $_));
+    my @tmp = split(/\s+/, qx (calc $_));
     my ($trash,$state) = split(/state/,$_);
     my ($state,$trash) = split(/\./,$state);
     $mnew{$tmp[1]} = $state;

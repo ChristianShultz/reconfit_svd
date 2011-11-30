@@ -111,7 +111,7 @@ namespace SEMBLE
 
   public:
     //rephase the states for multit0fitting -- key is state, data is  new phase
-    void rephase(const typename std::map<int, T> &mapp);                    //use a T since its easy to extend to complex phases instead of +/-
+    void rephase(const typename std::map<int, typename PromoteScalar<T>::Type> &mapp);  
 
     //peek methods
   public:
@@ -1623,12 +1623,12 @@ namespace SEMBLE
 
 
   template<class T> //this is expensive!!! it should be called before everything else, it assumes the states are already ordered within this t0 fit
-  void ST0Fit<T>::rephase(const typename std::map<int, T> &mapped)
+  void ST0Fit<T>::rephase(const typename std::map<int, typename PromoteScalar<T>::Type> &mapped)
   {
     initChk();
     //sanity
     std::vector<bool> used(M, false);
-    typename std::map<int, T>::const_iterator it;
+    typename std::map<int, typename PromoteScalar<T>::Type>::const_iterator it;
     bool check = true;
 
     for(it = mapped.begin(); it != mapped.end(); ++it)
@@ -1671,7 +1671,7 @@ namespace SEMBLE
         for(it = mapped.begin(); it != mapped.end(); ++it)
           {
             for(int row = 0; row < N; ++row)
-              eVecs[t].loadEnsemElement(row, it->first, toScalar(it->second)*cp.getEnsemElement(row, it->first));
+              eVecs[t].loadEnsemElement(row, it->first, it->second*cp.getEnsemElement(row, it->first));
           }
       }
 
