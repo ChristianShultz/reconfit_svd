@@ -24,12 +24,11 @@
 
 namespace SEMBLE
 {
-//enumerated helper functions
 
 //enumerate the gen eig solution choices
 /////////////////////////////////////////////////////////////////////////////////////////
 
-  enum load_gen_eig_string //put this string into inikeys.gen_eigen_props.inversionType
+  enum eload_gen_eig_string //put this string into inikeys.gen_eigen_props.inversionType
   {
     eCho,           //Cholesky
     eSvdCond,       //Svd on condition number
@@ -40,71 +39,23 @@ namespace SEMBLE
     eGenErr
   };
 
-//hash the result for something useful in a switch
-  load_gen_eig_string lges_hash(std::string const &in)
-  {
-    if(in == "Cho") return eCho;
-
-    if(in == "Cholesky") return eCho;
-
-    if(in == "SvdCond") return eSvdCond;
-
-    if(in == "SvdValue") return eSvdValue;
-
-    if(in == "SvdSigma") return eSvdSigma;
-
-    if(in == "SvdSigmaValue") return eSvdSigmaValue;
-
-    if(in == "SvdSigmaCond") return eSvdSigmaCond;
-
-    std::cout << __PRETTY_FUNCTION__ << "key: " << in << " is not a supported type" << std::endl;
-
-    return eGenErr;
-  }
 
   //enumerate the sorting props
-  enum load_sorting_props_stringCfg
+  enum eload_sorting_props_stringCfg
   {
     eNoneCfg,
     eRefvecsCfg,
   };
 
-  //hash the result
-  load_sorting_props_stringCfg lspscfg_hash(std::string const &in)
-  {
-    if(in == "None") return eNoneCfg;
-
-    if(in == "Refvecs") return eRefvecsCfg;
-
-    std::cout << in << " is not a supported type, defaulting to Refvecs" << std::endl;
-
-    return eRefvecsCfg; //default
-  }
 
   //enumerate the sort evecs tslice choices
-  enum load_sort_evecs_tslice
+  enum eload_sort_evecs_tslice
   {
     eNone,
     eRefvecs_Moving,
     eRefvecs_Fixed,
     eRefvecs_Fixed_Auto
   };
-
-  //hash the result
-  load_sort_evecs_tslice lset_hash(std::string const &in)
-  {
-    if(in == "None") return eNone;
-
-    if(in == "Refvecs_Moving") return eRefvecs_Moving;
-
-    if(in == "Refvecs_Fixed") return eRefvecs_Fixed;
-
-    if(in == "Refvecs_Fixed_Auto") return eRefvecs_Fixed_Auto;
-
-    std::cout << in << " is not a supported type, defaulting to Refvecs_Fixed" << std::endl;
-
-    return eRefvecs_Fixed; //default
-  }
 
 
 //ST0FitPrim<T> class definition
@@ -166,6 +117,9 @@ namespace SEMBLE
     bool sortEvecsCfg(void) const;
     int findRefT(void) const;
     void makeSVDHistos(const SembleVector<double> &svals) const;
+    eload_gen_eig_string  lges_hash(const std::string &in) const;
+    eload_sorting_props_stringCfg lspscfg_hash(const std::string &in) const;
+    eload_sort_evecs_tslice lset_hash(const std::string &in) const; 
 
   public:                                                                 //will solve if initialized but not solved
     std::vector<SembleVector<double> > getEvals(void);                    //indexed [0,inikeys.globalProps.tmax]
@@ -785,6 +739,55 @@ namespace SEMBLE
       }
   }
 
+  template<class T>   //hash the result for something useful in a switch
+  eload_gen_eig_string ST0FitPrim<T>::lges_hash(const std::string &in) const
+  {
+    if(in == "Cho") return eCho;
+
+    if(in == "Cholesky") return eCho;
+
+    if(in == "SvdCond") return eSvdCond;
+
+    if(in == "SvdValue") return eSvdValue;
+
+    if(in == "SvdSigma") return eSvdSigma;
+
+    if(in == "SvdSigmaValue") return eSvdSigmaValue;
+
+    if(in == "SvdSigmaCond") return eSvdSigmaCond;
+
+    std::cout << __PRETTY_FUNCTION__ << "key: " << in << " is not a supported type" << std::endl;
+
+    return eGenErr;
+  }
+
+  template<class T> //hash the result
+  eload_sorting_props_stringCfg ST0FitPrim<T>::lspscfg_hash(const std::string &in) const
+  {
+    if(in == "None") return eNoneCfg;
+
+    if(in == "Refvecs") return eRefvecsCfg;
+
+    std::cout << in << " is not a supported type, defaulting to Refvecs" << std::endl;
+
+    return eRefvecsCfg; //default
+  }
+  
+  template<class T> //hash the result
+  eload_sort_evecs_tslice ST0FitPrim<T>::lset_hash(const std::string &in) const
+  {
+    if(in == "None") return eNone;
+
+    if(in == "Refvecs_Moving") return eRefvecs_Moving;
+
+    if(in == "Refvecs_Fixed") return eRefvecs_Fixed;
+
+    if(in == "Refvecs_Fixed_Auto") return eRefvecs_Fixed_Auto;
+
+    std::cout << in << " is not a supported type, defaulting to Refvecs_Fixed" << std::endl;
+
+    return eRefvecs_Fixed; //default
+  }
 
   template<class T>
   std::vector<SembleVector<double> > ST0FitPrim<T>::getEvals(void)

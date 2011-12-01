@@ -21,33 +21,14 @@
 namespace SEMBLE
 {
 
-  enum gen_eig_type
+  enum egen_eig_type
     {
       eUsedCho,
       eUsedSvd,
       eUsedGenErr
     };
 
-    gen_eig_type get_gen_eig_enum(std::string &in)
-    {
-      if(in == "Cho") return eUsedCho;
-      
-      if(in == "Cholesky") return eUsedCho;
-      
-      if(in == "SvdCond") return eUsedSvd;
-      
-      if(in == "SvdValue") return eUsedSvd;
-      
-      if(in == "SvdSigma") return eUsedSvd;
-      
-      if(in == "SvdSigmaValue") return eUsedSvd;
-      
-      if(in == "SvdSigmaCond") return eUsedSvd;
-      
-      std::cout << __PRETTY_FUNCTION__ << "key: " << in << " is not a supported type" << std::endl;
-      
-      return eUsedGenErr;
-    }
+
 
   template<class T>
   struct SMT0Fit
@@ -84,6 +65,7 @@ namespace SEMBLE
 
     void printReorderLog(void);                          //how the remaping worked
     void printNResetLog(void);                           //the number of reset singular values at each t0
+    void printSVDULog(void);
 
     void printReconPlots(void);                          //print the recon plots
 
@@ -94,6 +76,7 @@ namespace SEMBLE
     void clear(void);
     Handle<FitComparator> fitComp(const std::string &in) const;
     void printer(void);
+    egen_eig_type get_gen_eig_enum(std::string &in) const;
 
   private:  //data store
     typename std::map<int, Handle<ST0Fit<T> > > t0_fits;   //key is t0 values, data is the ST0Fit(t0)
@@ -816,6 +799,7 @@ namespace SEMBLE
         SembleVector<T> sp;
 
         svd(t0_fits[mapit->first]->getCt0(), Up, sp, Vp);
+	matchEigenVectorsEnsemble(U,Up,s);
         metric = Ct0_half * sqrt(sp) * adj(Up);
         Vp = metric * t0_fits[mapit->first]->peekVecs(tz_chisq[mapit->first].first);
 
@@ -851,6 +835,66 @@ namespace SEMBLE
     out << s.str();
     out.close();
   }
+
+  template<class T>
+  void SMT0Fit<T>::printSVDULog(void)
+  {
+    if(get_gen_eig_enum(inikeys.genEigProps.type) == eUsedSvd)
+      {
+	SembleMatrix<T> U,Ur,V,Vr;
+	SembleVector<double> s;
+
+	svd(t0_fits[inikeys.t0Props.t0ref]->getCt0(),Ur,s,Vr);
+
+	std::stringstream ss;
+	ss << "SVDLogs";
+	std::string path = SEMBLEIO::getPath() += ss.str();
+	SEMBLEIO::makeDirectoryPath(path);
+
+	
+	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  {
+	    std::string fname;
+	    ss.str(std::string());  //clear ss
+	    ss << path << "/" <<" SVDULog_t0" << t0;
+	    fname = ss.str();
+	    ss.str(std::string());
+
+	    ss << "val +/- std deviation" << "\n\n";
+
+	    svd(t0_fits[t0]->getCt0(), U,s,V);
+	    matchEigenVectorsEnsemble(Ur, U,s);
+
+	    int nvecs = U.getN();
+	    int nops = U.getM();
+
+	    itpp::Vec<double> sm(mean(s)), sv(variance(s));
+	    itpp::Mat<T> UM(mean(U)), UV(variance(U));
+
+	    for(int vec = 0; vec < nvecs; ++vec)
+	      {
+		
+		ss << "sigma_" << vec << " = " << sm(vec) << " +/- " << std::sqrt(sv(vec)) << "\n vec_" << vec << " = "; 
+
+		for(int op = 0; op < nops; ++op) 
+		  if(op != nops -1)
+		    ss << UM(op,vec) << " +/- " << std::sqrt(UV(op,vec)) << " : ";
+		  else
+		    ss << UM(op,vec) << " +/- " << std::sqrt(UV(op,vec));
+		  
+		ss << "\n\n";
+
+	      }
+
+	    std::ofstream out;
+	    out.open(fname.c_str());
+	    out << ss.str();
+	    out.close();
+	  }      
+
+      }
+  }
+  
 
   template<class T>
   void SMT0Fit<T>::printReconPlots(void)
@@ -1203,6 +1247,7 @@ std:
       {
         printReorderLog();
         printNResetLog();
+	printSVDULog();
         std::ofstream out;
         out.open("ini_file");
         out << inikeys;
@@ -1213,7 +1258,28 @@ std:
       }
 
   }
-
+  
+  template<class T>
+  egen_eig_type SMT0Fit<T>::get_gen_eig_enum(std::string &in) const
+  {
+    if(in == "Cho") return eUsedCho;
+    
+    if(in == "Cholesky") return eUsedCho;
+    
+    if(in == "SvdCond") return eUsedSvd;
+    
+    if(in == "SvdValue") return eUsedSvd;
+    
+    if(in == "SvdSigma") return eUsedSvd;
+    
+    if(in == "SvdSigmaValue") return eUsedSvd;
+    
+    if(in == "SvdSigmaCond") return eUsedSvd;
+    
+    std::cout << __PRETTY_FUNCTION__ << "key: " << in << " is not a supported type" << std::endl;
+    
+    return eUsedGenErr;
+  }
 
 }
 #endif
