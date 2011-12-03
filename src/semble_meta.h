@@ -26,6 +26,9 @@ namespace SEMBLE
     return toDouble(val);
   }
 
+  //so I needed to include these to get it to compile, something about the innerworkings
+  //of the EnsemReal, EnsemVec classes force me to need to also provide definitions for these
+  //which I find to be a bit strange..
   inline
   double toScalar(const OScalar<PScalar<PScalar<RScalar<REAL> > > > val)
   {

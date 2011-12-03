@@ -265,15 +265,6 @@ namespace SEMBLE
         out << svdRematchingLog.str();
         out.close();
 
-	//the multi-t0 ref used for phasing/ordering conventions
-	Cts = tp_[inikeys.t0Props.t0ref];
-	Ct0r = symmetrize(Cts);
-	svd(Ct0r,Ur,sr,Udr);
-
-	//order according to Ur, since svd is deterministic we have forced
-	//the same phasing and ordering on all the values of t0
-	matchEigenVectorsEnsemble(Ur,U,rsp);
-
         if(inikeys.genEigProps.svdHisto)
           makeSVDHistos(rsp);
 
@@ -303,15 +294,6 @@ namespace SEMBLE
         out << svdRematchingLog.str();
         out.close();
 
-	//the multi-t0 ref used for phasing/ordering conventions
-	Cts = tp_[inikeys.t0Props.t0ref];
-	Ct0r = symmetrize(Cts);
-	svd(Ct0r,Ur,sr,Udr);
-
-	//order according to Ur, since svd is deterministic we have forced
-	//the same phasing and ordering on all the values of t0
-	matchEigenVectorsEnsemble(Ur,U,rsp);
-
         if(inikeys.genEigProps.svdHisto)
           makeSVDHistos(rsp);
 
@@ -340,15 +322,6 @@ namespace SEMBLE
         out.open(ss.str().c_str());
         out << svdRematchingLog.str();
         out.close();
-
-	//the multi-t0 ref used for phasing/ordering conventions
-	Cts = tp_[inikeys.t0Props.t0ref];
-	Ct0r = symmetrize(Cts);
-	svd(Ct0r,Ur,sr,Udr);
-
-	//order according to Ur, since svd is deterministic we have forced
-	//the same phasing and ordering on all the values of t0
-	matchEigenVectorsEnsemble(Ur,U,rsp);
 
         if(inikeys.genEigProps.svdHisto)
           makeSVDHistos(rsp);
@@ -380,15 +353,6 @@ namespace SEMBLE
         out << svdRematchingLog.str();
         out.close();
 
-	//the multi-t0 ref used for phasing/ordering conventions
-	Cts = tp_[inikeys.t0Props.t0ref];
-	Ct0r = symmetrize(Cts);
-	svd(Ct0r,Ur,sr,Udr);
-
-	//order according to Ur, since svd is deterministic we have forced
-	//the same phasing and ordering on all the values of t0
-	matchEigenVectorsEnsemble(Ur,U,rsp);
-
         if(inikeys.genEigProps.svdHisto)
           makeSVDHistos(rsp);
 
@@ -419,15 +383,6 @@ namespace SEMBLE
         out.open(ss.str().c_str());
         out << svdRematchingLog.str();
         out.close();
-
-	//the multi-t0 ref used for phasing/ordering conventions
-	Cts = tp_[inikeys.t0Props.t0ref];
-	Ct0r = symmetrize(Cts);
-	svd(Ct0r,Ur,sr,Udr);
-
-	//order according to Ur, since svd is deterministic we have forced
-	//the same phasing and ordering on all the values of t0
-	matchEigenVectorsEnsemble(Ur,U,rsp);
 
         if(inikeys.genEigProps.svdHisto)
           makeSVDHistos(rsp);

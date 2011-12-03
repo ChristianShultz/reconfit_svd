@@ -7,6 +7,9 @@
 #include"semble_vector.h"
 #include"semble_file_management.h"
 #include"semble_t0fit.h"
+#include"semble_t0fit_prim.h"
+#include"semble_algebra.h"
+#include"semble_linear_algebra.h"
 #include"ensem/ensem.h"
 #include"adat/handle.h"
 #include"semble_fit_ini_xml.h"
@@ -20,15 +23,6 @@
 
 namespace SEMBLE
 {
-
-  enum egen_eig_type
-    {
-      eUsedCho,
-      eUsedSvd,
-      eUsedGenErr
-    };
-
-
 
   template<class T>
   struct SMT0Fit
@@ -76,7 +70,8 @@ namespace SEMBLE
     void clear(void);
     Handle<FitComparator> fitComp(const std::string &in) const;
     void printer(void);
-    egen_eig_type get_gen_eig_enum(std::string &in) const;
+    eload_gen_eig_string get_gen_eig_enum(std::string &in) const;   //from semble_t0fit_prim.h
+    void constructMetrics(void);
 
   private:  //data store
     typename std::map<int, Handle<ST0Fit<T> > > t0_fits;   //key is t0 values, data is the ST0Fit(t0)
@@ -99,6 +94,8 @@ namespace SEMBLE
     std::vector<std::vector<typename PromoteEnsem<T>::Type > > Z;   //extracted Z from the multi t0 fit
     std::vector<std::vector<double> > Z_chisq;                      //chisq on multi t0 Z fits
     std::vector<std::vector<std::string> > Z_summary, Z_plots;      //plots strings and summary
+
+    typename std::map<int,SembleMatrix<T> > t0_metrics;
   };
 
 
@@ -839,7 +836,13 @@ namespace SEMBLE
   template<class T>
   void SMT0Fit<T>::printSVDULog(void)
   {
-    if(get_gen_eig_enum(inikeys.genEigProps.type) == eUsedSvd)
+    eload_gen_eig_string type;
+
+    if((type == eSvdValue) ||
+       (type == eSvdCond)  ||
+       (type == eSvdSigma) ||
+       (type == eSvdSigmaValue) ||
+       (type == eSvdSigmaCond))
       {
 	SembleMatrix<T> U,Ur,V,Vr;
 	SembleVector<double> s;
@@ -936,50 +939,18 @@ std:
     const int B = tp.end()->getB();
     const int nvecs = max_states;
     const int t0_ref = inikeys.t0Props.t0ref;
+    
+    if(t0_metrics.empty())
+      constructMetrics();
 
-    typename std::map<int, SembleMatrix<T> > metric;
-
-    SembleMatrix<T> U, V,Ur;
-    SembleVector<double> s;
-
-    //determine the metric for each t0 once
-    switch(get_gen_eig_enum(inikeys.genEigProps.type))
-      {
-
-      case eUsedCho:
-      case eUsedGenErr:
-	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
-	  {
-	    chol(t0_fits[t0]->getCt0(),U);
-	    metric[t0] = U;
-	  }
-	break;
-      case eUsedSvd:
-      default:
-
-	svd(t0_fits[t0_ref]->getCt0(),U,s,Ur);
-
-	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
-	  {
-	    svd(t0_fits[t0]->getCt0(), U, s, V);
-	    
-	    //If we imagine U to be something like a projecton operator and the metric between different t0s
-	    //is given by U(t)sqrt(Sigma(t)) * sqrt(Sigma(t'))U^T(t') then we better make sure that we have the
-	    //same ordering in state space and the same phases, matching to Uref takes care of that
-
-	    matchEigenVectorsEnsemble(Ur,U,s); 
-	    metric[t0] = sqrt(s)*adj(U);
-	  }
-      }
-
-    const SembleMatrix<T> W_t_ref = metric[t0_ref]*t0_fits[t0_ref]->peekVecs(tz_chisq[t0_ref].first);
 
     for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
 	if(t0 == t0_ref)
 	  continue;
 
-	t0_fits[t0]->rephase(rephaseEigenVectorsEnsembleMap(W_t_ref,metric[t0]*t0_fits[t0]->peekVecs(tz_chisq[t0].first)));
+	t0_fits[t0]->rephase(rephaseEigenVectorsEnsembleMap(t0_fits[t0_ref]->peekVecs(tz_chisq[t0_ref].first),
+							    t0_metrics[t0]*t0_fits[t0]->peekVecs(tz_chisq[t0].first)));
       }
 
   }
@@ -1000,40 +971,8 @@ std:
     const int nvecs = max_states;
     const int t0_ref = inikeys.t0Props.t0ref;
 
-    typename std::map<int, SembleMatrix<T> > metric;
-
-    SembleMatrix<T> U, V,Ur;
-    SembleVector<double> s;
-
-    //determine the metric for each t0 once
-    switch(get_gen_eig_enum(inikeys.genEigProps.type))
-      {
-
-      case eUsedCho:
-      case eUsedGenErr:
-	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
-	  {
-	    chol(t0_fits[t0]->getCt0(),U);
-	    metric[t0] = U;
-	  }
-	break;
-      case eUsedSvd:
-      default:
-
-	svd(t0_fits[t0_ref]->getCt0(),U,s,Ur);
-
-	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
-	  {
-	    svd(t0_fits[t0]->getCt0(), U, s, V);
-	    
-	    //If we imagine U to be something like a projecton operator and the metric between different t0s
-	    //is given by U(t)sqrt(Sigma(t)) * sqrt(Sigma(t'))U^T(t') then we better make sure that we have the
-	    //same ordering in state space and the same phases, matching to Uref takes care of that
-
-	    matchEigenVectorsEnsemble(Ur,U,s); 
-	    metric[t0] = sqrt(s)*adj(U);
-	  }
-      }
+    if(t0_metrics.empty())
+      constructMetrics();
 
 
     std::vector<int> zero(nvecs,0);
@@ -1049,14 +988,12 @@ std:
 	if(t == t0_ref) //no eigenvectors, don't want to contaminate map with junk
 	  continue;
 
-	const SembleMatrix<T> W_t_ref = metric[t0_ref]*t0_fits[t0_ref]->peekVecs(t);
-
 	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
 	  {
 	    if(t == t0) //no eigenvectors, don't want to contaminate map with junk
 	      continue;
 	    
-	    std::map<int,int> mapp = makeRemap(W_t_ref,metric[t0]*t0_fits[t0]->peekVecs(t),nvecs);
+	    std::map<int,int> mapp = makeRemap(t0_fits[t0_ref]->peekVecs(t),t0_metrics[t0]*t0_fits[t0]->peekVecs(t),nvecs);
 	    std::map<int,int>::const_iterator it;
 
 	    for(it = mapp.begin(); it != mapp.end(); ++it)
@@ -1260,26 +1197,216 @@ std:
   }
   
   template<class T>
-  egen_eig_type SMT0Fit<T>::get_gen_eig_enum(std::string &in) const
+  eload_gen_eig_string SMT0Fit<T>::get_gen_eig_enum(std::string &in) const
   {
-    if(in == "Cho") return eUsedCho;
-    
-    if(in == "Cholesky") return eUsedCho;
-    
-    if(in == "SvdCond") return eUsedSvd;
-    
-    if(in == "SvdValue") return eUsedSvd;
-    
-    if(in == "SvdSigma") return eUsedSvd;
-    
-    if(in == "SvdSigmaValue") return eUsedSvd;
-    
-    if(in == "SvdSigmaCond") return eUsedSvd;
-    
+    if(in == "Cho") return eCho;
+
+    if(in == "Cholesky") return eCho;
+
+    if(in == "SvdCond") return eSvdCond;
+
+    if(in == "SvdValue") return eSvdValue;
+
+    if(in == "SvdSigma") return eSvdSigma;
+
+    if(in == "SvdSigmaValue") return eSvdSigmaValue;
+
+    if(in == "SvdSigmaCond") return eSvdSigmaCond;
+
     std::cout << __PRETTY_FUNCTION__ << "key: " << in << " is not a supported type" << std::endl;
-    
-    return eUsedGenErr;
+
+    return eGenErr;
   }
+  
+  template<class T>
+  void SMT0Fit<T>::constructMetrics(void) 
+  {
+    SembleMatrix<T> U_c,U,V,S_c,S,P;
+    SembleVector<double> s;
+    int t0_ref = inikeys.t0Props.t0ref;
+    int m,mt;
+    double thresh,sigma;
+
+   //determine the metric for each t0 once
+    switch(get_gen_eig_enum(inikeys.genEigProps.type))
+      {
+
+      case eCho:
+      case eGenErr:
+	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  {
+	    chol(t0_fits[t0]->getCt0(),U);
+	    t0_metrics[t0] = U;
+	  }
+	break;
+	
+      case eSvdCond:
+	svd(t0_fits[t0_ref]->getCt0(),U_c,s,V);
+	thresh = inikeys.genEigProps.thresh;
+	m = svdResetAverageCond(s,thresh);
+	svdResetPseudoInvertRoot(s,m);
+	S_c = diag(s);
+	S_c.rows(m);
+	S_c.cols(m);
+	U_c.rows(m);
+
+	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  {
+	    svd(t0_fits[t0]->getCt0(),U,s,V);
+	    mt = svdResetAverageCond(s,thresh);
+	    svdResetPseudoInvertRoot(s,mt);
+	    S = diag(s);
+	    S.rows(mt);
+	    S.cols(mt);
+	    U.rows(mt);         
+	    P.reDim(t0_fits[t0]->getB(),m,mt);
+	    P =  constructPermutationMatrix(mean(U_c),mean(U));  //roughly adj(U_c)*U with some appropriate phases stuck in 
+
+	    std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
+	    std::cout << "P = \n" <<  mean(P) << std::endl;
+	    std::cout << "U_ref^T * U = \n" << mean(adj(U_c)*U) << std::endl;
+
+
+	    t0_metrics[t0] = U_c * S_c * P * S * adj(U);
+	  }
+	break;
+
+      case eSvdValue:
+       	svd(t0_fits[t0_ref]->getCt0(),U_c,s,V);
+	thresh = inikeys.genEigProps.thresh;
+	m = svdResetAverageValue(s,thresh);
+	svdResetPseudoInvertRoot(s,m);
+	S_c = diag(s);
+	S_c.rows(m);
+	S_c.cols(m);
+	U_c.rows(m);
+
+	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  {
+	    svd(t0_fits[t0]->getCt0(),U,s,V);
+	    mt = svdResetAverageValue(s,thresh);
+	    svdResetPseudoInvertRoot(s,mt);
+	    S = diag(s);
+	    S.rows(mt);
+	    S.cols(mt);
+	    U.rows(mt);        
+	    P.reDim(t0_fits[t0]->getB(),m,mt);
+	    P =  constructPermutationMatrix(mean(U_c),mean(U));  //roughly adj(U_c)*U with some appropriate phases stuck in 
+
+
+	    std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
+	    std::cout << "P = \n" << mean(P) << std::endl;
+	    std::cout << "tref" << t0_ref << " t0" << t0 << "U_ref^T * U = \n" << mean(adj(U_c)*U) << std::endl;
+
+	    t0_metrics[t0] = U_c * S_c * P * S * adj(U);      
+	  }
+	break;
+
+      case eSvdSigma:
+	svd(t0_fits[t0_ref]->getCt0(),U_c,s,V);
+	sigma = inikeys.genEigProps.sigma;
+	m = svdResetSigma(s,U_c,sigma);
+	svdResetPseudoInvertRoot(s,m);
+	S_c = diag(s);
+	S_c.rows(m);
+	S_c.cols(m);
+	U_c.rows(m);
+
+	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  {
+	    svd(t0_fits[t0]->getCt0(),U,s,V);
+	    mt = svdResetSigma(s,U,sigma);
+	    svdResetPseudoInvertRoot(s,mt);
+	    S = diag(s);
+	    S.rows(mt);
+	    S.cols(mt);
+	    U.rows(mt);     
+	    P.reDim(t0_fits[t0]->getB(),m,mt);
+	    P =  constructPermutationMatrix(mean(U_c),mean(U));  //roughly adj(U_c)*U with some appropriate phases stuck in 
+
+
+	    std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
+	    std::cout << mean(P) << std::endl;
+	    std::cout << "U_ref^T * U = \n" << mean(adj(U_c)*U) << std::endl;
+
+
+	    t0_metrics[t0] = U_c * S_c * P * S * adj(U);         
+	  }
+	break;
+
+      case eSvdSigmaValue:
+	svd(t0_fits[t0_ref]->getCt0(),U_c,s,V);
+	sigma = inikeys.genEigProps.sigma;
+	thresh = inikeys.genEigProps.thresh;
+	m = svdResetAvgValueAndSigma(s,U_c,thresh,sigma);
+	svdResetPseudoInvertRoot(s,m);
+	S_c = diag(s);
+	S_c.rows(m);
+	S_c.cols(m);
+	U_c.rows(m);
+	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  {
+	    svd(t0_fits[t0]->getCt0(),U,s,V);
+	    mt = svdResetAvgValueAndSigma(s,U,thresh,sigma);
+	    svdResetPseudoInvertRoot(s,mt);
+	    S = diag(s);
+	    S.rows(mt);
+	    S.cols(mt);
+	    U.rows(mt);     
+	    P.reDim(t0_fits[t0]->getB(),m,mt);
+	    P =  constructPermutationMatrix(mean(U_c),mean(U));  //roughly adj(U_c)*U with some appropriate phases stuck in 
+
+
+	    std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
+	    std::cout << mean(P) << std::endl;
+	    std::cout << "U_ref^T * U = \n" << mean(adj(U_c)*U) << std::endl;
+
+
+	    t0_metrics[t0] = U_c * S_c * P * S * adj(U);         
+	  }
+	break;
+
+      case eSvdSigmaCond:
+	svd(t0_fits[t0_ref]->getCt0(),U_c,s,V);
+	sigma = inikeys.genEigProps.sigma;
+	thresh = inikeys.genEigProps.thresh;
+	m = svdResetAvgCondAndSigma(s,U_c,thresh,sigma);
+	svdResetPseudoInvertRoot(s,m);
+	S_c = diag(s);
+	S_c.rows(m);
+	S_c.cols(m);
+	U_c.rows(m);
+	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  {
+	    svd(t0_fits[t0]->getCt0(),U,s,V);
+	    mt = svdResetAvgCondAndSigma(s,U,thresh,sigma);
+	    svdResetPseudoInvertRoot(s,mt);
+	    S = diag(s);
+	    S.rows(mt);
+	    S.cols(mt);
+	    U.rows(mt);   
+	    P.reDim(t0_fits[t0]->getB(),m,mt);
+	    P =  constructPermutationMatrix(mean(U_c),mean(U));  //roughly adj(U_c)*U with some appropriate phases stuck in 
+
+
+	    std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
+	    std::cout << mean(P) << std::endl;
+	    std::cout << "U_ref^T * U = \n" << mean(adj(U_c)*U) << std::endl;
+
+
+
+	    t0_metrics[t0] = U_c * S_c * P * S * adj(U);           
+	  }
+	break;
+
+      default:
+	std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
+	std::cout << "If you're seeing this then something went horribly wrong, exiting" << std::endl;
+	exit(1);
+
+      }//end switch
+  }//end constructMetric
+
 
 }
 #endif

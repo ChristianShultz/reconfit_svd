@@ -10,8 +10,7 @@ namespace SEMBLE
 
   PromoteScalar<double>::Type eConjPhase(const double &in)
   {
-    double dum = double((in > 0) - (in < 0))*in;
-    return toScalar(dum);
+    return toScalar(in);
   }
 
   PromoteScalar<std::complex<double> >::Type eConjPhase(const std::complex<double> &in)

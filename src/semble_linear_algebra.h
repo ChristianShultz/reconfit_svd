@@ -14,7 +14,7 @@
 namespace SEMBLE
 {
 //forward declarations
-  template<class T>  //return T  if real+, -T if real-, T* if complex, calls overloaded eConjPhase(T)
+  template<class T>  //return T  if real, T* if complex, calls overloaded eConjPhase(T)
   typename PromoteScalar<T>::Type evecConjPhase(const T &in);
  
   //return toScalar(-T)
@@ -22,6 +22,9 @@ namespace SEMBLE
   
   //return toScalar(T*)
   PromoteScalar<std::complex<double> >::Type eConjPhase(const std::complex<double> &in);
+
+  template<class T>//solves R*P = V, P = R^dagger * V, will include the evecConjPhase in the return matrix
+  itpp::Mat<T> constructPermutationMatrix(const itpp::Mat<T> &ref, const itpp::Mat<T> &vec);
 
 //row/col operations
   template<class T>
@@ -355,6 +358,57 @@ namespace SEMBLE
   }
 
 
+  template<class T>//solves R*P = V, P = R^dagger * V, will include the evecConjPhase in the return matrix
+  itpp::Mat<T> constructPermutationMatrix(const itpp::Mat<T> &ref, const itpp::Mat<T> &vec)
+  {
+    itpp::Mat<T> lap = (itpp::hermitian_transpose(ref)*vec);
+    const int rdim = ref.cols();
+    const int vdim = vec.cols();
+    const int bound = (rdim < vdim) ? rdim : vdim;
+    std::map<int,int> mapp;
+    int mr,mv;
+    std::vector<bool> ur(rdim,false), uv(vdim,false);
+    T m;
+    
+    for(int p = 0; p < bound; ++p)
+      {
+	mr = 0; 
+	mv = 0;
+	m = T(0.);
+	
+	for(int v = 0; v < vdim; ++v)
+	  if(uv[v])
+	    continue;
+	  else
+	    for(int r = 0; r < rdim; ++r)
+	      if(ur[r])
+		continue;
+	      else
+		if(fabs(lap(r,v)) >= m)
+		  {
+		    m = fabs(lap(r,v));
+		    mr = r;
+		    mv = v;
+		  }
+	ur[mr] = true;
+	uv[mv] = true;
+	mapp[mr] = mv;      
+      }
+    
+    itpp::Mat<T> r(lap);
+    
+    r.zeros();
+  
+    //fill in a generalized permutaion matrix, phases included
+    std::map<int,int>::const_iterator it;
+    for(it = mapp.begin(); it != mapp.end(); ++it)
+      r(it->first,it->second) = toScalar(evecConjPhase(lap(it->first,it->second)/fabs(lap(it->first,it->second))));
+    
+    return r;  //this is rdim X vdim
+  }
+
+
+
 //semble linear algebra
   template<class T>
   SembleMatrix<T> hermitianConjugate(const SembleMatrix<T> &M)
@@ -637,7 +691,6 @@ namespace SEMBLE
       }
   }
 
-
   template<class T> // will match the rescaled ensemble to the first bin and -- requires rescaling, defaults to rescaling
   void matchEigenVectorsEnsemble(SembleMatrix<T> &inM, SembleVector<double> &inV, bool rescale = true)
   {
@@ -870,7 +923,7 @@ namespace SEMBLE
     rephaseEVectors(vecs);
   }
 
-//these can be of differing sizes, map is where it goes, pair is which state and phase
+//these can be of differing sizes, key is where it goes, data is phase
   template<class T>
   typename std::map<int, typename  PromoteScalar<T>::Type> rephaseEigenVectorsEnsembleMap(const SembleMatrix<T> &ref, const SembleMatrix<T> &vec)
   {
@@ -1499,7 +1552,6 @@ namespace SEMBLE
 
 
 
-
 //generalized eigenproblem routines and helpers
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -2016,7 +2068,7 @@ namespace SEMBLE
   }
 
 
-}
+}//namespace
 
 
 #endif
