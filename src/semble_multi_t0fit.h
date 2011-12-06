@@ -72,6 +72,7 @@ namespace SEMBLE
     void printer(void);
     eload_gen_eig_string get_gen_eig_enum(std::string &in) const;   //from semble_t0fit_prim.h
     void constructMetrics(void);
+    itpp::Mat<T> permMat(const typename std::map<int,itpp::Mat<T> > &mapp, const int st, const int end, const int hop) const;
 
   private:  //data store
     typename std::map<int, Handle<ST0Fit<T> > > t0_fits;   //key is t0 values, data is the ST0Fit(t0)
@@ -1221,11 +1222,17 @@ std:
   template<class T>
   void SMT0Fit<T>::constructMetrics(void) 
   {
-    SembleMatrix<T> U_c,U,V,S_c,S,P;
+    SembleMatrix<T> U_c,U,V,P;
+    SembleMatrix<double> S;
     SembleVector<double> s;
     int t0_ref = inikeys.t0Props.t0ref;
-    int m,mt;
+    int mt;
     double thresh,sigma;
+    bool bsvd = false;
+    std::map<int,SembleMatrix<double> > St0;
+    std::map<int,SembleMatrix<T> > Ut0;
+    std::map<int,itpp::Mat<T> > mUt0;
+
 
    //determine the metric for each t0 once
     switch(get_gen_eig_enum(inikeys.genEigProps.type))
@@ -1241,15 +1248,7 @@ std:
 	break;
 	
       case eSvdCond:
-	svd(t0_fits[t0_ref]->getCt0(),U_c,s,V);
-	thresh = inikeys.genEigProps.thresh;
-	m = svdResetAverageCond(s,thresh);
-	svdResetPseudoInvertRoot(s,m);
-	S_c = diag(s);
-	S_c.rows(m);
-	S_c.cols(m);
-	U_c.rows(m);
-
+	bsvd = true;
 	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
@@ -1259,28 +1258,14 @@ std:
 	    S.rows(mt);
 	    S.cols(mt);
 	    U.rows(mt);         
-	    P.reDim(t0_fits[t0]->getB(),m,mt);
-	    P =  constructPermutationMatrix(mean(U_c),mean(U));  //roughly adj(U_c)*U with some appropriate phases stuck in 
-
-	    std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
-	    std::cout << "P = \n" <<  mean(P) << std::endl;
-	    std::cout << "U_ref^T * U = \n" << mean(adj(U_c)*U) << std::endl;
-
-
-	    t0_metrics[t0] = U_c * S_c * P * S * adj(U);
+	    St0[t0] = S;
+	    Ut0[t0] = U;
+	    mUt0[t0] = mean(U);
 	  }
 	break;
 
       case eSvdValue:
-       	svd(t0_fits[t0_ref]->getCt0(),U_c,s,V);
-	thresh = inikeys.genEigProps.thresh;
-	m = svdResetAverageValue(s,thresh);
-	svdResetPseudoInvertRoot(s,m);
-	S_c = diag(s);
-	S_c.rows(m);
-	S_c.cols(m);
-	U_c.rows(m);
-
+	bsvd = true;
 	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
@@ -1290,28 +1275,14 @@ std:
 	    S.rows(mt);
 	    S.cols(mt);
 	    U.rows(mt);        
-	    P.reDim(t0_fits[t0]->getB(),m,mt);
-	    P =  constructPermutationMatrix(mean(U_c),mean(U));  //roughly adj(U_c)*U with some appropriate phases stuck in 
-
-
-	    std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
-	    std::cout << "P = \n" << mean(P) << std::endl;
-	    std::cout << "tref" << t0_ref << " t0" << t0 << "U_ref^T * U = \n" << mean(adj(U_c)*U) << std::endl;
-
-	    t0_metrics[t0] = U_c * S_c * P * S * adj(U);      
+     	    St0[t0] = S;
+	    Ut0[t0] = U;
+	    mUt0[t0] = mean(U);
 	  }
 	break;
 
       case eSvdSigma:
-	svd(t0_fits[t0_ref]->getCt0(),U_c,s,V);
-	sigma = inikeys.genEigProps.sigma;
-	m = svdResetSigma(s,U_c,sigma);
-	svdResetPseudoInvertRoot(s,m);
-	S_c = diag(s);
-	S_c.rows(m);
-	S_c.cols(m);
-	U_c.rows(m);
-
+	bsvd = true;
 	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
@@ -1321,29 +1292,14 @@ std:
 	    S.rows(mt);
 	    S.cols(mt);
 	    U.rows(mt);     
-	    P.reDim(t0_fits[t0]->getB(),m,mt);
-	    P =  constructPermutationMatrix(mean(U_c),mean(U));  //roughly adj(U_c)*U with some appropriate phases stuck in 
-
-
-	    std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
-	    std::cout << mean(P) << std::endl;
-	    std::cout << "U_ref^T * U = \n" << mean(adj(U_c)*U) << std::endl;
-
-
-	    t0_metrics[t0] = U_c * S_c * P * S * adj(U);         
+      	    St0[t0] = S;
+	    Ut0[t0] = U;
+	    mUt0[t0] = mean(U);
 	  }
 	break;
 
       case eSvdSigmaValue:
-	svd(t0_fits[t0_ref]->getCt0(),U_c,s,V);
-	sigma = inikeys.genEigProps.sigma;
-	thresh = inikeys.genEigProps.thresh;
-	m = svdResetAvgValueAndSigma(s,U_c,thresh,sigma);
-	svdResetPseudoInvertRoot(s,m);
-	S_c = diag(s);
-	S_c.rows(m);
-	S_c.cols(m);
-	U_c.rows(m);
+	bsvd = true;
 	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
@@ -1353,29 +1309,14 @@ std:
 	    S.rows(mt);
 	    S.cols(mt);
 	    U.rows(mt);     
-	    P.reDim(t0_fits[t0]->getB(),m,mt);
-	    P =  constructPermutationMatrix(mean(U_c),mean(U));  //roughly adj(U_c)*U with some appropriate phases stuck in 
-
-
-	    std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
-	    std::cout << mean(P) << std::endl;
-	    std::cout << "U_ref^T * U = \n" << mean(adj(U_c)*U) << std::endl;
-
-
-	    t0_metrics[t0] = U_c * S_c * P * S * adj(U);         
+      	    St0[t0] = S;
+	    Ut0[t0] = U;
+	    mUt0[t0] = mean(U);
 	  }
 	break;
 
       case eSvdSigmaCond:
-	svd(t0_fits[t0_ref]->getCt0(),U_c,s,V);
-	sigma = inikeys.genEigProps.sigma;
-	thresh = inikeys.genEigProps.thresh;
-	m = svdResetAvgCondAndSigma(s,U_c,thresh,sigma);
-	svdResetPseudoInvertRoot(s,m);
-	S_c = diag(s);
-	S_c.rows(m);
-	S_c.cols(m);
-	U_c.rows(m);
+	bsvd = true;
 	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
@@ -1385,27 +1326,87 @@ std:
 	    S.rows(mt);
 	    S.cols(mt);
 	    U.rows(mt);   
-	    P.reDim(t0_fits[t0]->getB(),m,mt);
-	    P =  constructPermutationMatrix(mean(U_c),mean(U));  //roughly adj(U_c)*U with some appropriate phases stuck in 
-
-
-	    std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
-	    std::cout << mean(P) << std::endl;
-	    std::cout << "U_ref^T * U = \n" << mean(adj(U_c)*U) << std::endl;
-
-
-
-	    t0_metrics[t0] = U_c * S_c * P * S * adj(U);           
+     	    St0[t0] = S;
+	    Ut0[t0] = U;
+	    mUt0[t0] = mean(U);
 	  }
 	break;
 
       default:
 	std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
-	std::cout << "If you're seeing this then something went horribly wrong, exiting" << std::endl;
+	std::cout << "If you're seeing this then something went horribly wrong, exiting." << std::endl;
 	exit(1);
 
       }//end switch
+
+
+    if(bsvd)
+      {
+	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  {
+	    /*
+	    itpp::Mat<T> P;
+	    if(t0 < t0_ref)
+	      P = itpp::hermitian_transpose(permMat(mUt0,t0,t0_ref,inikeys.t0Props.svdPhop));
+	    else
+	      P = permMat(mUt0,t0_ref,t0,inikeys.t0Props.svdPhop);
+
+	    std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
+	    std::cout << "P(tr = "<< t0_ref << ",t0 = "<< t0<< ") = \n" << P << std::endl; 
+	    std:: cout << itpp::hermitian_transpose(mUt0[t0_ref]) * mUt0[t0] << std::endl;
+
+
+	    SembleMatrix<T> PP(t0_fits[t0_ref]->getB(),t0_fits[t0_ref]->getM(),t0_fits[t0]->getM());
+	    PP = P;
+
+	    t0_metrics[t0] = Ut0[t0_ref] * St0[t0_ref] * PP * St0[t0] * adj(Ut0[t0]);
+
+	    */
+	    
+	    //this worked better 
+	    t0_metrics[t0] = Ut0[t0_ref] * St0[t0_ref] * adj(Ut0[t0_ref]) * Ut0[t0] * St0[t0] * adj(Ut0[t0]);
+	  }
+      }
+
   }//end constructMetric
+
+  template<class T>
+  itpp::Mat<T> SMT0Fit<T>::permMat(const typename std::map<int, itpp::Mat<T> > &mapp, const int st, const int end, const int hop) const
+  {
+
+    if(end < st)
+      {
+	std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << " improper usage" << std::endl;
+	exit(1);
+      }
+
+    typename std::map<int,itpp::Mat<T> >::const_iterator s,e;
+    if((hop < 1) || (end - st < hop))  //one jump or end recursion
+      {
+	s = mapp.find(st);
+	e = mapp.find(end);
+	if((s == mapp.end()) || (e == mapp.end()))
+	  {
+	    std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << " Mapping error in this context" << std::endl;
+	    exit(1);
+	  }
+       	return constructPermutationMatrix(s->second,e->second);
+      }
+    else
+      {
+	s = mapp.find(st);
+	e = mapp.find(st+hop);
+	if((s == mapp.end()) || (e == mapp.end()))
+	  {
+	    std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << " Mapping error in this context" << std::endl;
+	    exit(1);
+	  }
+	return constructPermutationMatrix(s->second,e->second) * permMat(mapp,st+hop,end,hop);  
+	//we want the transformation from ordering at t0_ref to ordering at a given t0, this can be done via
+	// T : Ref -> t0 or as the composition transformation T : Ref -> Ref + hop -> Ref +2*hop -> ... ->t0 
+	//in practice it seems that the composition is a better choice but it can fail if any of the 'links' are bad
+      }
+  }
 
 
 }

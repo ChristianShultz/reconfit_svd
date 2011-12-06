@@ -192,6 +192,11 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, T0Props_t &prop)
     read(ptop, "t0ref", prop.t0ref);
   else
     prop.t0ref = prop.t0high;
+
+  //  if(ptop.count("svdPhop") > 0)
+  //    read(ptop,"svdPhop", prop.svdPhop);
+  //  else
+  //    prop.svdPhop = 0; //no hop
 }
 
 void SEMBLE::read(XMLReader &xml, const std::string &path, ReconProps_t &prop)
@@ -722,6 +727,7 @@ std::string SEMBLE::write_params(const T0Props_t &prop)
   ss << "t0low " << prop.t0low << n;
   ss << "t0high " << prop.t0high << n;
   ss << "t0ref " << prop.t0ref << n;
+  //ss << "svdPhop " << prop.svdPhop << n;
   ss << n << n;
 
   return ss.str();
