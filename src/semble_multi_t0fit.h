@@ -839,6 +839,8 @@ namespace SEMBLE
   {
     eload_gen_eig_string type;
 
+    type = get_gen_eig_enum(inikeys.genEigProps.type);
+
     if((type == eSvdValue) ||
        (type == eSvdCond)  ||
        (type == eSvdSigma) ||
@@ -852,7 +854,8 @@ namespace SEMBLE
 
 	std::stringstream ss;
 	ss << "SVDLogs";
-	std::string path = SEMBLEIO::getPath() += ss.str();
+	std::string path = SEMBLEIO::getPath();
+	path += ss.str();
 	SEMBLEIO::makeDirectoryPath(path);
 
 	
