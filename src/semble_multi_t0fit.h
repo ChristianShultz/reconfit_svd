@@ -862,13 +862,11 @@ namespace SEMBLE
 	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
 	  {
 	    std::string fname;
-	    ss.str(std::string());  //clear ss
-	    ss << path << "/" <<" SVDULog_t0" << t0;
-	    fname = ss.str();
 	    ss.str(std::string());
-
+	    ss << path << "/" <<"SVDULog_t0" << t0;
+	    fname = ss.str();
+	    ss.str("");
 	    ss << "val +/- std deviation" << "\n\n";
-
 	    svd(t0_fits[t0]->getCt0(), U,s,V);
 	    matchEigenVectorsEnsemble(Ur, U,s);
 
