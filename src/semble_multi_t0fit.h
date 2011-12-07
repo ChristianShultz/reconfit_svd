@@ -1234,6 +1234,8 @@ std:
     std::map<int,SembleMatrix<T> > Ut0;
     std::map<int,itpp::Mat<T> > mUt0;
 
+    thresh = inikeys.genEigProps.thresh;
+    sigma = inikeys.genEigProps.sigma;
 
    //determine the metric for each t0 once
     switch(get_gen_eig_enum(inikeys.genEigProps.type))
