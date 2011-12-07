@@ -30,8 +30,7 @@
   1) map keys are the number assigned to the ordered states, data is the 
      state on this t0
   2) When using SVD we could potentially have different numbers of 
-     states on each t0, a mapped value of -1 means the state did
-     not map to any state at this value of t0
+     states on each t0
 */
 
 
@@ -625,21 +624,18 @@ namespace SEMBLE
 
     for(it = mapp.begin(); it != mapp.end(); ++it)
       {
-        if(it->second != -1) //valid mapping
-          {
-            if(it->second >= M) //in bounds check
-              {
-                std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
-                exit(1);
-              }
-
-            std::stringstream s;
-            s <<  path << "prin_corr_fit_t0" << t0 << "_reorder_state" << it->first << ".ax" ;
-            std::ofstream out;
-            out.open(s.str().c_str());
-            out << pCorrFitPlot[it->second];
-            out.close();
-          }
+	if(it->second >= M) //in bounds check
+	  {
+	    std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
+	    exit(1);
+	  }
+	
+	std::stringstream s;
+	s <<  path << "prin_corr_fit_t0" << t0 << "_reorder_state" << it->first << ".ax" ;
+	std::ofstream out;
+	out.open(s.str().c_str());
+	out << pCorrFitPlot[it->second];
+	out.close();
       }
   }
 
@@ -690,18 +686,15 @@ namespace SEMBLE
 
     for(it = mapp.begin(); it != mapp.end(); ++it)
       {
-        if(it->second != -1) //valid mapping
-          {
-            if(it->second >= M) //in bounds check
-              {
-                std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
-                exit(1);
-              }
-
-            std::ostringstream file;
-            file << path <<  "mass_t0_" << t0 << "_reorder_state" << it->first << ".jack";
-            write(file.str(), mass_0[it->second]);
-          }
+	if(it->second >= M) //in bounds check
+	  {
+	    std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
+	    exit(1);
+	  }
+	
+	std::ostringstream file;
+	file << path <<  "mass_t0_" << t0 << "_reorder_state" << it->first << ".jack";
+	write(file.str(), mass_0[it->second]);
       }
   }
 
@@ -764,33 +757,30 @@ namespace SEMBLE
 
     for(it = mapp.begin(); it != mapp.end(); ++it)
       {
-        if(it->second != -1) //valid mapping
-          {
-            if(it->second >= M) //in bounds check
-              {
-                std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
-                exit(1);
-              }
-
-            EnsemVectorReal lambdat;
-            lambdat.resize(B);
-            lambdat.resizeObs(inikeys.prinCorrProps.tmax + 1);
-
-            EnsemReal one;
-            one.resize(B);
-            one = toScalar(1.);
-
-            for(int t = 0; t < inikeys.globalProps.tmin; ++t)
-              pokeObs(lambdat, one, t);
-
-            for(int t = inikeys.globalProps.tmin; t <= inikeys.prinCorrProps.tmax; ++t)
-              pokeObs(lambdat, eVals[t].getEnsemElement(it->second), t);
-
-            std::ostringstream file;
-            file << path << "prin_corr_t0" << t0 << "_state" << it->first << "_reordered.jack";
-            write(file.str(), lambdat);
-
-          }
+	if(it->second >= M) //in bounds check
+	  {
+	    std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
+	    exit(1);
+	  }
+	
+	EnsemVectorReal lambdat;
+	lambdat.resize(B);
+	lambdat.resizeObs(inikeys.prinCorrProps.tmax + 1);
+	
+	EnsemReal one;
+	one.resize(B);
+	one = toScalar(1.);
+	
+	for(int t = 0; t < inikeys.globalProps.tmin; ++t)
+	  pokeObs(lambdat, one, t);
+	
+	for(int t = inikeys.globalProps.tmin; t <= inikeys.prinCorrProps.tmax; ++t)
+	  pokeObs(lambdat, eVals[t].getEnsemElement(it->second), t);
+	
+	std::ostringstream file;
+	file << path << "prin_corr_t0" << t0 << "_state" << it->first << "_reordered.jack";
+	write(file.str(), lambdat);
+	
       }
   }
 
@@ -925,24 +915,21 @@ namespace SEMBLE
 
     for(it = mapp.begin(); it != mapp.end(); ++it)
       {
-        if(it->second != -1) //valid mapping
-          {
-            if(it->second >= M) //in bounds check
-              {
-                std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
-                exit(1);
-              }
-
-            for(int op = 0; op < N; ++op)
-              {
-                std::stringstream s;
-                s << path << "Z_fit_t0" << t0 << "_reorder_state" << it->first << "_op" << op << ".ax";
-                std::ofstream out;
-                out.open(s.str().c_str());
-                out << zFitPlot[it->second][op];
-                out.close();
-              }
-          }
+	if(it->second >= M) //in bounds check
+	  {
+	    std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
+	    exit(1);
+	  }
+	
+	for(int op = 0; op < N; ++op)
+	  {
+	    std::stringstream s;
+	    s << path << "Z_fit_t0" << t0 << "_reorder_state" << it->first << "_op" << op << ".ax";
+	    std::ofstream out;
+	    out.open(s.str().c_str());
+	    out << zFitPlot[it->second][op];
+	    out.close();
+	  }
       }
   }
 
@@ -986,21 +973,19 @@ namespace SEMBLE
 
     for(it = mapp.begin(); it != mapp.end(); ++it)
       {
-        if(it->second != -1) //valid mapping
-          {
-            if(it->second >= M) //in bounds check
-              {
-                std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
-                exit(1);
-              }
-
-            for(int op = 0; op < N; ++op)
-              {
-                std::ostringstream file;
-                file << path << "Z_t0_" << t0 << "_reorder_state" << it->first << "_op" << op << ".jack";
-                write(file.str(), zFit.getEnsemElement(it->second, op));
-              }
-          }
+	
+	if(it->second >= M) //in bounds check
+	  {
+	    std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
+	    exit(1);
+	  }
+	
+	for(int op = 0; op < N; ++op)
+	  {
+	    std::ostringstream file;
+	    file << path << "Z_t0_" << t0 << "_reorder_state" << it->first << "_op" << op << ".jack";
+	    write(file.str(), zFit.getEnsemElement(it->second, op));
+	  }
       }
   }
 
@@ -1062,34 +1047,32 @@ namespace SEMBLE
 
     for(it = mapp.begin(); it != mapp.end(); ++it)
       {
-        if(it->second != -1) //valid mapping
-          {
-            if(it->second >= M) //in bounds check
-              {
-                std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
-                exit(1);
-              }
+	
+	if(it->second >= M) //in bounds check
+	  {
+	    std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
+	    exit(1);
+	  }
+	
+	for(int op = 0; op < N; ++op)
+	  {
+	    
+	    typename PromoteEnsemVec<T>::Type zt;
+	    zt.resize(B);
+	    zt.resizeObs(inikeys.zProps.tmax);
 
-            for(int op = 0; op < N; ++op)
-              {
-
-                typename PromoteEnsemVec<T>::Type zt;
-                zt.resize(B);
-                zt.resizeObs(inikeys.zProps.tmax);
-
-                for(int t = 0; t < inikeys.globalProps.tmin; ++t)
-                  pokeObs(zt, one, t);
-
-                for(int t = inikeys.globalProps.tmin; t < inikeys.zProps.tmax; ++t)
-                  pokeObs(zt, Z[t].getEnsemElement(it->second, op), t);
-
-
-                std::ostringstream file;
-                file << path << "Zt_t0_" << t0 << "_reorder_state" << it->first << "_op" << op << ".jack";
+	    for(int t = 0; t < inikeys.globalProps.tmin; ++t)
+	      pokeObs(zt, one, t);
+	    
+	    for(int t = inikeys.globalProps.tmin; t < inikeys.zProps.tmax; ++t)
+	      pokeObs(zt, Z[t].getEnsemElement(it->second, op), t);
+	    
+	    
+	    std::ostringstream file;
+	    file << path << "Zt_t0_" << t0 << "_reorder_state" << it->first << "_op" << op << ".jack";
                 write(file.str(), zt);
-              }
-          }
-      }
+	  }
+      }    
   }
 
 
@@ -1144,30 +1127,27 @@ namespace SEMBLE
 
     for(it = mapp.begin(); it != mapp.end(); ++it)
       {
-        if(it->second != -1) //valid mapping
-          {
-            if(it->second >= M) //in bounds check
-              {
-                std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
-                exit(1);
-              }
-
-            for(int op = 0; op < N; ++op)
-              {
-                typename PromoteEnsemVec<T>::Type evec;
-                evec.resize(B);
-                evec.resizeObs(inikeys.globalProps.tmax + 1);
-
-                for(int t = 0; t <= inikeys.globalProps.tmax; ++t)
-                  pokeObs(evec, eVecs[t].getEnsemElement(op, it->second), t);
-
-                std::ostringstream file;
-                file << path << "V_t0_" << t0 <<  "_reordered_state" << it->first << "_op" << op << ".jack";
-                write(file.str(), evec);
-
-              }
-          }
-      }
+	if(it->second >= M) //in bounds check
+	  {
+	    std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
+	    exit(1);
+	  }
+	
+	for(int op = 0; op < N; ++op)
+	  {
+	    typename PromoteEnsemVec<T>::Type evec;
+	    evec.resize(B);
+	    evec.resizeObs(inikeys.globalProps.tmax + 1);
+	    
+	    for(int t = 0; t <= inikeys.globalProps.tmax; ++t)
+	      pokeObs(evec, eVecs[t].getEnsemElement(op, it->second), t);
+	    
+	    std::ostringstream file;
+	    file << path << "V_t0_" << t0 <<  "_reordered_state" << it->first << "_op" << op << ".jack";
+	    write(file.str(), evec);
+	    
+	  }
+      }    
   }
 
 

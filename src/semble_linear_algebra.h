@@ -142,17 +142,19 @@ namespace SEMBLE
   template<class T>
   typename std::map<int, typename PromoteScalar<T>::Type> rephaseEigenVectorsEnsembleMetricMap(const SembleMatrix<T> &metric, const SembleMatrix<T> &ref, const SembleMatrix<T> &vec);
 
-  template<class T> //return a map, key is ref, data is vecnum, -1 means state didnt map, works for different sizes
+  template<class T> //return a map, key is ref, data is vecnum, 
   std::map<int, int> makeRemap(const SembleMatrix<T> &ref, const SembleMatrix<T> &vec);
 
   template<class T>
   std::map<int, int> makeRemapMetric(const SembleMatrix<T> &ref, const SembleMatrix<T> &vec, const SembleMatrix<T> &metric);
 
-  template<class T> //return a map keys in [0,dim-1], data is state, -1 means state didnt map, works for different sizes
+  /*
+  template<class T> //return a map ke
   std::map<int, int> makeRemap(const SembleMatrix<T> &ref, const SembleMatrix<T> &vec, const int dim);
 
   template<class T>
   std::map<int, int> makeRemapMetric(const SembleMatrix<T> &metric, const SembleMatrix<T> &ref, const SembleMatrix<T> &vec, const int dim);
+  */
 
   template<class T>//returns the upper triangular factorized matrix, rescales by default and returns unscaled, A = (F^t)*F 
   void chol(const SembleMatrix<T> &in, SembleMatrix<T> &factorized, bool rescale = true);
@@ -1033,42 +1035,31 @@ namespace SEMBLE
     /* Three cases
        rdim = vdim - do nothing
        rdim < vdim - match lowest to lowest, arbitrary
-       rdim > vdim - match then fill rest of unused states with -1 as doesnt exist
+       rdim > vdim - do nothing
     */
 
-    if(rdim != vdim)
+    if(rdim < vdim)
       {
-
-        if(rdim < vdim)
-          {
-            std::vector<int> availablev, availabler;
-
-            for(int index = 0; index < vdim; ++index)
-              {
-                if(!!!uv[index])
-                  availablev.push_back(index);
-
-                if(index < rdim)
-                  {
-                    if(!!!ur[index])
-                      availabler.push_back(index);
-                  }
-                else
-                  availabler.push_back(index);
-              }
-
-            for(int index = 0; index < availablev.size(); ++index)
-              ret[availabler[index]] = availablev[index];
-
-          }
-        else
-          {
-            for(int index = 0; index < rdim; ++index)
-              if(!!!ur[index])
-                ret[index] = -1;
-          }
+	std::vector<int> availablev, availabler;
+	
+	for(int index = 0; index < vdim; ++index)
+	  {
+	    if(!!!uv[index])
+	      availablev.push_back(index);
+	    
+	    if(index < rdim)
+	      {
+		if(!!!ur[index])
+		  availabler.push_back(index);
+	      }
+	    else
+	      availabler.push_back(index);
+	  }
+	
+	for(int index = 0; index < availablev.size(); ++index)
+	  ret[availabler[index]] = availablev[index];	
       }
-
+  
     return ret;
   }
 
@@ -1078,7 +1069,8 @@ namespace SEMBLE
     return makeRemap(adj(metric) * ref, vec);
   }
 
-  template<class T> //return a map keys in [0,dim-1], data is state, -1 means state didnt map, works for different sizes
+  /*
+  template<class T> //return a map keys in [0,dim-1], data is state, -1 means state didnt map, dim is
   std::map<int, int> makeRemap(const SembleMatrix<T> &ref, const SembleMatrix<T> &vec, const int dim)
   {
     std::map<int, int> ret = makeRemap(ref, vec);
@@ -1116,7 +1108,7 @@ namespace SEMBLE
     return makeRemap(adj(metric)*ref,vec, dim);
   }
 
-
+  */
 
   template<class T>//returns the upper triangular factorized matrix, rescales by default and returns unscaled
   void chol(const SembleMatrix<T> &in, SembleMatrix<T> &factorized, bool rescale = true)

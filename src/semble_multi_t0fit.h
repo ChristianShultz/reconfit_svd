@@ -362,11 +362,14 @@ namespace SEMBLE
         for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
           {
             int mapped;
+	    std::map<int,int>::const_iterator it;
+	    
+	    it = reorder[t0].find(state);
 
-            if(reorder[t0][state] == -1) //doesnt exist
-              continue;
-            else
-              mapped = reorder[t0][state];
+	    if(it == reorder[t0].end())
+	      continue;
+
+	    mapped = it->second;
 
             if(t0_fits[t0]->getPCorrChiSq(mapped) < inikeys.prinCorrProps.accChisq)
               {
@@ -571,12 +574,15 @@ namespace SEMBLE
 
             for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
               {
-                int mapped;
+		std::map<int,int>::const_iterator it;
+		int mapped;
 
-                if(reorder[t0][state] == -1)
-                  continue;
-                else
-                  mapped = reorder[t0][state];
+		//check if it exists
+		it = reorder[t0].find(state);
+		if(it == reorder[t0].end())
+		  continue;
+
+                  mapped = it->second;
 
                 if(t0_fits[t0]->getZFitChiSq(mapped, op) < inikeys.zProps.accChisq)
                   {
@@ -775,11 +781,12 @@ namespace SEMBLE
     std::map<int, std::map<int, int> >::const_iterator mapit;
     std::map<int, int>::const_iterator it;
 
-    SembleMatrix<T> Ct0_half, U, V;
-    SembleVector<T> s;
+    if(t0_metrics.empty())
+      constructMetrics();
 
-    svd(t0_fits[inikeys.t0Props.t0ref]->getCt0(), U, s, V);
-    Ct0_half = U * sqrt(s);
+    SembleMatrix<T> V,Vp;
+
+
     V = t0_fits[inikeys.t0Props.t0ref]->peekVecs(tz_chisq[inikeys.t0Props.t0ref].first);
 
     for(mapit = reorder.begin(); mapit != reorder.end(); ++mapit)
@@ -793,13 +800,7 @@ namespace SEMBLE
 
         ss << "\n\n mean ovelaps adj(ref)*metric*t0state \n\n";
 
-        SembleMatrix<T> metric, Up, Vp;
-        SembleVector<T> sp;
-
-        svd(t0_fits[mapit->first]->getCt0(), Up, sp, Vp);
-	matchEigenVectorsEnsemble(U,Up,s);
-        metric = Ct0_half * sqrt(sp) * adj(Up);
-        Vp = metric * t0_fits[mapit->first]->peekVecs(tz_chisq[mapit->first].first);
+        Vp = t0_metrics[mapit->first] * t0_fits[mapit->first]->peekVecs(tz_chisq[mapit->first].first);
 
         ss << mean(adj(V)*Vp);
 
@@ -977,9 +978,9 @@ std:
       constructMetrics();
 
 
-    std::vector<int> zero(nvecs,0);
-    std::vector<std::vector<int> > dum(nvecs,zero);
-    std::vector<std::vector<std::vector<int> > > counts(inikeys.t0Props.t0high - inikeys.t0Props.t0low + 1, dum);
+    itpp::Mat<int> zero(nvecs,nvecs);
+    zero.zeros();
+    std::vector<itpp::Mat<int> > counts(inikeys.t0Props.t0high - inikeys.t0Props.t0low + 1, zero);
 
     //use counts to keep a tally for a maximum likelyhood overlap map
     //outter vector is t0, inner vector is the ref state, innermost vector is the state on that t0
@@ -995,18 +996,24 @@ std:
 	    if(t == t0) //no eigenvectors, don't want to contaminate map with junk
 	      continue;
 	    
-	    std::map<int,int> mapp = makeRemap(t0_fits[t0_ref]->peekVecs(t),t0_metrics[t0]*t0_fits[t0]->peekVecs(t),nvecs);
+	    std::map<int,int> mapp = makeRemap(t0_fits[t0_ref]->peekVecs(t),t0_metrics[t0]*t0_fits[t0]->peekVecs(t));
 	    std::map<int,int>::const_iterator it;
 
 	    for(it = mapp.begin(); it != mapp.end(); ++it)
-	      if(it->second == -1)    
-		continue;                             //no mapping
-	      else
-		++counts[t0 - inikeys.t0Props.t0low][it->first][it->second];  //increment
+	      ++counts[t0 - inikeys.t0Props.t0low](it->first,it->second);  //increment
 	  }
       }
 
     const int refdim = t0_fits[t0_ref]->getM();
+
+
+    /*debug*/
+    std::cout << "FOR DEBUGGING" << std::endl;
+    for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+      std::cout <<__PRETTY_FUNCTION__ << __FILE__ << __LINE__ << "\n counts(t0 = " << t0 << ")\n"
+		<< counts[t0 - inikeys.t0Props.t0low] << "\n"<< std::endl;
+    
+
 
     for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
@@ -1015,8 +1022,7 @@ std:
 	std::vector<bool> ur(nvecs,false),uv(nvecs,false);
 	int mr,mv,m;
 	std::map<int,int> rmap_t0;
-
-	dum = counts[t0 - inikeys.t0Props.t0low];
+	itpp::Mat<int> dum(counts[t0 - inikeys.t0Props.t0low]);
 
 	for(int state = 0; state < bound; ++state)
 	  {
@@ -1033,9 +1039,9 @@ std:
 		    if(uv[v])
 		      continue;
 		    
-		    if(dum[r][v] >=  m)
+		    if(dum(r,v) >=  m)
 		      {
-			m = dum[r][v];
+			m = dum(r,v);
 			mr = r;
 			mv = v;
 		      }
@@ -1074,9 +1080,9 @@ std:
 
 	    for(int i = 0; i < vecdim; ++i)
 	      {
-		if(ur[i])
+		if(!!!ur[i])
 		  rr.push_back(i);
-		if(uv[i])
+		if(!!!uv[i])
 		  vv.push_back(i);
 	      }
 
