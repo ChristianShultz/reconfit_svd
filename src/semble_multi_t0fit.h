@@ -1223,7 +1223,7 @@ std:
   template<class T>
   void SMT0Fit<T>::constructMetrics(void) 
   {
-    SembleMatrix<T> U_c,U,V,P;
+    SembleMatrix<T> U,V;
     SembleMatrix<double> S;
     SembleVector<double> s;
     int t0_ref = inikeys.t0Props.t0ref;
@@ -1260,7 +1260,7 @@ std:
 	    S = diag(s);
 	    S.rows(mt);
 	    S.cols(mt);
-	    U.rows(mt);         
+	    U.cols(mt);         
 	    St0[t0] = S;
 	    Ut0[t0] = U;
 	    mUt0[t0] = mean(U);
@@ -1277,7 +1277,7 @@ std:
 	    S = diag(s);
 	    S.rows(mt);
 	    S.cols(mt);
-	    U.rows(mt);        
+	    U.cols(mt);        
      	    St0[t0] = S;
 	    Ut0[t0] = U;
 	    mUt0[t0] = mean(U);
@@ -1294,7 +1294,7 @@ std:
 	    S = diag(s);
 	    S.rows(mt);
 	    S.cols(mt);
-	    U.rows(mt);     
+	    U.cols(mt);     
       	    St0[t0] = S;
 	    Ut0[t0] = U;
 	    mUt0[t0] = mean(U);
@@ -1311,7 +1311,7 @@ std:
 	    S = diag(s);
 	    S.rows(mt);
 	    S.cols(mt);
-	    U.rows(mt);     
+	    U.cols(mt);     
       	    St0[t0] = S;
 	    Ut0[t0] = U;
 	    mUt0[t0] = mean(U);
@@ -1328,7 +1328,7 @@ std:
 	    S = diag(s);
 	    S.rows(mt);
 	    S.cols(mt);
-	    U.rows(mt);   
+	    U.cols(mt);   
      	    St0[t0] = S;
 	    Ut0[t0] = U;
 	    mUt0[t0] = mean(U);
