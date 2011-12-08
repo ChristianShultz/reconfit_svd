@@ -1152,6 +1152,8 @@ std:
   {
     OutputProps_t out = inikeys.outputProps;
 
+    std::cout << "Writing Files" << std::endl;
+
     if(out.mass)
       printMassFiles();
 
@@ -1236,6 +1238,7 @@ std:
     int mt;
     double thresh,sigma;
     bool bsvd = false;
+    bool bcho = false;
     std::map<int,SembleMatrix<double> > St0;
     std::map<int,SembleMatrix<T> > Ut0;
     std::map<int,itpp::Mat<T> > mUt0;
@@ -1249,21 +1252,21 @@ std:
 
       case eCho:
       case eGenErr:
+	bcho = true;
 	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
 	  {
 	    chol(t0_fits[t0]->getCt0(),U);
-	    t0_metrics[t0] = U;
+	    Ut0[t0] = U;
 	  }
 	break;
-	
+		
       case eSvdCond:
 	bsvd = true;
 	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
 	    mt = svdResetAverageCond(s,thresh);
-	    svdResetPseudoInvertRoot(s,mt);
-	    S = diag(s);
+	    S = sqrt(s);
 	    S.rows(mt);
 	    S.cols(mt);
 	    U.cols(mt);         
@@ -1279,8 +1282,7 @@ std:
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
 	    mt = svdResetAverageValue(s,thresh);
-	    svdResetPseudoInvertRoot(s,mt);
-	    S = diag(s);
+	    S = sqrt(s);
 	    S.rows(mt);
 	    S.cols(mt);
 	    U.cols(mt);        
@@ -1296,8 +1298,7 @@ std:
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
 	    mt = svdResetSigma(s,U,sigma);
-	    svdResetPseudoInvertRoot(s,mt);
-	    S = diag(s);
+	    S = sqrt(s);
 	    S.rows(mt);
 	    S.cols(mt);
 	    U.cols(mt);     
@@ -1313,8 +1314,7 @@ std:
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
 	    mt = svdResetAvgValueAndSigma(s,U,thresh,sigma);
-	    svdResetPseudoInvertRoot(s,mt);
-	    S = diag(s);
+	    S = sqrt(s);
 	    S.rows(mt);
 	    S.cols(mt);
 	    U.cols(mt);     
@@ -1330,8 +1330,7 @@ std:
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
 	    mt = svdResetAvgCondAndSigma(s,U,thresh,sigma);
-	    svdResetPseudoInvertRoot(s,mt);
-	    S = diag(s);
+	    S = sqrt(s);
 	    S.rows(mt);
 	    S.cols(mt);
 	    U.cols(mt);   
@@ -1341,12 +1340,25 @@ std:
 	  }
 	break;
 
+       
       default:
 	std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
-	std::cout << "If you're seeing this then something went horribly wrong, exiting." << std::endl;
-	exit(1);
+	std::cout << "WARNING: You should not be seeing this, something went wrong in this context, defaulting to a SVD metric";
+	  for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  {
+	    svd(t0_fits[t0]->getCt0(),U,s,V);
+     	    St0[t0] = sqrt(s);
+	    Ut0[t0] = U;
+	    mUt0[t0] = mean(U);
+	  }
 
       }//end switch
+
+    if(bcho)
+      {
+	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+	  t0_metrics[t0] = adj(Ut0[t0_ref]) * Ut0[t0];
+      }
 
 
     if(bsvd)
