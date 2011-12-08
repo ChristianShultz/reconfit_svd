@@ -1007,12 +1007,13 @@ std:
     const int refdim = t0_fits[t0_ref]->getM();
 
 
-    /*debug*/
+    /*debug*/  //Put this in a logfile?  It isn't actually very useful.
+    /*
     std::cout << "FOR DEBUGGING" << std::endl;
     for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       std::cout <<__PRETTY_FUNCTION__ << __FILE__ << __LINE__ << "\n counts(t0 = " << t0 << ")\n"
 		<< counts[t0 - inikeys.t0Props.t0low] << "\n"<< std::endl;
-    
+    */
 
 
     for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
@@ -1260,6 +1261,15 @@ std:
 	  }
 	break;
 		
+
+	//Actually none of this svd resetting business needs to be redone here,
+	//V_a^T * M * V_b  , V = U * sqrt(sigma)^-1 * W, M has a factor of U^T on the outside
+	//that would automatically kill the reduced section of the space...
+	//It's left in place in case it isn't immediately obvious to someone reading the code
+	//and also so that in case anyone asks we can say "yes, we explicitly removed the 
+	//reduced space"   
+       
+
       case eSvdCond:
 	bsvd = true;
 	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
@@ -1342,6 +1352,7 @@ std:
 
        
       default:
+	bsvd = true;
 	std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
 	std::cout << "WARNING: You should not be seeing this, something went wrong in this context, defaulting to a SVD metric";
 	  for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
