@@ -2,8 +2,9 @@
 
 use POSIX qw(ceil floor);
 
-die "multiplot.pl <state> <ops> \n" unless $#ARGV >= 0;
+die "multiplot.pl <t0> <state> <ops> \n" unless $#ARGV >= 2;
 
+$t0 = shift(@ARGV);
 $state = shift(@ARGV);
 @ops = @ARGV;
 
@@ -34,7 +35,7 @@ while($line = <FILE>){
 
 foreach $op (@ops){
 
-    $filename = "multi_t0_fits/ZFitPlots/multi_t0_Z_fit_state${state}_op${op}.ax";
+    $filename = "t0${t0}/ZFitPlots/Z_fit_t0${t0}_reorder_state${state}_op${op}.ax";
 
     $x = $s*($count % $dim);
     $y = 1.0 -$s - $s * int($count / $dim);
@@ -47,11 +48,12 @@ foreach $op (@ops){
     print OUT "set yrange[$ylow:$yhigh]\n";
     print OUT "set xrange[$xlow:$xhigh]\n";
 
-   $opname = $opnames{$op};
+    $opname = $opnames{$op};
     
     $xpos = 0.05*$xhigh ;
     $ypos = $yhigh - 0.10 * abs($yhigh - $ylow);
     print OUT "set label 1 \"$op : $opname\" at $xpos,$ypos \n";
+    $xpos = 0.5*$xhigh ;
     $ypos = $ylow + 0.26 * abs($yhigh - $ylow);
     print OUT "set label 2 \"chisq=$chisq\" at $xpos,$ypos \n";
     $ypos = $ylow + 0.15 * abs($yhigh - $ylow);
