@@ -29,16 +29,18 @@ namespace SEMBLE
   {
 
   public: //constructor, destructor, copy, assignment
-    SMT0Fit(void);
-    SMT0Fit(const SMT0Fit<T> &o);
-    SMT0Fit(const typename PromoteCorr<T>::Type &tp_, const FitIniProps_t &inikeys_);
-    SMT0Fit(const typename std::vector<SembleMatrix<T> > &tp_, const FitIniProps_t &inikeys_);
-    ~SMT0Fit(void) {}
-    SMT0Fit<T>& operator=(const SMT0Fit<T> &o);
+    SMT0Fit(void);                                                                             //construct
+    SMT0Fit(const SMT0Fit<T> &o);                                                              //copy
+    SMT0Fit(const typename PromoteCorr<T>::Type &tp_, const FitIniProps_t &inikeys_);          //load a correlator
+    SMT0Fit(const typename std::vector<SembleMatrix<T> > &tp_, const FitIniProps_t &inikeys_); //load a fake correlator
+    ~SMT0Fit(void) {}                                                                          //nothing fancy
+    SMT0Fit<T>& operator=(const SMT0Fit<T> &o);                                                //copy
 
   public:
-    typename std::vector<SembleMatrix<T> > maketp(const typename PromoteCorr<T>::Type &tp_, const FitIniProps_t &inikeys_);
-    void load(const typename std::vector<SembleMatrix<T> > &tp_, const FitIniProps_t &inikeys_);
+    //convert a correlator to a std::vector of SembleMatrix<T> to be able to load correlators
+    typename std::vector<SembleMatrix<T> > maketp(const typename PromoteCorr<T>::Type &tp_, const FitIniProps_t &inikeys_); 
+    //load a std::vector of SembleMatrix<T> to solve
+    void load(const typename std::vector<SembleMatrix<T> > &tp_, const FitIniProps_t &inikeys_);                            
 
   public:
     void fitMassT0(void);                                //fit mass t0
@@ -59,12 +61,13 @@ namespace SEMBLE
 
     void printReorderLog(void);                          //how the remaping worked
     void printNResetLog(void);                           //the number of reset singular values at each t0
-    void printSVDULog(void);
+    void printSVDULog(const SembleMatrix<T> &U, const SembleVector<double> &s, const int mdim, const int t0);
 
     void printReconPlots(void);                          //print the recon plots
 
     void rephaseStates(void);                            //rephase the states according to t0ref
     void reorderStates(void);                            //order the states according to t0ref
+    void cleanUp(void) {clear();}                        //wipe it clean for a new problem
 
   private:
     void clear(void);
@@ -96,7 +99,7 @@ namespace SEMBLE
     std::vector<std::vector<double> > Z_chisq;                      //chisq on multi t0 Z fits
     std::vector<std::vector<std::string> > Z_summary, Z_plots;      //plots strings and summary
 
-    typename std::map<int,SembleMatrix<T> > t0_metrics;
+    typename std::map<int,SembleMatrix<T> > t0_metrics;             //the metric on each t0 depending on GEVP solution type
   };
 
 
@@ -836,69 +839,48 @@ namespace SEMBLE
   }
 
   template<class T>
-  void SMT0Fit<T>::printSVDULog(void)
+  void SMT0Fit<T>::printSVDULog(const SembleMatrix<T> &U, const SembleVector<double> &s, const int mdim, const int t0)
   {
-    eload_gen_eig_string type;
+    const int nvecs = U.getN();
+    const int nops = U.getM();
+    
+    std::stringstream ss;
+    ss << "SVDLogs";
+    std::string path = SEMBLEIO::getPath();
+    path += ss.str();
+    SEMBLEIO::makeDirectoryPath(path);
+   
+    std::string fname;
+    ss.str(std::string());
+    ss << path << "/" <<"SVDULog_t0" << t0;
+    fname = ss.str();
+    ss.str("");
+    ss << "val +/- std deviation" << "\n\n";
 
-    type = get_gen_eig_enum(inikeys.genEigProps.type);
 
-    if((type == eSvdValue) ||
-       (type == eSvdCond)  ||
-       (type == eSvdSigma) ||
-       (type == eSvdSigmaValue) ||
-       (type == eSvdSigmaCond))
+    itpp::Vec<double> sm(mean(s)), sv(variance(s));
+    itpp::Mat<T> UM(mean(U)), UV(variance(U));
+    
+    for(int vec = 0; vec < nvecs; ++vec)
       {
-	SembleMatrix<T> U,Ur,V,Vr;
-	SembleVector<double> s;
-
-	svd(t0_fits[inikeys.t0Props.t0ref]->getCt0(),Ur,s,Vr);
-
-	std::stringstream ss;
-	ss << "SVDLogs";
-	std::string path = SEMBLEIO::getPath();
-	path += ss.str();
-	SEMBLEIO::makeDirectoryPath(path);
-
+	if(vec >= mdim)
+	  ss << "(reset) ";
+	ss << "sigma_" << vec << " = " << sm(vec) << " +/- " << std::sqrt(sv(vec)) << "\n vec_" << vec << " = "; 
 	
-	for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
-	  {
-	    std::string fname;
-	    ss.str(std::string());
-	    ss << path << "/" <<"SVDULog_t0" << t0;
-	    fname = ss.str();
-	    ss.str("");
-	    ss << "val +/- std deviation" << "\n\n";
-	    svd(t0_fits[t0]->getCt0(), U,s,V);
-	    matchEigenVectorsEnsemble(Ur, U,s);
-
-	    int nvecs = U.getN();
-	    int nops = U.getM();
-
-	    itpp::Vec<double> sm(mean(s)), sv(variance(s));
-	    itpp::Mat<T> UM(mean(U)), UV(variance(U));
-
-	    for(int vec = 0; vec < nvecs; ++vec)
-	      {
-		
-		ss << "sigma_" << vec << " = " << sm(vec) << " +/- " << std::sqrt(sv(vec)) << "\n vec_" << vec << " = "; 
-
-		for(int op = 0; op < nops; ++op) 
-		  if(op != nops -1)
-		    ss << UM(op,vec) << " +/- " << std::sqrt(UV(op,vec)) << " : ";
-		  else
-		    ss << UM(op,vec) << " +/- " << std::sqrt(UV(op,vec));
-		  
-		ss << "\n\n";
-
-	      }
-
-	    std::ofstream out;
-	    out.open(fname.c_str());
-	    out << ss.str();
-	    out.close();
-	  }      
-
+	for(int op = 0; op < nops; ++op) 
+	  if(op != nops -1)
+	    ss << UM(op,vec) << " +/- " << std::sqrt(UV(op,vec)) << " : ";
+	  else
+	    ss << UM(op,vec) << " +/- " << std::sqrt(UV(op,vec));
+	
+	ss << "\n\n";
+	
       }
+    
+    std::ofstream out;
+    out.open(fname.c_str());
+    out << ss.str();
+    out.close();
   }
   
 
@@ -1117,6 +1099,7 @@ std:
     mass_chisq.clear();
     mass_summary.clear();
     mass_plots.clear();
+    t0_metrics.clear();
     Z.clear();
     Z_chisq.clear();
     Z_summary.clear();
@@ -1195,7 +1178,6 @@ std:
       {
         printReorderLog();
         printNResetLog();
-	printSVDULog();
         std::ofstream out;
         out.open("ini_file");
         out << inikeys;
@@ -1267,7 +1249,7 @@ std:
 	//that would automatically kill the reduced section of the space...
 	//It's left in place in case it isn't immediately obvious to someone reading the code
 	//and also so that in case anyone asks we can say "yes, we explicitly removed the 
-	//reduced space"   
+	//reduced space". It's also an easy spot to stick int printing.   
        
 
       case eSvdCond:
@@ -1276,6 +1258,8 @@ std:
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
 	    mt = svdResetAverageCond(s,thresh);
+	    if(inikeys.outputProps.logs)
+	      printSVDULog(U,s,mt,t0);
 	    S = sqrt(s);
 	    S.rows(mt);
 	    S.cols(mt);
@@ -1292,6 +1276,8 @@ std:
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
 	    mt = svdResetAverageValue(s,thresh);
+	    if(inikeys.outputProps.logs)
+	      printSVDULog(U,s,mt,t0);
 	    S = sqrt(s);
 	    S.rows(mt);
 	    S.cols(mt);
@@ -1308,6 +1294,8 @@ std:
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
 	    mt = svdResetSigma(s,U,sigma);
+	    if(inikeys.outputProps.logs)
+	      printSVDULog(U,s,mt,t0);
 	    S = sqrt(s);
 	    S.rows(mt);
 	    S.cols(mt);
@@ -1324,6 +1312,8 @@ std:
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
 	    mt = svdResetAvgValueAndSigma(s,U,thresh,sigma);
+	    if(inikeys.outputProps.logs)
+	      printSVDULog(U,s,mt,t0);
 	    S = sqrt(s);
 	    S.rows(mt);
 	    S.cols(mt);
@@ -1340,6 +1330,8 @@ std:
 	  {
 	    svd(t0_fits[t0]->getCt0(),U,s,V);
 	    mt = svdResetAvgCondAndSigma(s,U,thresh,sigma);
+	    if(inikeys.outputProps.logs)
+	      printSVDULog(U,s,mt,t0);
 	    S = sqrt(s);
 	    S.rows(mt);
 	    S.cols(mt);
