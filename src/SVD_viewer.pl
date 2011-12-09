@@ -30,6 +30,14 @@ while($line = <IN>){
     if($a eq "sigma_${num} "){	
 	$found = 1;
 	($sv, $sverr) = split('\+/-', $b);
+	$sv = "${sv}+/-${sverr}";
+	$sv =~ s/\s+//g;
+    }
+    elsif($a eq "(reset) sigma_${num} "){
+	$found = 1;
+	($sv, $sverr) = split('\+/-', $b);
+	$sv = "${sv}+/-${sverr}(reset)";
+	$sv =~ s/\s+//g;
     }
     else{ $found = 0; }
 }
