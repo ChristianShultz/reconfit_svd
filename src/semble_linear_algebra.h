@@ -682,13 +682,16 @@ namespace SEMBLE
 	  {
 	    T factor = (laps(it->first,it->second)/fabs(laps(it->first, it->second)));
 	    if(factor != T(1.))
-	      vecs.set_col(it->first,factor*vec_cp.get_col(it->second));
+	      {vecs.set_col(it->first,factor*vec_cp.get_col(it->second));
+		//std::cout << "done an eigenvector rephase" << std::endl;
+	      }
 	  }
 	else
 	  {
 	    vals.set(it->first, val_cp.get(it->second));
 	    T factor = (laps(it->first,it->second)/fabs(laps(it->first, it->second)));
 	    vecs.set_col(it->first,factor*vec_cp.get_col(it->second));
+	    //std::cout << "done an eigenvector switch" << std::endl;
 	  }
       }
   }
@@ -719,6 +722,7 @@ namespace SEMBLE
     //enforce the phase/ordering
     for(int bin = 1; bin < bin_; ++bin)
       {
+	//std::cout << "bin = " << bin << std::endl;
         matchEigenVectors(inM[0], inM[bin], inV[bin]);
       }
 
@@ -786,9 +790,12 @@ namespace SEMBLE
   template<class T> //match eigen systems of the same size  
   void matchEigenVectorsEnsemble(const SembleMatrix<T> &ref, SembleMatrix<T> &vecs, SembleVector<double> &vals)
   {
+    // JJD - we might also consider an algorithm that pays attention to the error on the overlaps
+    // JJD - preferring large precise overlaps to large imprecise overlaps
 
     int dim_ = ref.getM();
     itpp::Mat<T> laps = mean(adj(ref) * vecs); // this checks the dim
+
     int maxr, maxv, dim = laps.cols();
     std::vector<bool> ur(dim, false), uv(dim, false);
     std::map<int, int> lap_map;
@@ -914,7 +921,7 @@ namespace SEMBLE
 	  if(abs(v(elem)) > abs(max))
 	    max = v(elem);
 
-	v *= max/abs(max);
+	v *= max/abs(max); // JJD - does this work for complex?, don't we need the conj of the phase or to divide by the phase
 	evecs.set_col(vec,v);
       }
   }

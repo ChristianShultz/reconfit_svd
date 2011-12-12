@@ -439,7 +439,7 @@ void EnsemData::makeInvCov(double cutoff) const{
 
   invCov = invertSVDNorm(activeCov, cutoff, nResetCovSingVals);
   if(nResetCovSingVals > 0)
-    {cout << "inverted covariance with " << nResetCovSingVals << " singular values reset" << endl;} 
+    {cout << "     " << __PRETTY_FUNCTION__ << " : inverted data covariance with " << nResetCovSingVals << " singular values reset from " << getNData() << endl;} 
   initInvCov = true;
 
   //  cout << "inverted the data covariance " << endl;

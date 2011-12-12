@@ -479,7 +479,9 @@ namespace SEMBLE
                                         (_data[t0 - 1])->evecs(),
                                         (_data[t0 + 1])->evecs(),
                                         (_data[t0 + 1])->evals());
+	//JJD - why doesn't inikeys.globalProps.tmin appear here ?
 
+	//JJD - won't the following allow there to be a jump acrross t0 ?
         for(int t = t0 + 2 - inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax - inikeys.globalProps.tmin; ++t)
           {
             ptrRef = _data[t - 1];
