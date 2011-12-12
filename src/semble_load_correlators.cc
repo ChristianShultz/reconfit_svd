@@ -1423,7 +1423,7 @@ namespace SEMBLE
                     double ii = abs(toDouble(mean(imag(ComplexCorrs[t].getEnsemElement(i, j)))));
                     double ee = toDouble(sqrt(variance(imag(ComplexCorrs[t].getEnsemElement(i, j)))));
 
-                    if((rr < ii) && (ii > 3.0 * ee) && (t > 0) && (t < tmax))
+                    if((rr < ii) && (ii > 4.0 * ee) && (t > 0) && (t < tmax))
                       {
                         cerr << "WARNING : C[t=" << t << "](" << i << "," << j << ") doesn't have the expected phase - should be real, |imag| part is " << ii << " +/- " << ee  << ", " << ii / ee << " sigma discrepancy" << endl;
                       }
@@ -1443,7 +1443,7 @@ namespace SEMBLE
                     double ii = abs(toDouble(mean(imag(ComplexCorrs[t].getEnsemElement(i, j)))));
                     double ee = toDouble(sqrt(variance(real(ComplexCorrs[t].getEnsemElement(i, j)))));
 
-                    if((rr > ii) && (rr > 3.0 * ee) && (t > 0) && (t < tmax))
+                    if((rr > ii) && (rr > 4.0 * ee) && (t > 0) && (t < tmax))
                       {
                         cerr << "WARNING : C[t=" << t << "](" << i << "," << j << ") doesn't have the expected phase - should be imag, |real| part is " << rr << " +/- " << ee  << ", " << rr / ee << " sigma discrepancy" << endl;
                       }

@@ -193,6 +193,11 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, T0Props_t &prop)
   else
     prop.t0ref = prop.t0high;
 
+  if(ptop.count("nThreads") > 0)
+    read(ptop, "nThreads", prop.nThreads);
+  else
+    prop.nThreads = -1; // will not try to set the number of threads
+
   //  if(ptop.count("svdPhop") > 0)
   //    read(ptop,"svdPhop", prop.svdPhop);
   //  else
@@ -727,6 +732,7 @@ std::string SEMBLE::write_params(const T0Props_t &prop)
   ss << "t0low " << prop.t0low << n;
   ss << "t0high " << prop.t0high << n;
   ss << "t0ref " << prop.t0ref << n;
+  ss << "nThreads" << prop.nThreads << n;
   //ss << "svdPhop " << prop.svdPhop << n;
   ss << n << n;
 

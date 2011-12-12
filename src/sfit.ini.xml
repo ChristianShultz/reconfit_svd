@@ -104,6 +104,7 @@
     <t0low>3</t0low>
     <t0high>9</t0high>
     <t0ref>7</t0ref>
+    <nThreads>0</nThreads>                                       <!--set nThreads, 0 for maximum --> 
   </t0Props>
   
   <reconProps>

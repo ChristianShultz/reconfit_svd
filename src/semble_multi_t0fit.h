@@ -21,6 +21,8 @@
 #include<iostream>
 #include<string>
 
+#include <omp.h>
+
 namespace SEMBLE
 {
 
@@ -239,6 +241,15 @@ namespace SEMBLE
     init = true;
     int t0;
 
+    int maxThreads = omp_get_max_threads();
+    //    std::cout << "MAX THREADS = " << maxThreads << std::endl;
+
+    if( (inikeys.t0Props.nThreads > 0) && ( inikeys.t0Props.nThreads < maxThreads ) ){
+      omp_set_num_threads(inikeys.t0Props.nThreads);
+      std::cout << "SET NTHREADS = " << inikeys.t0Props.nThreads << " FROM A MAXIMUM " << maxThreads << std::endl; 
+    }
+
+
     #pragma omp parallel for private(t0)
 
     for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
@@ -271,6 +282,8 @@ namespace SEMBLE
             tz_chisq.insert(make_pair(t0, std::pair<int, double>(inikeys.t0Props.t0ref + 1, 1.e7)));
           }
       }
+    // end the threading
+
 
     mass_fit = true;
 
@@ -299,9 +312,9 @@ namespace SEMBLE
             t0_fits[t0]->makeZ();
             t0_fits[t0]->fitZ();
           }
+	// end threading
 
         z_fit = true;
-
 
         if(inikeys.t0FitProps.ZT0)
           fitZT0();

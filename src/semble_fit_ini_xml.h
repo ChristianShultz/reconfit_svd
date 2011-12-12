@@ -143,6 +143,7 @@ namespace SEMBLE
     int t0high;
     int t0ref;
     // int svdPhop;
+    int nThreads;
   };
 
   struct ReconProps_t
