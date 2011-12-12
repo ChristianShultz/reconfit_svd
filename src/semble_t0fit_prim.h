@@ -467,6 +467,8 @@ namespace SEMBLE
 	ptrRef = _data[t0 - 1 - inikeys.globalProps.tmin];
 	reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),true);
 
+
+	//rephase/reoder from t0-1 to inikeys.globalProps.tmin
         for(int t = t0 - 2 - inikeys.globalProps.tmin; t >= 0; --t)
           {
             ptrRef = _data[t + 1];
@@ -474,14 +476,13 @@ namespace SEMBLE
             matchEigenVectorsEnsembleMetric(Ct0, ptrRef->evecs(), ptr->evecs(), ptr->evals());
           }
 
-        //the gen eig solution is junk on t = t0 so skip it
+        //the gen eig solution is junk on t = t0 so skip it, put phase/order from t0-1 to t0+1
         matchEigenVectorsEnsembleMetric(Ct0,
-                                        (_data[t0 - 1])->evecs(),
-                                        (_data[t0 + 1])->evecs(),
-                                        (_data[t0 + 1])->evals());
-	//JJD - why doesn't inikeys.globalProps.tmin appear here ?
-
-	//JJD - won't the following allow there to be a jump acrross t0 ?
+                                        (_data[t0 - 1 - inikeys.globalProps.tmin])->evecs(),
+                                        (_data[t0 + 1 - inikeys.globalProps.tmin])->evecs(),
+                                        (_data[t0 + 1 - inikeys.globalProps.tmin])->evals());
+	
+	//carry the phase from t0+1 forward to inikeys.globalProps.tmax
         for(int t = t0 + 2 - inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax - inikeys.globalProps.tmin; ++t)
           {
             ptrRef = _data[t - 1];

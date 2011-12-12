@@ -921,7 +921,7 @@ namespace SEMBLE
 	  if(abs(v(elem)) > abs(max))
 	    max = v(elem);
 
-	v *= max/abs(max); // JJD - does this work for complex?, don't we need the conj of the phase or to divide by the phase
+	v /= max/abs(max);       //abs returns modulus for complex, divide by phase
 	evecs.set_col(vec,v);
       }
   }
