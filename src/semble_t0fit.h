@@ -100,16 +100,6 @@ namespace SEMBLE
     {
       recon_plots.clear();
       recon_flat = false;
-      if(flatData != NULL)
-	try
-	  {
-	    delete flatData;
-	    flatData = NULL;
-	  }
-	catch(...)
-	  {
-	    throw;
-	  }
     }
 
   public:
@@ -227,7 +217,7 @@ namespace SEMBLE
 
     //reconstruction data
     std::map<int, typename std::vector<SembleMatrix<T> > > recon_total;         // int gives the set of Z used to construct,
-    EnsemData* flatData;                                                         //the inner vector is the timeslice, massive object
+    EnsemData flatData;                                                         //the inner vector is the timeslice, massive object
     std::map<std::pair<int, int>, std::pair<std::string, std::string> > recon_plots;           //key is _ij, data is fname and plot string
 
     //two point correlator matrix at each time slice
@@ -264,7 +254,6 @@ namespace SEMBLE
     recon = o.recon;
     recon_flat = o.recon_flat;
     recon_tz = o.recon_tz;
-    flatData = NULL;
 
     if(o.init)
       {
@@ -311,17 +300,7 @@ namespace SEMBLE
     if(o.recon_flat)
       {
 	recon_flat = true;
-	try
-	  {
-	    flatData = new EnsemData(o.flatData);
-	  }
-	catch(...)
-	  {
-	    delete flatData;
-	    flatData = NULL;
-	    recon_flat = false;
-	    throw;
-	  }
+	flatData = o.flatData;
       }
 
     if(o.recon_tz)
@@ -394,17 +373,7 @@ namespace SEMBLE
         if(o.recon_flat)
           {
 	    recon_flat = true;
-	    try
-	      {
-		flatData = new EnsemData(o.flatData);  //old guy gets deleted in cleanUp(), no mem leak
-	      }
-	    catch(...)
-	      {
-		delete flatData;
-		flatData = NULL;
-		recon_flat = false;
-		throw;
-	      }
+	    flatData = o.flatData;
 	  }
 
         if(o.recon_tz)
@@ -440,7 +409,6 @@ namespace SEMBLE
     eVecs = primFit.getEvecs();
     primFit.clear();
     init = true;
-    flatData = NULL;
 
     std::cout << "ST0Fit constructed, Nbins = " << B << ", colRank = " << M << ", rowRank = " << N << ", t0 = " << t0 << std::endl;
   }
@@ -1233,36 +1201,13 @@ namespace SEMBLE
     if(!!!recon_flat)
       {
 	recon_flat = true;
-	if(flatData != NULL)
-	  {
-	    try
-	      {
-		delete flatData;
-		flatData = NULL;
-	      }
-	    catch(...)
-	      {
-		throw;
-	      }
-	  }
-       
-	try
-	  {
-	    flatData = new EnsemData(flattenSym(typename std::vector<SembleMatrix<T> >(tp.begin() + t0 + 1, tp.begin() + rec.tmax)));   //tp goes [0,inikeys.globalProps.tmax]
-	  }
-	catch(...)
-	  {
-	    delete flatData;
-	    flatData = NULL;
-	    recon_flat = false;
-	    throw;
-	  }	  
+	flatData = flattenSym(typename std::vector<SembleMatrix<T> >(tp.begin() + t0 + 1, tp.begin() + rec.tmax));   //tp goes [0,inikeys.globalProps.tmax]
       }
 
-    flatData->setSVCutoff(inikeys.globalProps.SVCut);
+    flatData.setSVCutoff(inikeys.globalProps.SVCut);
     EnsemData flatRecon = flattenSym(typename std::vector<SembleMatrix<T> >(recon_total[tz].begin(), recon_total[tz].end())); //recon_total goes [t0+1,rec.tmax]
 
-    return ensemDataChisq(*flatData, flatRecon) / (flatData->getNData() - flatData->getNResetCovSingVals() - (N + N * (N + 1) / 2));
+    return ensemDataChisq(flatData, flatRecon) / (flatData.getNData() - flatData.getNResetCovSingVals() - (N + N * (N + 1) / 2));
   }
 
   template<class T>
@@ -1750,17 +1695,7 @@ namespace SEMBLE
     zFit = SembleMatrix<T>();
     recon_total.clear();
     tp.clear();
-    
-    if(flatData != NULL)
-      try
-	{
-	  delete flatData;
-	  flatData = NULL;
-	}
-      catch(...)
-	{
-	  throw;
-	}
+
   }
 
 //bool checks
