@@ -99,6 +99,7 @@ namespace SEMBLE
     void clearReconPlots(void)
     {
       recon_plots.clear();
+      recon_flat = false;
     }
 
   public:
@@ -244,7 +245,7 @@ namespace SEMBLE
 
   template<class T>
   ST0Fit<T>::ST0Fit(const ST0Fit<T> &o)
-    : N(o.N) , M(o.M) , B(o.B) , t0(o.t0)
+    : N(o.N) , M(o.M) , B(o.B) , t0(o.t0) 
   {
     init = o.init;
     pcorr = o.pcorr;
@@ -298,8 +299,8 @@ namespace SEMBLE
 
     if(o.recon_flat)
       {
-        flatData = o.flatData;
-        recon_flat = true;
+	recon_flat = true;
+	flatData = o.flatData;
       }
 
     if(o.recon_tz)
@@ -371,9 +372,9 @@ namespace SEMBLE
 
         if(o.recon_flat)
           {
-            flatData = o.flatData;
-            recon_flat = true;
-          }
+	    recon_flat = true;
+	    flatData = o.flatData;
+	  }
 
         if(o.recon_tz)
           tz_best = o.tz_best;
@@ -386,24 +387,7 @@ namespace SEMBLE
   template<class T>
   void ST0Fit<T>::load(int t0_, const typename PromoteCorr<T>::Type &tp_, const FitIniProps_t &inikeys_)
   {
-    cleanUp();
-    t0 = t0_;
-    inikeys = inikeys_;
-    tp = maketp(tp_);
-    primFit.clear();
-    primFit.load(t0_, tp, inikeys_);
-    primFit.solve();
-    primFit.sort_solved();
-    Ct0 = primFit.getCt0();
-    N = primFit.getN();
-    M = primFit.getM();
-    B = primFit.getB();
-    eVals = primFit.getEvals();
-    eVecs = primFit.getEvecs();
-    primFit.clear();
-    init = true;
-
-    std::cout << "ST0Fit constructed, Nbins = " << B << ", colRank = " << M << ", rowRank = " << N << ", t0 = " << t0 << std::endl;
+    load(t0_,maketp(tp_),inikeys_);
   }
 
   template<class T>
@@ -1216,11 +1200,11 @@ namespace SEMBLE
 
     if(!!!recon_flat)
       {
-        flatData = flattenSym(typename std::vector<SembleMatrix<T> >(tp.begin() + t0 + 1, tp.begin() + rec.tmax));   //tp goes [0,inikeys.globalProps.tmax]
-        flatData.setSVCutoff(inikeys.globalProps.SVCut);
-        recon_flat = true;
+	recon_flat = true;
+	flatData = flattenSym(typename std::vector<SembleMatrix<T> >(tp.begin() + t0 + 1, tp.begin() + rec.tmax));   //tp goes [0,inikeys.globalProps.tmax]
       }
 
+    flatData.setSVCutoff(inikeys.globalProps.SVCut);
     EnsemData flatRecon = flattenSym(typename std::vector<SembleMatrix<T> >(recon_total[tz].begin(), recon_total[tz].end())); //recon_total goes [t0+1,rec.tmax]
 
     return ensemDataChisq(flatData, flatRecon) / (flatData.getNData() - flatData.getNResetCovSingVals() - (N + N * (N + 1) / 2));
@@ -1252,7 +1236,7 @@ namespace SEMBLE
             for(int t = t0 + 1; t <= rec.tmax; ++t)
               {
                 tslice.push_back(t);
-                pokeObs(data, (tp[t].getEnsemElement(i, j) + tp[t].getEnsemElement(j, i))*Real(0.5), t - t0 - 1); //symmetrize tp
+                pokeObs(data, (tp[t].getEnsemElement(i, j) + tp[t].getEnsemElement(j, i))*Real(0.5), t - t0 - 1); //symmetrize tp                  //there should be a cc here, want C_ij + C_ji* for complex types 
                 pokeObs(recon, (recon_total[tz])[t - t0 - 1].getEnsemElement(i, j), t - t0 - 1); //this was 'made' so its symmetric to round off
               }
 
@@ -1711,6 +1695,7 @@ namespace SEMBLE
     zFit = SembleMatrix<T>();
     recon_total.clear();
     tp.clear();
+
   }
 
 //bool checks
