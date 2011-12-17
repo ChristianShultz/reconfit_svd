@@ -306,7 +306,6 @@ namespace SEMBLE
     if(inikeys.zProps.fit)
       {
         #pragma omp parallel for private(t0)
-
         for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
           {
             t0_fits[t0]->makeZ();
