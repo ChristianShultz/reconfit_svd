@@ -332,7 +332,7 @@ namespace SEMBLE
         out << "t_0 tz_best tz_chisq\n";
 
         for(int t = inikeys.t0Props.t0low; t <= inikeys.t0Props.t0high; ++t)
-          out << t << " " << tz_chisq[t].second << "\n";
+          out << t << " t_z_best" << tz_chisq[t].first << " \"chisq\" " << tz_chisq[t].second << "\n";
 
         out.close();
       }
@@ -1261,7 +1261,7 @@ std:
 	//that would automatically kill the reduced section of the space...
 	//It's left in place in case it isn't immediately obvious to someone reading the code
 	//and also so that in case anyone asks we can say "yes, we explicitly removed the 
-	//reduced space". It's also an easy spot to stick int printing.   
+	//reduced space". It's also an easy spot to stick in printing.   
        
 
       case eSvdCond:
