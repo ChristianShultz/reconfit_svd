@@ -19,7 +19,7 @@ LDADD = @ADAT_LIBS@ @ITPP_LIBS@ @LIBS@
 ##   be built by 'make check' and is not installed.
 #noinst_PROGRAMS = spectrum
 
-bin_PROGRAMS = semble_vfit timeslice_covariance
+bin_PROGRAMS = semble_vfit timeslice_covariance fit_prin_corr fit_multiple_princorrs fit_corr_exp fit_corr_cosh fit_corr_exp_and_const fit_corr_cosh_and_const
 noinst_PROGRAMS = 
 check_PROGRAMS =
 EXTRA_PROGRAMS = 
@@ -33,7 +33,17 @@ semble_vfit_SOURCES = semble_vfit.cc semble_load_correlators.cc semble_fit_ini_x
 
 timeslice_covariance_SOURCES = timeslice_covariance.cc linear_algebra.cc ensem_data.cc
 
+fit_prin_corr_SOURCES = fit_prin_corr.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
 
+fit_multiple_princorrs_SOURCES = fit_multiple_princorrs.cc multi_princorr_fit.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
+
+fit_corr_exp_SOURCES = fit_corr_exp.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc  plot.cc fit_forms.cc
+
+fit_corr_cosh_SOURCES = fit_corr_cosh.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
+
+fit_corr_exp_and_const_SOURCES = fit_corr_exp_and_const.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
+
+fit_corr_cosh_and_const_SOURCES = fit_corr_cosh_and_const.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
 
 #
 # The following rule will always try to rebuild libadat.a when you 

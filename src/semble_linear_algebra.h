@@ -1510,12 +1510,10 @@ namespace SEMBLE
   {
     double avgResets;
     SembleMatrix<T> Apinv = invSVD(A,tol,avgResets);
-    x.setB(A.getB());
-    x.setN(A.getM());
     x = Apinv*b;
     SembleVector<T> rres;
-    res = A*x - b;
-    typename PromoteEnsem<T>::Type dum = rres.dot(rres);
+    rres = A*x - b;
+    typename PromoteEnsem<T>::Type dum = sqrt(rres.dot(rres));
     res = toScalar(mean(dum));
   }
 
@@ -1524,30 +1522,167 @@ namespace SEMBLE
   void solveLinearSVD(const SembleMatrix<T> &A, SembleVector<T> &x, const SembleVector<T> &b,
 		      SembleMatrix<T> &cov_x, const double tol, double &res, int &nReset)
   {
+    // compute A inverse
+
+    // assumes a square matrix
+
+    SembleMatrix<T> U,V;
+    SembleVector<double> s, sinv;
+    int nreset(0);
+    int bins = A.getB();
+    int elems = A.getN();
+
+    svd(A,U,s,V);
+    s.rescaleEnsemDown();
+    sinv = 0.*s;
+    
+    for(int bin = 0; bin < bins; ++bin)
+      for(int elem = 0; elem < elems; ++elem)	
+	if(s[bin][elem] > tol*s[bin][0])                  //this could introduce a bias
+	  sinv[bin][elem] = 1.0/s[bin][elem];
+	else
+	  ++nreset;
+    
+    nReset = int(double(nreset)/double(bins));
+
+    sinv.rescaleEnsemUp();
+    
+    SembleMatrix<T> Ainv(V*diag(sinv)*adj(U));
+
+    // compute solution and residual
+    x = Ainv * b;
+    SembleVector<T> rres = A*x - b;
+    typename PromoteEnsem<T>::Type dum = sqrt(rres.dot(rres));
+    res = toScalar(mean(dum));
+
+    // compute covariance matrix
+    cov_x = V * diag(sinv) * diag(sinv) * adj(V);    
+  }
+
+  template<class T> //do a moore penrose inverse on the mean (pseudo inverse)
+  SembleMatrix<T> invSVD_H(const SembleMatrix<T> &A, const double tol, double &avgReset)
+  {
+    //assume a square matrix
+
+    SembleMatrix<T> U,V;
+    SembleVector<double> s,sinv;
+    int nreset(0);
+    int bins(A.getB());
+    int elems(A.getN());
+    int dim(elems);
+    itpp::Mat<T> iU,iV;
+    itpp::Vec<double> is;
+    
+    itpp::svd(mean(A),iU,is,iV);
+
+    for(int elem = 0; elem < elems; ++elem)
+      if(is[dim - 1] > tol*is[0])
+	break;
+      else
+	--dim;
+
+    svd(A,U,s,V);
+    s.rescaleEnsemDown();
+    sinv = 0.*s;
+    
+    for(int elem = 0; elem < dim; ++elem)
+      sinv.loadEnsemElement(elem,toScalar(1.0)/s.getEnsemElement(elem));
+
+    avgReset = elems - dim;
+    sinv.rescaleEnsemUp();
+
+    return V*diag(sinv)*adj(U);
+  }
+  
+  template<class T>
+  SembleMatrix<T> invSVDNorm_H(const SembleMatrix<T> &A, const double tol, double &avgReset)
+  {
+    SembleMatrix<T> U,V,Normed;
+    SembleVector<double> s;
+
+    Normed = rescaleEnsemDown(A);
+    int bins(A.getB()), elems(A.getN());
+    if(elems != A.getM())
+      {
+	std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << " non-square matrix, exiting" << std::endl;
+	exit(1);
+      }
+    
+    itpp::Mat<T> UU,VV;
+    itpp::Vec<double> ss;
+
+    for(int bin = 0; bin < bins; ++bin)
+      {
+	itpp::svd(Normed[bin],UU,ss,VV);
+	for(int elem = 0; elem < elems; ++elem)
+	  ss[elem] = 1./std::sqrt(fabs(ss[elem]));
+      
+	Normed[bin] = itpp::diag(ss)*Normed[bin]*itpp::diag(ss);
+      }
+
+    Normed.rescaleEnsemUp();
+
+    return invSVD_H(Normed,tol,avgReset);
+  }
+
+  template<class T>
+  void solveLinearSVD_H(const SembleMatrix<T> &A, SembleVector<T> &x, const SembleVector<T> &b, const double tol, double &res)
+  {
     double avgResets;
-    SembleMatrix<T> Apinv = invSVD(A,tol,avgResets);
+    SembleMatrix<T> Apinv = invSVD_H(A,tol,avgResets);
     x.setB(A.getB());
     x.setN(A.getM());
     x = Apinv*b;
     SembleVector<T> rres;
     res = A*x - b;
-    typename PromoteEnsem<T>::Type dum = rres.dot(rres);
-    res = std::sqrt(toScalar(mean(dum)));
-    nReset = int(avgResets);
+    typename PromoteEnsem<T>::Type dum = sqrt(rres.dot(rres));
+    res = toScalar(mean(dum));
   }
 
   template<class T>
-  SembleMatrix<T> invSVD_H(const SembleMatrix<T> &A, const double tol, double &avgReset);
-  
-  template<class T>
-  SembleMatrix<T> invSVDNorm_H(const SembleMatrix<T> &A, const double tol, double &avgReset);
-
-  template<class T>
-  void solveLinearSVD_H(const SembleMatrix<T> &A, SembleVector<T> &x, const SembleVector<T> &b, const double tol, double &res);
-
-  template<class T>
   void solveLinearSVD_H(const SembleMatrix<T> &A, SembleVector<T> &x, const SembleVector<T> &b,
-		      SembleMatrix<T> &cov_x, const double tol, double &res, int &nReset);
+		      SembleMatrix<T> &cov_x, const double tol, double &res, int &nReset)
+  {
+    // compute A inverse for a square matrix
+
+    SembleMatrix<T> U,V;
+    SembleVector<double> s,sinv;
+    int nreset(0);
+    int bins(A.getB());
+    int elems(A.getN());
+    int dim(elems);
+    itpp::Mat<T> iU,iV;
+    itpp::Vec<double> is;
+    
+    itpp::svd(mean(A),iU,is,iV);
+
+    for(int elem = 0; elem < elems; ++elem)
+      if(is[dim - 1] > tol*is[0])
+	break;
+      else
+	--dim;
+
+    svd(A,U,s,V);
+    s.rescaleEnsemDown();
+    sinv = 0.*s;
+    
+    for(int elem = 0; elem < dim; ++elem)
+      sinv.loadEnsemElement(elem,toScalar(1.0)/s.getEnsemElement(elem));
+
+    nReset = elems - dim;
+    sinv.rescaleEnsemUp();
+
+    SembleMatrix<T> Ainv = V*diag(sinv)*adj(U);
+
+    // compute solution and residual
+    x = Ainv * b;
+    SembleVector<T> rres = A*x - b;
+    typename PromoteEnsem<T>::Type dum = sqrt(rres.dot(rres));
+    res = toScalar(mean(dum));
+
+    // compute covariance matrix
+    cov_x = V * diag(sinv) * diag(sinv) * adj(V);  
+  }
 
 
 
@@ -1573,7 +1708,7 @@ namespace SEMBLE
     eVals.reDim(bin_, row_);
     eVals.zeros();
 
-    SembleMatrix<T> F(eVecs), Finv(eVecs), AA, BB;
+    SembleMatrix<T> F, Finv, AA, BB;
 
     BB = symmetrize(B);
     AA = symmetrize(A);
