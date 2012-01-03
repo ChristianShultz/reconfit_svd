@@ -19,7 +19,7 @@ LDADD = @ADAT_LIBS@ @ITPP_LIBS@ @LIBS@
 ##   be built by 'make check' and is not installed.
 #noinst_PROGRAMS = spectrum
 
-bin_PROGRAMS = semble_vfit timeslice_covariance fit_prin_corr fit_multiple_princorrs fit_corr_exp fit_corr_cosh fit_corr_exp_and_const fit_corr_cosh_and_const
+bin_PROGRAMS = semble_vfit timeslice_covariance fit_prin_corr fit_multiple_princorrs fit_corr_exp fit_corr_cosh fit_corr_exp_and_const fit_corr_cosh_and_const dispersion_fit generate_ensem
 noinst_PROGRAMS = 
 check_PROGRAMS =
 EXTRA_PROGRAMS = 
@@ -44,6 +44,11 @@ fit_corr_cosh_SOURCES = fit_corr_cosh.cc fit_correlators.cc jackknife_fitter.cc 
 fit_corr_exp_and_const_SOURCES = fit_corr_exp_and_const.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
 
 fit_corr_cosh_and_const_SOURCES = fit_corr_cosh_and_const.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
+
+dispersion_fit_SOURCES = dispersion_fit.cc multi_ensemble_fitter.cc jackknife_linear_fitter.cc jackknife_fitter.cc ensem_data.cc plot.cc linear_algebra.cc semble_linear_algebra.cc
+
+generate_ensem_SOURCES = generate_ensem.cc
+
 
 #
 # The following rule will always try to rebuild libadat.a when you 
