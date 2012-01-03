@@ -139,6 +139,7 @@ namespace SEMBLE
     SembleMatrix<T>& operator*=(const typename PromoteScalar<T>::Type &rhs);
     SembleMatrix<T>& operator*=(const typename PromoteEnsem<T>::Type &rhs);   //requires rescaling
     SembleMatrix<T>& operator*=(const SembleMatrix<T> &rhs);
+    SembleMatrix<T>& operator*=(const itpp::Mat<T> &rhs);
     SembleMatrix<T>& operator/=(const T &rhs);
     SembleMatrix<T>& operator/=(const typename PromoteScalar<T>::Type &rhs);
     SembleMatrix<T>& operator/=(const typename PromoteEnsem<T>::Type &rhs);   //requires rescaling
@@ -733,6 +734,20 @@ namespace SEMBLE
 
     rescaleSembleUp();
 
+    return *this;
+  }
+
+  template<class T>
+  SembleMatrix<T>& SembleMatrix<T>::operator*=(const itpp::Mat<T> &rhs)
+  {
+    rescaleSembleDown();
+
+    typename std::vector<itpp::Mat<T> >::iterator it;
+    for(it = semble.begin(); it != semble.end(); ++it)
+      *it *= rhs;
+
+    rescaleSembleUp();
+    
     return *this;
   }
 

@@ -132,6 +132,7 @@ namespace SEMBLE
     //dot product
     typename PromoteEnsem<T>::Type dot(const SembleVector<T> &other);
 
+    void conj(void);
 
   private:
 
@@ -691,6 +692,14 @@ namespace SEMBLE
     return ::rescaleEnsemUp(dum2);
   }
 
+  template<class T>
+  void SembleVector<T>::conj(void)
+  {
+    typename std::vector<itpp::Vec<T> >::iterator it;
+    for(it = semble.begin(); it != semble.end(); ++it)
+      *it = (it->H()).get_row(0);
+  }
+
 //friends
   template<class T>
   SembleVector<T> operator-(const SembleVector<T> &plus)
@@ -704,8 +713,6 @@ namespace SEMBLE
 
     return minus;
   }
-
-
 }
 
 #endif

@@ -145,12 +145,34 @@ namespace SEMBLE
     return V * lhs;
   }
 
-  template<class T>
+  //dot product -- NB this does the CC
+  template<class T>  
   typename PromoteEnsem<T>::Type operator*(const SembleVector<T> &lhs, const SembleVector<T> &rhs)
   {
     SembleVector<T> dum(rhs);
+    dum.conj();
     typename PromoteEnsem<T>::Type ddum = dum.dot(lhs);
     return ddum;
+  }
+
+  template<class T>
+  SembleVector<T> operator*(const itpp::Mat<T> &M, const SembleVector<T> &rhs)
+  {
+    SembleVector<T> dum(rhs);
+    int nb = dum.getB();
+    for(int v = 0; v < nb; ++v)
+      dum[v] = M*rhs[v];
+    return dum;
+  }
+
+  template<class T>
+  SembleVector<T> operator*(const SembleVector<T> &lhs, const itpp::Mat<T> &M)
+  {
+    SembleVector<T> dum(lhs);
+    dum.conj();
+    itpp::Mat<T> Md(M.H());
+
+    return (Md*dum).conj();
   }
 
 //division
@@ -335,6 +357,22 @@ namespace SEMBLE
     SembleMatrix<T> dum(lhs);
     dum *= rhs;
     return dum;
+  }
+
+  template<class T>
+  SembleMatrix<T> operator*(const SembleMatrix<T> &lhs, const itpp::Mat<T> &rhs)
+  {
+    SembleMatrix<T> dum(lhs);
+    dum *= rhs;
+    return dum;
+  }
+
+  template<class T>
+  SembleMatrix<T> operator*(const itpp::Mat<T> &lhs, const SembleMatrix<T> &rhs)
+  {
+    SembleMatrix<T> dum(adj(rhs));
+    dum *= itpp::hermitian_transpose(lhs);
+    return adj(dum);
   }
 
 //division

@@ -101,6 +101,9 @@ namespace SEMBLE
   template<class T>
   SembleMatrix<T> outterProduct(const SembleVector<T> &lhs, const SembleVector<T> &rhs);
 
+  template<class T>
+  typename PromoteEnsem<T>::Type dot(const SembleVector<T> &a, const SembleVector<T> &b);
+
 //itpp extension
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -593,6 +596,12 @@ namespace SEMBLE
         dum.loadEnsemElement(row, col, lhs.getEnsemElement(row)*rhs.getEnsemElement(col));
 
     return dum;
+  }
+
+  template<class T>
+  typename PromoteEnsem<T>::Type dot(const SembleVector<T> &a, const SembleVector<T> &b)
+  {
+    return a*b;
   }
 
 //mixed vector matrix
