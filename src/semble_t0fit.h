@@ -1347,6 +1347,10 @@ namespace SEMBLE
       }
 
     ConstTimesExp weight(exp(- mass_0[lightest] * Real(t0)), mass_0[lightest]);
+    std::vector<Real> dweight;
+    for(int t = 0; t <= inikeys.reconProps.tmax; ++t)
+      dweight.push_back(toScalar(exp(light*double(t-t0))));
+
 
     for(int i = 0; i < N; ++i)
       {
@@ -1441,7 +1445,7 @@ namespace SEMBLE
 
             for(int t = inikeys.globalProps.tmin; t <= inikeys.reconProps.tmax; t++)
               {
-                pokeObs(raw, weight(t)*tp[t](i, j), t - inikeys.globalProps.tmin);
+                pokeObs(raw, dweight[t]*tp[t](i, j), t - inikeys.globalProps.tmin);
                 double me = toDouble(mean(tp[t](i, j)));
                 double err = toDouble(sqrt(variance(tp[t](i, j))));
 
