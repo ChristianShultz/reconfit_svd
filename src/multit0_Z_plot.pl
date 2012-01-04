@@ -68,7 +68,14 @@ print OUT "pause -1\n";
 
 close(OUT);
 
-system("gnuplot -geometry 1500x800 -persist /tmp/multiplot_${random}.gnu");
+#make the window a sensible size
+$read = `xdpyinfo  | grep \'dimensions:\'`; chomp $read;
+($a, $dims, $a, $a,$a) = split(' ', $read);
+($width, $height) = split('x', $dims);
+$width = int( 0.9* $width);
+$height = int( 0.9* $height);
+
+system("gnuplot -geometry ${width}x${height} -persist /tmp/multiplot_${random}.gnu");
 
 system("rm /tmp/multiplot_${random}.gnu");
 

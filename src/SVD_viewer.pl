@@ -70,7 +70,7 @@ sub write_data{
     foreach (@vals){
 	# replace count with the operator names
 	$name = $opnames{$count};
-        print DATA "$name x ";
+        print DATA "$name $name ";
 	$count++;
     }
     print DATA "\n";
@@ -128,7 +128,16 @@ sub make_gnu {
 #    print GNU "set out \"histo.ps\"\n";
 #    print GNU "replot\n";
     close(GNU);
-    system("gnuplot -geometry 1500x800 -persist /tmp/histo_$random.gnu");
+
+
+    #make the window a sensible size
+    $read = `xdpyinfo  | grep \'dimensions:\'`; chomp $read;
+    ($a, $dims, $a, $a,$a) = split(' ', $read);
+    ($width, $height) = split('x', $dims);
+    $width = int( 0.9* $width);
+    $height = int( 0.9* $height);
+
+    system("gnuplot -geometry ${width}x${height} -persist /tmp/histo_$random.gnu");
 
 #    system("cp /tmp/histo_${random}.gnu ./GNU");
 #    system("cp /tmp/histo_${random}.data ./DATA");

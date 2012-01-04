@@ -34,7 +34,12 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = semble_vfit$(EXEEXT) timeslice_covariance$(EXEEXT)
+bin_PROGRAMS = semble_vfit$(EXEEXT) timeslice_covariance$(EXEEXT) \
+	fit_prin_corr$(EXEEXT) fit_multiple_princorrs$(EXEEXT) \
+	fit_corr_exp$(EXEEXT) fit_corr_cosh$(EXEEXT) \
+	fit_corr_exp_and_const$(EXEEXT) \
+	fit_corr_cosh_and_const$(EXEEXT) dispersion_fit$(EXEEXT) \
+	generate_ensem$(EXEEXT)
 noinst_PROGRAMS =
 check_PROGRAMS =
 EXTRA_PROGRAMS =
@@ -50,6 +55,61 @@ CONFIG_CLEAN_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
+am_dispersion_fit_OBJECTS = dispersion_fit.$(OBJEXT) \
+	multi_ensemble_fitter.$(OBJEXT) \
+	jackknife_linear_fitter.$(OBJEXT) jackknife_fitter.$(OBJEXT) \
+	ensem_data.$(OBJEXT) plot.$(OBJEXT) linear_algebra.$(OBJEXT) \
+	semble_linear_algebra.$(OBJEXT)
+dispersion_fit_OBJECTS = $(am_dispersion_fit_OBJECTS)
+dispersion_fit_LDADD = $(LDADD)
+dispersion_fit_DEPENDENCIES =
+am_fit_corr_cosh_OBJECTS = fit_corr_cosh.$(OBJEXT) \
+	fit_correlators.$(OBJEXT) jackknife_fitter.$(OBJEXT) \
+	ensem_data.$(OBJEXT) linear_algebra.$(OBJEXT) plot.$(OBJEXT) \
+	fit_forms.$(OBJEXT)
+fit_corr_cosh_OBJECTS = $(am_fit_corr_cosh_OBJECTS)
+fit_corr_cosh_LDADD = $(LDADD)
+fit_corr_cosh_DEPENDENCIES =
+am_fit_corr_cosh_and_const_OBJECTS =  \
+	fit_corr_cosh_and_const.$(OBJEXT) fit_correlators.$(OBJEXT) \
+	jackknife_fitter.$(OBJEXT) ensem_data.$(OBJEXT) \
+	linear_algebra.$(OBJEXT) plot.$(OBJEXT) fit_forms.$(OBJEXT)
+fit_corr_cosh_and_const_OBJECTS =  \
+	$(am_fit_corr_cosh_and_const_OBJECTS)
+fit_corr_cosh_and_const_LDADD = $(LDADD)
+fit_corr_cosh_and_const_DEPENDENCIES =
+am_fit_corr_exp_OBJECTS = fit_corr_exp.$(OBJEXT) \
+	fit_correlators.$(OBJEXT) jackknife_fitter.$(OBJEXT) \
+	ensem_data.$(OBJEXT) linear_algebra.$(OBJEXT) plot.$(OBJEXT) \
+	fit_forms.$(OBJEXT)
+fit_corr_exp_OBJECTS = $(am_fit_corr_exp_OBJECTS)
+fit_corr_exp_LDADD = $(LDADD)
+fit_corr_exp_DEPENDENCIES =
+am_fit_corr_exp_and_const_OBJECTS = fit_corr_exp_and_const.$(OBJEXT) \
+	fit_correlators.$(OBJEXT) jackknife_fitter.$(OBJEXT) \
+	ensem_data.$(OBJEXT) linear_algebra.$(OBJEXT) plot.$(OBJEXT) \
+	fit_forms.$(OBJEXT)
+fit_corr_exp_and_const_OBJECTS = $(am_fit_corr_exp_and_const_OBJECTS)
+fit_corr_exp_and_const_LDADD = $(LDADD)
+fit_corr_exp_and_const_DEPENDENCIES =
+am_fit_multiple_princorrs_OBJECTS = fit_multiple_princorrs.$(OBJEXT) \
+	multi_princorr_fit.$(OBJEXT) fit_correlators.$(OBJEXT) \
+	jackknife_fitter.$(OBJEXT) ensem_data.$(OBJEXT) \
+	linear_algebra.$(OBJEXT) plot.$(OBJEXT) fit_forms.$(OBJEXT)
+fit_multiple_princorrs_OBJECTS = $(am_fit_multiple_princorrs_OBJECTS)
+fit_multiple_princorrs_LDADD = $(LDADD)
+fit_multiple_princorrs_DEPENDENCIES =
+am_fit_prin_corr_OBJECTS = fit_prin_corr.$(OBJEXT) \
+	fit_correlators.$(OBJEXT) jackknife_fitter.$(OBJEXT) \
+	ensem_data.$(OBJEXT) linear_algebra.$(OBJEXT) plot.$(OBJEXT) \
+	fit_forms.$(OBJEXT)
+fit_prin_corr_OBJECTS = $(am_fit_prin_corr_OBJECTS)
+fit_prin_corr_LDADD = $(LDADD)
+fit_prin_corr_DEPENDENCIES =
+am_generate_ensem_OBJECTS = generate_ensem.$(OBJEXT)
+generate_ensem_OBJECTS = $(am_generate_ensem_OBJECTS)
+generate_ensem_LDADD = $(LDADD)
+generate_ensem_DEPENDENCIES =
 am_semble_vfit_OBJECTS = semble_vfit.$(OBJEXT) \
 	semble_load_correlators.$(OBJEXT) semble_fit_ini_xml.$(OBJEXT) \
 	semble_file_management.$(OBJEXT) semble_histogram.$(OBJEXT) \
@@ -72,8 +132,18 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(semble_vfit_SOURCES) $(timeslice_covariance_SOURCES)
-DIST_SOURCES = $(semble_vfit_SOURCES) $(timeslice_covariance_SOURCES)
+SOURCES = $(dispersion_fit_SOURCES) $(fit_corr_cosh_SOURCES) \
+	$(fit_corr_cosh_and_const_SOURCES) $(fit_corr_exp_SOURCES) \
+	$(fit_corr_exp_and_const_SOURCES) \
+	$(fit_multiple_princorrs_SOURCES) $(fit_prin_corr_SOURCES) \
+	$(generate_ensem_SOURCES) $(semble_vfit_SOURCES) \
+	$(timeslice_covariance_SOURCES)
+DIST_SOURCES = $(dispersion_fit_SOURCES) $(fit_corr_cosh_SOURCES) \
+	$(fit_corr_cosh_and_const_SOURCES) $(fit_corr_exp_SOURCES) \
+	$(fit_corr_exp_and_const_SOURCES) \
+	$(fit_multiple_princorrs_SOURCES) $(fit_prin_corr_SOURCES) \
+	$(generate_ensem_SOURCES) $(semble_vfit_SOURCES) \
+	$(timeslice_covariance_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -182,6 +252,14 @@ LDADD = @ADAT_LIBS@ @ITPP_LIBS@ @LIBS@
 #
 semble_vfit_SOURCES = semble_vfit.cc semble_load_correlators.cc semble_fit_ini_xml.cc semble_file_management.cc semble_histogram.cc fit_correlators.cc fit_forms.cc jackknife_fitter.cc ensem_data.cc plot.cc linear_algebra.cc semble_linear_algebra.cc
 timeslice_covariance_SOURCES = timeslice_covariance.cc linear_algebra.cc ensem_data.cc
+fit_prin_corr_SOURCES = fit_prin_corr.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
+fit_multiple_princorrs_SOURCES = fit_multiple_princorrs.cc multi_princorr_fit.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
+fit_corr_exp_SOURCES = fit_corr_exp.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc  plot.cc fit_forms.cc
+fit_corr_cosh_SOURCES = fit_corr_cosh.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
+fit_corr_exp_and_const_SOURCES = fit_corr_exp_and_const.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
+fit_corr_cosh_and_const_SOURCES = fit_corr_cosh_and_const.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
+dispersion_fit_SOURCES = dispersion_fit.cc multi_ensemble_fitter.cc jackknife_linear_fitter.cc jackknife_fitter.cc ensem_data.cc plot.cc linear_algebra.cc semble_linear_algebra.cc
+generate_ensem_SOURCES = generate_ensem.cc
 
 #
 # The following rule will always try to rebuild libadat.a when you 
@@ -251,6 +329,30 @@ clean-checkPROGRAMS:
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
+dispersion_fit$(EXEEXT): $(dispersion_fit_OBJECTS) $(dispersion_fit_DEPENDENCIES) 
+	@rm -f dispersion_fit$(EXEEXT)
+	$(CXXLINK) $(dispersion_fit_LDFLAGS) $(dispersion_fit_OBJECTS) $(dispersion_fit_LDADD) $(LIBS)
+fit_corr_cosh$(EXEEXT): $(fit_corr_cosh_OBJECTS) $(fit_corr_cosh_DEPENDENCIES) 
+	@rm -f fit_corr_cosh$(EXEEXT)
+	$(CXXLINK) $(fit_corr_cosh_LDFLAGS) $(fit_corr_cosh_OBJECTS) $(fit_corr_cosh_LDADD) $(LIBS)
+fit_corr_cosh_and_const$(EXEEXT): $(fit_corr_cosh_and_const_OBJECTS) $(fit_corr_cosh_and_const_DEPENDENCIES) 
+	@rm -f fit_corr_cosh_and_const$(EXEEXT)
+	$(CXXLINK) $(fit_corr_cosh_and_const_LDFLAGS) $(fit_corr_cosh_and_const_OBJECTS) $(fit_corr_cosh_and_const_LDADD) $(LIBS)
+fit_corr_exp$(EXEEXT): $(fit_corr_exp_OBJECTS) $(fit_corr_exp_DEPENDENCIES) 
+	@rm -f fit_corr_exp$(EXEEXT)
+	$(CXXLINK) $(fit_corr_exp_LDFLAGS) $(fit_corr_exp_OBJECTS) $(fit_corr_exp_LDADD) $(LIBS)
+fit_corr_exp_and_const$(EXEEXT): $(fit_corr_exp_and_const_OBJECTS) $(fit_corr_exp_and_const_DEPENDENCIES) 
+	@rm -f fit_corr_exp_and_const$(EXEEXT)
+	$(CXXLINK) $(fit_corr_exp_and_const_LDFLAGS) $(fit_corr_exp_and_const_OBJECTS) $(fit_corr_exp_and_const_LDADD) $(LIBS)
+fit_multiple_princorrs$(EXEEXT): $(fit_multiple_princorrs_OBJECTS) $(fit_multiple_princorrs_DEPENDENCIES) 
+	@rm -f fit_multiple_princorrs$(EXEEXT)
+	$(CXXLINK) $(fit_multiple_princorrs_LDFLAGS) $(fit_multiple_princorrs_OBJECTS) $(fit_multiple_princorrs_LDADD) $(LIBS)
+fit_prin_corr$(EXEEXT): $(fit_prin_corr_OBJECTS) $(fit_prin_corr_DEPENDENCIES) 
+	@rm -f fit_prin_corr$(EXEEXT)
+	$(CXXLINK) $(fit_prin_corr_LDFLAGS) $(fit_prin_corr_OBJECTS) $(fit_prin_corr_LDADD) $(LIBS)
+generate_ensem$(EXEEXT): $(generate_ensem_OBJECTS) $(generate_ensem_DEPENDENCIES) 
+	@rm -f generate_ensem$(EXEEXT)
+	$(CXXLINK) $(generate_ensem_LDFLAGS) $(generate_ensem_OBJECTS) $(generate_ensem_LDADD) $(LIBS)
 semble_vfit$(EXEEXT): $(semble_vfit_OBJECTS) $(semble_vfit_DEPENDENCIES) 
 	@rm -f semble_vfit$(EXEEXT)
 	$(CXXLINK) $(semble_vfit_LDFLAGS) $(semble_vfit_OBJECTS) $(semble_vfit_LDADD) $(LIBS)
@@ -264,11 +366,22 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dispersion_fit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ensem_data.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fit_corr_cosh.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fit_corr_cosh_and_const.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fit_corr_exp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fit_corr_exp_and_const.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fit_correlators.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fit_forms.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fit_multiple_princorrs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fit_prin_corr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generate_ensem.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jackknife_fitter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jackknife_linear_fitter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/linear_algebra.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/multi_ensemble_fitter.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/multi_princorr_fit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/plot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semble_file_management.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semble_fit_ini_xml.Po@am__quote@
