@@ -160,10 +160,10 @@ namespace SEMBLE
   */
 
   template<class T>//returns the upper triangular factorized matrix, rescales by default and returns unscaled, A = (F^t)*F 
-  void chol(const SembleMatrix<T> &in, SembleMatrix<T> &factorized, bool rescale = true);
+  bool chol(const SembleMatrix<T> &in, SembleMatrix<T> &factorized, bool rescale = true);
 
   template<class T> //another name for chol
-  void cholesky(const SembleMatrix<T> &in, SembleMatrix<T> &factorized, bool rescale = true);
+  bool cholesky(const SembleMatrix<T> &in, SembleMatrix<T> &factorized, bool rescale = true);
 
   template<class T>//return the eigenvectors and eigenvalues of a hermitian ensemble -- rescales by default
   void eig_sym(const SembleMatrix<T> &M, SembleVector<double> &vals, SembleMatrix<T> &V, bool rescale = true);
@@ -333,9 +333,9 @@ namespace SEMBLE
 //wrappers
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   template<class T>
-  void cholesky(const SembleMatrix<T> &in, SembleMatrix<T> &F, bool rescale = true)
+  bool cholesky(const SembleMatrix<T> &in, SembleMatrix<T> &F, bool rescale = true)
   {
-    chol(in, F, rescale);
+    return chol(in, F, rescale);
   }
 
   template<class T>
@@ -1127,7 +1127,7 @@ namespace SEMBLE
   */
 
   template<class T>//returns the upper triangular factorized matrix, rescales by default and returns unscaled
-  void chol(const SembleMatrix<T> &in, SembleMatrix<T> &factorized, bool rescale = true)
+  bool chol(const SembleMatrix<T> &in, SembleMatrix<T> &factorized, bool rescale = true)
   {
     SembleMatrix<T> dum(in);
     bool success = true;
@@ -1152,6 +1152,8 @@ namespace SEMBLE
 
     if(rescale)
       factorized.rescaleEnsemUp();
+
+    return success;
   }
 
   template<class T>//return the eigenvectors and eigenvalues of a hermitian ensemble -- rescales by default, these should be matched bin to bin

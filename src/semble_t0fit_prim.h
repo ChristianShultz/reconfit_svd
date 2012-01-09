@@ -241,8 +241,11 @@ namespace SEMBLE
     switch(lges_hash(inikeys.genEigProps.type))
       {
       case eCho:
-        cholesky(Ct0, F);
-
+	if(!!!cholesky(Ct0, F))
+	  {
+	    std::cout << "WARNING CHOLESKY FACTORIZATION FAILED ON t0 = " << t0 << "\n EXITING..." << std::endl;
+	    exit(1);
+	  }
         for(int t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
           {
             Cts = tp_[t];
@@ -542,6 +545,10 @@ namespace SEMBLE
   void ST0FitPrim<T>::clear(void)
   {
     clear_data();
+    Ct0 = SembleMatrix<T>(1,1,1);
+    N = M = B = t0 = 0;
+    init = solved = false;
+    svdRematchingLog.str(std::string());
   }
 
   //private

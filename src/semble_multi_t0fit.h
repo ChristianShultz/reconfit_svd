@@ -329,10 +329,10 @@ namespace SEMBLE
         path += std::string("/tz_chisq.log");
         std::ofstream out;
         out.open(path.c_str());
-        out << "t_0 tz_best tz_chisq\n";
+        out << "t_0 tz_best \"tz_chisq\"\n";
 
         for(int t = inikeys.t0Props.t0low; t <= inikeys.t0Props.t0high; ++t)
-          out << t << " t_z_best" << tz_chisq[t].first << " \"chisq\" " << tz_chisq[t].second << "\n";
+          out << t << " " << tz_chisq[t].first << " " << tz_chisq[t].second << "\n";
 
         out.close();
       }

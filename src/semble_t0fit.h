@@ -1272,7 +1272,7 @@ namespace SEMBLE
     prev = (*this.*ptr)(best, rec);
 
     if(inikeys.globalProps.verbose)
-      std::cout << "tz = " << best << " with chisq/pdof = " << prev << std::endl;
+      std::cout << "tz = " << best << " with chisq/ndof = " << prev << std::endl;
 
     for(int tz = t0 + 2; tz <= rec.tmax; ++tz)                         //find best by minimizing the chisq
       {
