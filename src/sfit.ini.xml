@@ -4,7 +4,7 @@
   <annotation>Example ini file for semble_vfit</annotation>
   <annotation>See semble_fit_ini_xml.h for more options</annotation>
   
-  <version>0</version>
+  <version>1</version>
   <dbInputType>dbnew</dbInputType>          <!--ensem,ensem_debug,ensem_onecorr,dbnew,dbnew_debug,redstar,redstar_debug-->
   
   <inputPropsEnsem>
@@ -54,12 +54,12 @@
     <badList>bad_list</badList>
     <avgMom>false</avgMom>
     <momListFname></momListFname>
-    <redKeys>
+    <KeyParams>
       <ensemble>szscl3_16_128_b1p50_t_x4p300_um0p0743_n1p265_per</ensemble>
       <mom>0 0 0</mom> <!--Ignored if avgMom is true-->
-      <twoIz>0</twoIz>
-      <sourceTSlice>5</sourceTSlice>
-    </redKeys>
+      <twoI_z>0</twoI_z>
+      <source_tslice>5</source_tslice>
+    </KeyParams>
   </inputPropsRedstar>
   
   

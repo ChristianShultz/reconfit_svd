@@ -198,8 +198,8 @@ namespace SEMBLE
   {
     std::string ensemble;
     Array<int> mom;
-    int twoIz;
-    int sourceTSlice;
+    int twoI_z;
+    int source_tslice;
   };
 
   struct InputPropsRedstar_t
@@ -214,7 +214,7 @@ namespace SEMBLE
     std::string badList;
     bool avgMom;
     std::string momListFname;
-    InputPropsRedstarKeys_t redKeys;
+    InputPropsRedstarKeys_t KeyParams;
   };
 
   struct ShiftProps_t

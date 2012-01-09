@@ -967,7 +967,7 @@ namespace SEMBLE
                     // The sink op
                     keys[count].npoint[1].t_slice           = -2;
                     keys[count].npoint[1].irrep.row         = avgRows[i];
-                    keys[count].npoint[1].irrep.twoI_z      = keyParams.twoIz;
+                    keys[count].npoint[1].irrep.twoI_z      = keyParams.twoI_z;
                     keys[count].npoint[1].irrep.mom         = momList[i_mom];
                     keys[count].npoint[1].irrep.creation_op = false;
                     keys[count].npoint[1].irrep.smearedP    = opsxml[j_snk].smearedP;
@@ -975,9 +975,9 @@ namespace SEMBLE
                     keys[count].npoint[1].irrep.ops         = opsxml[j_snk].ops;
 
                     // The source op
-                    keys[count].npoint[2].t_slice           = keyParams.sourceTSlice;
+                    keys[count].npoint[2].t_slice           = keyParams.source_tslice;
                     keys[count].npoint[2].irrep.row         = avgRows[i];
-                    keys[count].npoint[2].irrep.twoI_z      = keyParams.twoIz;
+                    keys[count].npoint[2].irrep.twoI_z      = keyParams.twoI_z;
                     keys[count].npoint[2].irrep.mom         = momList[i_mom];
                     keys[count].npoint[2].irrep.creation_op = true;
                     keys[count].npoint[2].irrep.smearedP    = opsxml[j_src].smearedP;
@@ -1659,7 +1659,7 @@ namespace SEMBLE
                                           inikeys.inputPropsRedstar.rephaseMode,
                                           inikeys.inputPropsRedstar.avgMom,
                                           inikeys.inputPropsRedstar.momListFname,
-                                          inikeys.inputPropsRedstar.redKeys);
+                                          inikeys.inputPropsRedstar.KeyParams);
       }
 
     else

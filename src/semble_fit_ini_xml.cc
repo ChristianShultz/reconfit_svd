@@ -440,11 +440,11 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, InputPropsRedstar_t &
   else
     prop.momListFname = "";
 
-  if(ptop.count("redKeys") > 0)
-    read(ptop, "redKeys", prop.redKeys);
+  if(ptop.count("KeyParams") > 0)
+    read(ptop, "KeyParams", prop.KeyParams);
   else
     {
-      std::cout << __PRETTY_FUNCTION__ << __LINE__ << __FILE__ << "Error : redKeys required in xml in file, exiting." << std::endl;
+      std::cout << __PRETTY_FUNCTION__ << __LINE__ << __FILE__ << "Error : KeyParams required in xml in file, exiting." << std::endl;
       exit(1);
     }
 
@@ -469,15 +469,15 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, InputPropsRedstarKeys
       prop.mom[2] = 0;
     }
 
-  if(ptop.count("twoIz") > 0)
-    read(ptop, "twoIz", prop.twoIz);
+  if(ptop.count("twoI_z") > 0)
+    read(ptop, "twoI_z", prop.twoI_z);
   else
-    prop.twoIz = 0;
+    prop.twoI_z = 0;
 
-  if(ptop.count("sourceTSlice") > 0)
-    read(ptop, "sourceTSlice", prop.sourceTSlice);
+  if(ptop.count("source_tslice") > 0)
+    read(ptop, "source_tslice", prop.source_tslice);
   else
-    prop.sourceTSlice = 0;
+    prop.source_tslice = 0;
 }
 
 void SEMBLE::read(XMLReader &xml, const std::string &path, ShiftProps_t &prop)
@@ -560,7 +560,7 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, GlobalProps_t &prop)
 void SEMBLE::read(XMLReader &xml, const std::string &path, FitIniProps_t &prop)
 {
   XMLReader ptop(xml, path);
-  const int version = 0;
+  const int version = 1;
 
   //check version
   if(ptop.count("version") > 0)
@@ -831,7 +831,7 @@ std::string SEMBLE::write_params(const InputPropsRedstar_t &prop)
   ss << "badList " << prop.badList << n;
   ss << "avgMom " << prop.avgMom << n;
   ss << "momListFname " << prop.momListFname << n;
-  ss << "redKeys " << prop.redKeys << n;
+  ss << "KeyParams " << prop.KeyParams << n;
   ss << n << n;
 
   return ss.str();
@@ -844,8 +844,8 @@ std::string SEMBLE::write_params(const InputPropsRedstarKeys_t &prop)
   ss << "inputPropsRedstarKeys" << n;
   ss << "ensemble " << prop.ensemble << n;
   ss << "mom -- no printing support " << n;
-  ss << "twoIZ " << prop.twoIz << n;
-  ss << "sourceTSlice " << prop.sourceTSlice << n;
+  ss << "twoI_z " << prop.twoI_z << n;
+  ss << "source_tslice " << prop.source_tslice << n;
   ss << n << n;
 
   return ss.str();
