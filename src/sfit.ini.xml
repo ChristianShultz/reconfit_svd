@@ -18,7 +18,7 @@
     <irrepDim>3</irrepDim>
     <rephaseMode>auto</rephaseMode>    <!--auto,auto_positive,real-->
     <foldTimeReversal>expected</foldTimeReversal>   <!--auto_majority,expected,none-->
-    <avgMode>lorentz</avgMode>                     <!--none,lorentz,spin-->
+    <avgMode>spin</avgMode>                     <!--none,lorentz,spin-->
     <avgTol>10</avgTol>
     <badList>bad_list</badList>
     <avgMom>false</avgMom>
@@ -46,7 +46,7 @@
   <inputPropsRedstar>
     <dbFname>T1mm.edb</dbFname>
     <opsListFname>T1mm.list</opsListFname>
-    <opsXMLFiles>ops_example.xml</opsXMLFiles>
+    <opsXMLFiles><elem>ops_example.xml</elem></opsXMLFiles>
     <rephaseMode>auto_positive</rephaseMode>
     <foldTimeReversal>none</foldTimeReversal>
     <avgRows>1 2 3</avgRows>
