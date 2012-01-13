@@ -1002,19 +1002,20 @@ std:
 
 
     /*debug*/  //Put this in a logfile?  It isn't actually very useful.
-    /*
+
+    /*    
     std::cout << "FOR DEBUGGING" << std::endl;
     for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       std::cout <<__PRETTY_FUNCTION__ << __FILE__ << __LINE__ << "\n counts(t0 = " << t0 << ")\n"
 		<< counts[t0 - inikeys.t0Props.t0low] << "\n"<< std::endl;
+   
     */
-
 
     for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
 	const int vecdim = t0_fits[t0]->getM();
 	const int bound = (refdim < vecdim) ? refdim : vecdim;
-	std::vector<bool> ur(nvecs,false),uv(nvecs,false);
+	std::vector<bool> ur(refdim,false),uv(vecdim,false);
 	int mr,mv,m;
 	std::map<int,int> rmap_t0;
 	itpp::Mat<int> dum(counts[t0 - inikeys.t0Props.t0low]);
@@ -1025,11 +1026,11 @@ std:
 	    mv = 0;
 	    m = 0;
 
-	    for(int r = 0; r < nvecs; ++r)
+	    for(int r = 0; r < refdim; ++r)
 	      if(ur[r]) 
 		continue;
 	      else
-		for(int v = 0; v < nvecs; ++v)
+		for(int v = 0; v < vecdim; ++v)
 		  {
 		    if(uv[v])
 		      continue;
