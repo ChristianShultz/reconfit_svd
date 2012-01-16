@@ -801,6 +801,8 @@ namespace SEMBLE
 
     SembleMatrix<T> V,Vp;
 
+    const int refdim = t0_fits[inikeys.t0Props.t0ref]->getM();
+
 
     V = t0_fits[inikeys.t0Props.t0ref]->peekVecs(tz_chisq[inikeys.t0Props.t0ref].first);
 
@@ -810,7 +812,10 @@ namespace SEMBLE
 
         for(it = mapit->second.begin(); it != mapit->second.end(); ++it)
           {
-            ss << "ref state " << it->first << " is t0 state " << it->second << "\n";
+	    if( it->first <= refdim)
+	      ss << "ref state " << it->first << " is t0 state " << it->second << "\n";
+	    else
+	      ss << "t0 state " << it->second << " did't match and was assigned to state " << it->first;
           }
 
         ss << "\n\n mean ovelaps adj(ref)*metric*t0state \n\n";
@@ -926,7 +931,7 @@ std:
 
     if(!!!init)
       {
-        std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << " can't reorder w/o init" << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << " can't rephase w/o init" << std::endl;
         exit(1);
       }
 
@@ -952,6 +957,10 @@ std:
 
   }
 
+  // this routine reorders the states to match the ordering at t0_ref
+  // for a t0 < t0_ref it is likely that if we used SVD there will be more states at t0 than at t0_ref
+  // the ordering then for the dim(t0) - dim(t0_ref) states that did not match is arbitrary 
+
   template<class T>
   void SMT0Fit<T>::reorderStates(void)
   {
@@ -976,10 +985,14 @@ std:
     zero.zeros();
     std::vector<itpp::Mat<int> > counts(inikeys.t0Props.t0high - inikeys.t0Props.t0low + 1, zero);
 
-    //use counts to keep a tally for a maximum likelyhood overlap map
-    //outter vector is t0, inner vector is the ref state, innermost vector is the state on that t0
+    // use counts to keep a tally for a maximum likelyhood overlap map
+    // outter vector is t0, inner vector is the ref state, innermost vector is the state on that t0
 
-    //now lets loop over each t0 value
+    // now lets loop over each t,t0 value
+
+    // perhaps this loop should be from t0ref to inikeys.globalProps.tmax?
+    // then we would have saturation for all the vectors we consider
+
     for(int t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
       {
 	if(t == t0_ref) //no eigenvectors, don't want to contaminate map with junk
@@ -990,9 +1003,11 @@ std:
 	    if(t == t0) //no eigenvectors, don't want to contaminate map with junk
 	      continue;
 	    
+	    //make a map of this t0 at this t to t0_ref at this t
 	    std::map<int,int> mapp = makeRemap(t0_fits[t0_ref]->peekVecs(t),t0_metrics[t0]*t0_fits[t0]->peekVecs(t));
 	    std::map<int,int>::const_iterator it;
 
+	    //tally the counts
 	    for(it = mapp.begin(); it != mapp.end(); ++it)
 	      ++counts[t0 - inikeys.t0Props.t0low](it->first,it->second);  //increment
 	  }
@@ -1011,6 +1026,15 @@ std:
    
     */
 
+    // now loop through the maximum likelyhood map to assign states
+    
+    // pick out states by the most times they mapped, in the case where the 
+    // operator basis spans the space of the hamiltonian and perfect statistics this 
+    // map would be some permutation of a diagonal matrix
+
+    // since we can't span the space of the hamiltonian we will pick out the most
+    // likely match according to the maximum number of overlaps 
+
     for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
 	const int vecdim = t0_fits[t0]->getM();
@@ -1020,6 +1044,8 @@ std:
 	std::map<int,int> rmap_t0;
 	itpp::Mat<int> dum(counts[t0 - inikeys.t0Props.t0low]);
 
+
+	// only pick out the min(refdim,vecdim) states
 	for(int state = 0; state < bound; ++state)
 	  {
 	    mr = 0;
@@ -1028,14 +1054,14 @@ std:
 
 	    for(int r = 0; r < refdim; ++r)
 	      if(ur[r]) 
-		continue;
+		continue;  //already used this ref
 	      else
 		for(int v = 0; v < vecdim; ++v)
 		  {
-		    if(uv[v])
+		    if(uv[v])  //already used this vec
 		      continue;
 		    
-		    if(dum(r,v) >=  m)
+		    if(dum(r,v) >=  m)  //pick out the best pair out of the remaining bound - state pairs
 		      {
 			m = dum(r,v);
 			mr = r;
@@ -1043,6 +1069,7 @@ std:
 		      }
 		  }
 
+	    // cant reuse this pair
 	    ur[mr] = true;
 	    uv[mv] = true;
 	    rmap_t0[mr] = mv;
@@ -1053,11 +1080,15 @@ std:
 	    CASES
 	           1) refdim = vecdim - do nothing
 		   2) refdim < vecdim - pile anything that didn't map on top with a lowest to lowest convention
-		   3) refdim > vecdim - don't need to do anything, the map takes care of itself
+		   3) refdim > vecdim - don't need to do anything, the map takes care of itself, we already
+		                        mapped all the states at t0
 	 */
 
+	// fill in the vecdim - refdim states that didn't match in a lowest to lowest convention
 	if(refdim < vecdim)
 	  {
+
+	    // first determine what states did not match (whats available)
 	    ur.clear();
 	    uv.clear();
 
@@ -1072,6 +1103,7 @@ std:
 		uv[it->second] = true;
 	      }
 
+	    // now load those states into vectors
 	    std::vector<int> rr,vv;
 
 	    for(int i = 0; i < vecdim; ++i)
@@ -1082,6 +1114,7 @@ std:
 		  vv.push_back(i);
 	      }
 
+	    // check to make sure we didn't do something stupid.. this can probably be removed now
 	    if(rr.size() != vv.size())
 	      {
 		std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
@@ -1089,10 +1122,12 @@ std:
 		exit(1);
 	      }
 
+	    // fill in the map of the unmapped states
 	    for(int i = 0; i < rr.size(); ++i)
 	      rmap_t0[rr[i]] = vv[i];
 	  }
 
+	// the reorder map for this t0
 	reorder[t0] = rmap_t0;
 
       }//end t0 loop
@@ -1407,6 +1442,8 @@ std:
 
   }//end constructMetric
 
+
+  // don't use this anymore, changed the metric for SVD to avoid this nonsense
   template<class T>
   itpp::Mat<T> SMT0Fit<T>::permMat(const typename std::map<int, itpp::Mat<T> > &mapp, const int st, const int end, const int hop) const
   {
