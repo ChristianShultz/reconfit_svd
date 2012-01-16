@@ -812,7 +812,7 @@ namespace SEMBLE
 
         for(it = mapit->second.begin(); it != mapit->second.end(); ++it)
           {
-	    if( it->first <= refdim)
+	    if( it->first < refdim)
 	      ss << "ref state " << it->first << " is t0 state " << it->second << "\n";
 	    else
 	      ss << "t0 state " << it->second << " did't match and was assigned to state " << it->first;
