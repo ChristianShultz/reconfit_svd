@@ -1291,7 +1291,7 @@ namespace SEMBLE
     ptr = NULL;
 
     if(inikeys.globalProps.verbose)
-      std::cout << "tz best = " << best << " with chisq/ndof = " << prev;
+      std::cout << "tz best = " << best << " with chisq/ndof = " << prev << std::endl;
 
     tz_best = best;
     recon_tz = true;
