@@ -176,7 +176,8 @@ sub ident_op {
     if( ($irrep =~ /G/) || ($irrep =~ /H/) ||
 	($irrep =~ /D4E1/) || ($irrep =~ /D4E3/) ||
 	($irrep =~ /D3E1/) || ($irrep =~ /D3B/) ||
-	($irrep =~ /D2E/)) {
+	($irrep =~ /D2E/) ||
+	($irrep =~ /C4E/)) {
 	#its a baryon
 	$hadron = "baryon";
 	($opname, $spin, $irrep) = split('_', $op);
@@ -185,7 +186,8 @@ sub ident_op {
     elsif( ($irrep =~ /A/) || ($irrep =~ /T/) || ($irrep =~ /E/) ||
 	   ($irrep =~ /D4A/) || ($irrep =~ /D4E2/) || ($irrep =~ /D4B/) ||
 	   ($irrep =~ /D3A/) || ($irrep =~ /D3E2/) ||
-	   ($irrep =~ /D2A/) || ($irrep =~ /D2B/)) {
+	   ($irrep =~ /D2A/) || ($irrep =~ /D2B/) ||
+	   ($irrep =~ /C4A/)) {
 	#its a meson
 	$hadron = "meson";
 	($opstruct, $spinirrep) = split('__', $op);
