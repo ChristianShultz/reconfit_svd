@@ -72,6 +72,9 @@ namespace SEMBLE
     void cleanUp(void) {clear();}                        //wipe it clean for a new problem
 
   private:
+    void printFitLog(void);                              //a fit log in the style of the old reconfit code
+
+  private:
     void clear(void);
     Handle<FitComparator> fitComp(const std::string &in) const;
     void printer(void);
@@ -1137,6 +1140,31 @@ std:
 
 
   template<class T>
+  void SMT0Fit<T>::printFitLog(void)
+  {
+    std::stringstream ss;
+    std::string n("\n");
+
+    for(int t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+      {
+	ss << "***** t0 = " << t0 << " *****" << n;
+	ss << "condition number of C(t0) = " << t0_fits[t0]->getCondNum().first 
+	   << " +/- " << t0_fits[t0]->getCondNum().second << n;
+	ss << "t_ref = " << inikeys.t0Props.t0ref << n;
+	ss << t0_fits[t0]->getPCorrFitLog(reorder[t0]) << n << n;
+	ss << "best recon chisq/ndof = " << tz_chisq[t0].second << " at tz = " << tz_chisq[t0].first << n; 
+      }
+
+    std::ofstream out;
+    std::stringstream fname;
+    fname << SEMBLEIO::getPath() << "/fit.log";
+    out.open(fname.str().c_str());
+    out << ss.str();
+    out.close();
+  }
+
+
+  template<class T>
   void SMT0Fit<T>::clear(void)
   {
     tz_chisq.clear();
@@ -1234,6 +1262,9 @@ std:
         out << fitlog.str();
         out.close();
       }
+
+    //always get this guy
+    printFitLog();
 
   }
   

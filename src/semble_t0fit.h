@@ -104,6 +104,9 @@ namespace SEMBLE
       recon_flat = false;
     }
 
+  public:// return the fit log
+    std::string getPCorrFitLog(const std::map<int,int> &mapp);              // return a string of the fit log in the old reconfit
+                                                                            // format, the map is the reorder map for indexing 
   public:
     //fixed coefficient method
     void fixedCoeffMethod(const int tstar) const;
@@ -174,6 +177,13 @@ namespace SEMBLE
       initChk();
       return B;
     }
+
+    std::pair<double,double> getCondNum(void) const
+    {
+      initChk();
+      return condNum;
+    }
+
     double getPCorrChiSq(int i) const
     {
       pcorrChk();
@@ -202,6 +212,7 @@ namespace SEMBLE
     ST0FitPrim<T> primFit;
     std::vector<SembleVector<double> > eVals;
     typename std::vector<SembleMatrix<T> > eVecs, Z;
+    std::pair<double,double> condNum;       //mean,var
 
     //init bools
     bool init, pcorr, zfit, zinit, recon, recon_flat, recon_tz;
@@ -411,6 +422,12 @@ namespace SEMBLE
     eVecs = primFit.getEvecs();
     primFit.clear();
     init = true;
+
+    SembleMatrix<T> U, V;
+    SembleVector<double> s;
+    
+    svd(Ct0,U,s,V);
+    condNum = std::pair<double,double>(toScalar(mean(s(0)/s(N-1))),std::sqrt(toScalar(variance(s(0)/s(N-1)))));
 
     std::cout << "ST0Fit constructed, Nbins = " << B << ", colRank = " << M << ", rowRank = " << N << ", t0 = " << t0 << std::endl;
   }
@@ -1524,6 +1541,42 @@ namespace SEMBLE
         out.close();
       }
   }
+
+
+  template<class T>
+  std::string ST0Fit<T>::getPCorrFitLog(const std::map<int,int> &mapp)
+  {
+    std::stringstream ss;
+    std::string n("\n");
+    std::map<int,int>::const_iterator it;
+ 
+    ss << n << n;
+    ss << "**********************" << n;
+    ss << "* REORDERED SPECTRUM *" << n;
+    ss << "**********************" << n;
+
+    ss << "state|unord|        mass         |           fit           |chisq/nDoF | " << endl;
+  
+  
+    for(it = mapp.begin(); it != mapp.end(); ++it)
+      {
+	ss << setw(5) << it->first << "|" << setw(5) << it->second                                      // states
+	   << setw(8) << fixed << setprecision(5) << toScalar(mean(mass_0[it->second])) << "+/-"        // m_0
+	   << setw(8) << fixed << setprecision(5) << std::sqrt(toScalar(variance(mass_0[it->second])))  // var(m_0)
+	   << "|" << setw(25) << pCorrFitName[it->second] << "|"                                        // fit name
+	   << setw(10) << fixed << setprecision(2) << pCorrChiSqPDoF[it->second] << "|";                 // fit chisq
+	   
+	  if(toScalar(mean(mass_0[it->second])) > 0.)
+	    ss << " m'=" << setw(6) << fixed << setprecision(3) << toScalar(mean(mass_1[it->second]))   // second exp mass
+	       << " +/- " << setw(6) << fixed << setprecision(3) << std::sqrt(toScalar(variance(mass_1[it->second])))
+	       << ", A=" << setw(6) << fixed << setprecision(3) << toScalar(mean(A[it->second]))        // coeff
+	       << " +/- " << setw(6) << fixed << setprecision(3) << std::sqrt(toScalar(variance(A[it->second]))) << n;
+      }
+
+    return ss.str();
+  }
+
+
 
   template<class T>
   void ST0Fit<T>::fixedCoeffMethod(const int tstar) const
