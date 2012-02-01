@@ -124,6 +124,9 @@ sub make_gnu {
     $width = int( 0.9* $width);
     $height = int( 0.9* $height);
 
+#$width = 900;
+#$height = 600;
+
 #    system("gnuplot -geometry 1500x800 -persist /tmp/histo_$random.gnu");
     system("gnuplot -geometry ${width}x${height} -persist /tmp/histo_$random.gnu");
 
@@ -167,18 +170,24 @@ sub ident_op {
     #baryon syntax   NucleonMG1g1MxD0J0S_J1o2_G1g1
     #meson syntax    b0xD1_J1__J1_T1 (old)   or   rho_rhoxD0_J0__J1_T1
 
-    # need to add support for mesons and baryons in flight ...
-    
     @break = split('_', $op);
-    $irrep = $break[-1];
-    $first = substr($irrep, 0, 1);
-    if( ($first eq 'G') || ($first eq 'H') ){
+    $irrep = &removeHelicity($break[-1]);
+
+    if( ($irrep =~ /G/) || ($irrep =~ /H/) ||
+	($irrep =~ /D4E1/) || ($irrep =~ /D4E3/) ||
+	($irrep =~ /D3E1/) || ($irrep =~ /D3B/) ||
+	($irrep =~ /D2E/) ||
+	($irrep =~ /C4E/)) {
 	#its a baryon
 	$hadron = "baryon";
 	($opname, $spin, $irrep) = split('_', $op);
 	($flavspin, $deriv) = split('x', $opname);
     }
-    elsif( ($first eq 'A') || ($first eq 'B') || ($first eq 'T') || ($first eq 'E') ){
+    elsif( ($irrep =~ /A/) || ($irrep =~ /T/) || ($irrep =~ /E/) ||
+	   ($irrep =~ /D4A/) || ($irrep =~ /D4E2/) || ($irrep =~ /D4B/) ||
+	   ($irrep =~ /D3A/) || ($irrep =~ /D3E2/) ||
+	   ($irrep =~ /D2A/) || ($irrep =~ /D2B/) ||
+	   ($irrep =~ /C4A/)) {
 	#its a meson
 	$hadron = "meson";
 	($opstruct, $spinirrep) = split('__', $op);
@@ -206,7 +215,7 @@ sub ident_op {
     else{
 	# will probably be called for two-particle opes
 	print "don't know how to deal with $op yet! coloring it brown \n";
-	$spin = $other;
+	$spin = "other";
     }
 
     if($hadron eq 'baryon'){
@@ -246,7 +255,7 @@ sub ident_op {
 
     else{
 	print "DON'T KNOW WHAT TO DO WITH THIS OPERATOR : ${op} -> brown \n";
-	$type = $other;
+	$type = "other";
     }
 
 
@@ -346,3 +355,31 @@ sub write_data{
     }
     close(DATA);
 }
+
+
+#################################################################################
+# Remove helicity from an irrep name
+sub removeHelicity
+{
+  my $irrep = $_[0];
+  # Remove the helicity label
+  if ( (substr($irrep,0,3) eq "H0D") || (substr($irrep,0,3) eq "H1D") || (substr($irrep,0,3) eq "H2D") || 
+       (substr($irrep,0,3) eq "H3D") || (substr($irrep,0,3) eq "H4D") || (substr($irrep,0,3) eq "H0C") || 
+       (substr($irrep,0,3) eq "H1C") || (substr($irrep,0,3) eq "H2C") || (substr($irrep,0,3) eq "H3C") || 
+       (substr($irrep,0,3) eq "H4C") 
+       )
+  {
+    return substr($irrep,2);
+  }
+
+  if ( (substr($irrep,0,5) eq "H1o2D") || (substr($irrep,0,5) eq "H3o2D") || (substr($irrep,0,5) eq "H5o2D") || (substr($irrep,0,5) eq "H7o2D") || 
+       (substr($irrep,0,5) eq "H1o2C") || (substr($irrep,0,5) eq "H3o2C") || (substr($irrep,0,5) eq "H5o2C") || (substr($irrep,0,5) eq "H7o2C")
+       )
+  {
+    return substr($irrep,4);
+  }
+
+  return $irrep;
+}
+
+
