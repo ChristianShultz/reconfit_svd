@@ -1152,7 +1152,7 @@ std:
 	   << " +/- " << t0_fits[t0]->getCondNum().second << n;
 	ss << "t_ref = " << inikeys.t0Props.t0ref << n;
 	ss << t0_fits[t0]->getPCorrFitLog(reorder[t0]) << n << n;
-	ss << "best recon chisq/ndof = " << tz_chisq[t0].second << " at tz = " << tz_chisq[t0].first << n; 
+	ss << "best recon chisq/ndof = " << tz_chisq[t0].second << " at tz = " << tz_chisq[t0].first << n << n << n; 
       }
 
     std::ofstream out;

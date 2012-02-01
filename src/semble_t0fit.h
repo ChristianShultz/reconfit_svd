@@ -1560,11 +1560,11 @@ namespace SEMBLE
   
     for(it = mapp.begin(); it != mapp.end(); ++it)
       {
-	ss << setw(5) << it->first << "|" << setw(5) << it->second                                      // states
+	ss << setw(5) << it->first << "|" << setw(5) << it->second << "|"                               // states
 	   << setw(8) << fixed << setprecision(5) << toScalar(mean(mass_0[it->second])) << "+/-"        // m_0
 	   << setw(8) << fixed << setprecision(5) << std::sqrt(toScalar(variance(mass_0[it->second])))  // var(m_0)
 	   << "|" << setw(25) << pCorrFitName[it->second] << "|"                                        // fit name
-	   << setw(10) << fixed << setprecision(2) << pCorrChiSqPDoF[it->second] << "|";                 // fit chisq
+	   << setw(10) << fixed << setprecision(2) << pCorrChiSqPDoF[it->second] << "|";                // fit chisq
 	   
 	  if(toScalar(mean(mass_0[it->second])) > 0.)
 	    ss << " m'=" << setw(6) << fixed << setprecision(3) << toScalar(mean(mass_1[it->second]))   // second exp mass
