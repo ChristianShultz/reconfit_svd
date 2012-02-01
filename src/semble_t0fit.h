@@ -30,7 +30,8 @@
   1) map keys are the number assigned to the ordered states, data is the 
      state on this t0
   2) When using SVD we could potentially have different numbers of 
-     states on each t0
+     states on each t0, the sorting of any states with index larger than 
+     dim(t0_ref) is arbitrary
 */
 
 
@@ -40,7 +41,7 @@ namespace SEMBLE
   template<class T>
   struct ST0Fit
   {
-  public: //constructor, destructor, copy, assignment
+  public: // constructor, destructor, copy, assignment
     ST0Fit(void);
     ST0Fit(int t0_, const typename PromoteCorr<T>::Type &tp_, const FitIniProps_t &inikeys_);
     ST0Fit(int t0_, const typename std::vector<SembleMatrix<T> > &fake, const FitIniProps_t &inikeys_);
@@ -49,50 +50,51 @@ namespace SEMBLE
     ST0Fit<T>& operator=(const ST0Fit<T> &o);
 
 
-  public:
-    //load methods
+  public: // load methods
     void load(int t0_, const typename PromoteCorr<T>::Type &tp_, const FitIniProps_t &inikeys_);
     void load(int t0_, const typename std::vector<SembleMatrix<T> > &fake, const FitIniProps_t &inikeys_);
-    std::vector<SembleMatrix<T> > maketp(const typename PromoteCorr<T>::Type &tp_);
+
+    // convert from a typename PromoteCorr<T>::Type to a std::vector<SembleMatrix<T> >
+    typename std::vector<SembleMatrix<T> > maketp(const typename PromoteCorr<T>::Type &tp_);
 
   public:
     //principal correlator methods
     void fitPrinCorr(void);
-    void printSpectrum(std::ostream &out) const;                           //print the fit data (m,m',A) to an ostream
-    void printPrinCorrFits(void) const;                                    //print the unordered plots to a file
-    void printPrinCorrReorder(const std::map<int, int> &mapp) const;       //print the reordered plots to a file (multit0 fitting)
-    void printMassFile(void) const;                                        //print the unordered jack files
-    void printMassFileReorder(const std::map<int, int> &mapp) const;       //print the reordered jack files
-    void printPrinCorrFiles(void) const;                                   //print the unordered pcorr files
-    void printPrinCorrFilesReorder(const std::map<int, int> &mapp) const;  //print the reordered pcorr files
+    void printSpectrum(std::ostream &out) const;                           // print the fit data (m,m',A) to an ostream
+    void printPrinCorrFits(void) const;                                    // print the unordered plots to a file
+    void printPrinCorrReorder(const std::map<int, int> &mapp) const;       // print the reordered plots to a file (multit0 fitting)
+    void printMassFile(void) const;                                        // print the unordered jack files
+    void printMassFileReorder(const std::map<int, int> &mapp) const;       // print the reordered jack files
+    void printPrinCorrFiles(void) const;                                   // print the unordered pcorr files
+    void printPrinCorrFilesReorder(const std::map<int, int> &mapp) const;  // print the reordered pcorr files
 
   public:
     //overlap methods
-    void makeZ(void);                                                      //construct overlaps
-    void fitZ(void);                                                       //fit overlaps
-    void printZFits(void) const;                                           //unordered plot
-    void printZFitsReorder(const std::map<int, int> &mapp) const;          //reordered plot
-    void printZFile(void) const;                                           //unordered jack file
-    void printZFileReorder(const std::map<int, int> &mapp) const;          //reordered jack file
-    void printZt(void) const;                                              //print the z at each time
-    void printZtReorder(const std::map<int, int> &mapp) const;             //print the reorderd z at each time
+    void makeZ(void);                                                      // construct overlaps
+    void fitZ(void);                                                       // fit overlaps
+    void printZFits(void) const;                                           // unordered plot
+    void printZFitsReorder(const std::map<int, int> &mapp) const;          // reordered plot
+    void printZFile(void) const;                                           // unordered jack file
+    void printZFileReorder(const std::map<int, int> &mapp) const;          // reordered jack file
+    void printZt(void) const;                                              // print the z at each time
+    void printZtReorder(const std::map<int, int> &mapp) const;             // print the reorderd z at each time
 
   public:
     //eigenvector methods
-    void printVt(void) const;                                               //print the eigenvectors at each time
-    void printVtReorder(const std::map<int, int> &mapp) const;              //print the reordered eigenvectors at each time
+    void printVt(void) const;                                               // print the eigenvectors at each time
+    void printVtReorder(const std::map<int, int> &mapp) const;              // print the reordered eigenvectors at each time
 
   public:
     //reconstruction methods
-    void reconCorr(void);                                                   //do the reconstruction
-    double reconChisq(const int tZ, const ReconProps_t &rec);               //this is very slow
-    double reconChisqFast(const int tz, const ReconProps_t &rec);           //chisq w/o inverted covariance
-    void clearRecon(void)                                                   //clean up the big recon obj
+    void reconCorr(void);                                                   // do the reconstruction
+    double reconChisq(const int tZ, const ReconProps_t &rec);               // this is very slow
+    double reconChisqFast(const int tz, const ReconProps_t &rec);           // chisq w/o inverted covariance
+    void clearRecon(void)                                                   // clean up the big recon obj
     {
       recon_total.clear();
       recon = false;
     }
-    pair<int, double> findBestTZ(const ReconProps_t &rec);                  //find the best set of overlaps by reconstruction
+    pair<int, double> findBestTZ(const ReconProps_t &rec);                  // find the best set of overlaps by reconstruction
     void makeReconPlots(std::string &mode);
     //void makeReconPlotsReorder(cost std::map<int,int> &mapp);
     void printReconPlots(void);
