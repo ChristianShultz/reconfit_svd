@@ -1555,7 +1555,7 @@ namespace SEMBLE
     ss << "* REORDERED SPECTRUM *" << n;
     ss << "**********************" << n;
 
-    ss << "state|unord|        mass         |           fit           |chisq/nDoF | " << endl;
+    ss << "state|unord|        mass       |           fit           |chisq/nDoF|   fit parameters " << endl;
   
   
     for(it = mapp.begin(); it != mapp.end(); ++it)
