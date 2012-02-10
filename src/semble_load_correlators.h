@@ -79,6 +79,7 @@ namespace SEMBLE
     void changeNumCfgs(int newbins);
     void useEnsemMean();
 
+    void skipTimeslices(int nt);
     void shiftCorrs(int dt);
     void expWeightCorrs(double E);
 

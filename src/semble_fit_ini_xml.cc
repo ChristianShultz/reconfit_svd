@@ -555,6 +555,11 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, GlobalProps_t &prop)
     read(ptop, "verbose", prop.verbose);
   else
     prop.verbose = false;
+
+  if(ptop.count("skip_nt") > 0)
+    read(ptop, "skip_nt", prop.skip_nt);
+  else
+    prop.skip_nt = 0;
 }
 
 void SEMBLE::read(XMLReader &xml, const std::string &path, FitIniProps_t &prop)

@@ -152,6 +152,7 @@
     <tmax>25</tmax>
     <SVCut>1e-6</SVCut>
     <verbose>true</verbose>
+    <skip_nt>0</skip_nt>     <!--  if skip_nt != 0, only use every n'th timeslice [new Lt = floor(Lt/nt)] -->
   </globalProps>
   
 </FitIniParams>

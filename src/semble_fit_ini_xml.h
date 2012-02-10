@@ -241,6 +241,7 @@ namespace SEMBLE
     int tmax;
     double SVCut;
     bool verbose;
+    int skip_nt;   // If skip_nt != 0, only use every n'th timeslice [new Lt = floor(Lt/nt)]
   };
 
   struct FitIniProps_t

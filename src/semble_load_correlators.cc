@@ -283,6 +283,28 @@ namespace SEMBLE
   }
 
 
+  void SembleRCorrs::skipTimeslices(int nt)
+  {
+    // Consider every n'th timeslice
+    
+    int Lt_new = floor( float(Lt) / float(nt) );
+    vector<SembleMatrix<double> > Ct_new;
+    SembleMatrix<double> dum_new(nbins, dim, dim);
+    Ct_new.push_back(dum_new);
+    Ct_new.resize(Lt_new, dum_new);
+    
+    for(int t=0; t<Lt_new; t++)
+      {
+	Ct_new[t] = Ct[t*nt];
+      }
+    
+    Lt = Lt_new;
+    Ct = Ct_new;
+    
+    //  cout << __func__ << ": Only using every n'th timeslice where n= " << nt << std::endl;
+  }
+
+
   void SembleRCorrs::shiftCorrs(int dt)
   {
     // Consider C(t) - C(t+dt) instead of C(t)
@@ -1670,6 +1692,14 @@ namespace SEMBLE
       }
 
 
+    // If skip_nt != 0, only use every n'th timeslice [new Lt = floor(Lt/nt)]
+    if (inikeys.globalProps.skip_nt != 0)
+      {
+	cout << "Only using every n'th timeslice where n= " << inikeys.globalProps.skip_nt << endl;
+	twoPoints.skipTimeslices(inikeys.globalProps.skip_nt);
+      }
+    
+    
     // Debugging
     if(inikeys.dbInputType == "ensem_debug" || inikeys.dbInputType == "dbnew_debug" || inikeys.dbInputType == "redstar_debug")
       {
