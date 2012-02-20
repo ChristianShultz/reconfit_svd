@@ -426,6 +426,15 @@ itpp::mat EnsemData::getAllCov() const{
   return cov;
 };
 
+
+EnsemReal EnsemData::getYUsingNearestX(double& x){
+  int pos = find_nearest(x_data, x);
+  x = x_data[pos];
+  EnsemReal out =  peekObs(y_data, pos);
+  return out;
+}
+
+
 // INVERSE COVARIANCE
 
 void EnsemData::makeInvCov(double cutoff) const{

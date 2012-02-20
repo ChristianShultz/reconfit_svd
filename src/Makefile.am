@@ -45,6 +45,8 @@ fit_corr_exp_and_const_SOURCES = fit_corr_exp_and_const.cc fit_correlators.cc ja
 
 fit_corr_cosh_and_const_SOURCES = fit_corr_cosh_and_const.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
 
+#fitZ_experiment_SOURCES = fitZ_experiment.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
+
 dispersion_fit_SOURCES = dispersion_fit.cc multi_ensemble_fitter.cc jackknife_linear_fitter.cc jackknife_fitter.cc ensem_data.cc plot.cc linear_algebra.cc semble_linear_algebra.cc
 
 generate_ensem_SOURCES = generate_ensem.cc

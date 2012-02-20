@@ -77,7 +77,47 @@ double CompareFitsByQN::operator()(const FitDescriptor& fitDesc, const JackFit& 
 };
 
 
+class CompareZFits : public FitComparator{
+public:
+  CompareZFits() : FitComparator(){};
 
+  inline double operator()(const FitDescriptor& fitDesc, const JackFit& fit) const;
+};
+
+double CompareZFits::operator()(const FitDescriptor& fitDesc, const JackFit& fit) const{
+  double chisq = fit.getAvgChisq();
+  int nDoF = fit.getNDoF();
+  double Q = statQ(chisq, nDoF);
+
+  double Z = fit.getAvgFitParValue("a");
+  
+  double out = Q * nDoF;
+
+  if( (*(fitDesc.ff)).getFitType() == "constant_plus_exp" ){
+    double mass = fit.getAvgFitParValue("exp_mass");
+    double mass_err = fit.getAvgFitParError("exp_mass");
+
+    double z2 = fit.getAvgFitParValue("b");
+    double z2_err = fit.getAvgFitParError("b");
+
+    // a cooked up function that varies between 1 for 1 sigma and 2 for infinite sigma
+    double x0 = 2.0;
+    double c = 3.14159/2.0 - 2*atan(1.0 - x0);
+    double alpha = 2.0/(0.5*3.14159 + c);
+
+    double e =  mass/mass_err;
+    double f = alpha * ( atan( e - x0 ) + c );
+
+    out *= f;
+
+    if( mass < mass_err ){ out = 0.0; }
+    if( fabs(z2) < z2_err ){ out = 0.0; }
+
+    // introduce an ABSOLUTE scale for the exponential mass - just HARDWIRE here
+    if( mass < 0.1 ){ out = 0.0; }
+  }
+  return out;
+}
 
 
 //********************************************************************************

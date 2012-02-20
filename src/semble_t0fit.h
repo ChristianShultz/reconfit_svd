@@ -858,7 +858,8 @@ namespace SEMBLE
               }
 
             EnsemData zData(tslice, z);
-            Handle<FitComparator> fitC = fitComp(inikeys.zProps.fitCrit);
+	    Handle<FitComparator> fitC = fitComp(inikeys.zProps.fitCrit);
+	    //Handle<FitComparator> fitC = new CompareZFits;
             FitZ fitZ(zData, t0, fitC, inikeys.zProps.minTSlices);
 
             zFit.loadEnsemElement(state, op, fitZ.getZ());
@@ -1722,6 +1723,9 @@ namespace SEMBLE
 
     if(in == "QN")
       return Handle<FitComparator>(new CompareFitsByQN);
+
+    if(in == "Zfit")
+      return Handle<FitComparator>(new CompareZFits);
 
     std::cout << __PRETTY_FUNCTION__ << "Fit Criterion " << in << " unknown, defaulting to chisq_per_dof" << std::endl;
     return Handle<FitComparator>(new CompareFitsByChisqPerNDoF);

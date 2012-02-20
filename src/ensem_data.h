@@ -142,6 +142,9 @@ class EnsemData{
   vector<bool> getActiveDataList() const {return active_data;};
   itpp::mat getAllCov() const;
   
+  //pull out single values
+  EnsemReal getYUsingNearestX(double& x);
+
   //covariance calls
   void makeCov() const {
     if(!initCov){cov = makeEnsemCov(y_data); initCov = true;};
