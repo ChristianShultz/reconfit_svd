@@ -39,7 +39,7 @@ bin_PROGRAMS = semble_vfit$(EXEEXT) timeslice_covariance$(EXEEXT) \
 	fit_corr_exp$(EXEEXT) fit_corr_cosh$(EXEEXT) \
 	fit_corr_exp_and_const$(EXEEXT) \
 	fit_corr_cosh_and_const$(EXEEXT) dispersion_fit$(EXEEXT) \
-	generate_ensem$(EXEEXT) fitZ_experiment$(EXEEXT)
+	generate_ensem$(EXEEXT)
 noinst_PROGRAMS =
 check_PROGRAMS =
 EXTRA_PROGRAMS =
@@ -63,12 +63,6 @@ am_dispersion_fit_OBJECTS = dispersion_fit.$(OBJEXT) \
 dispersion_fit_OBJECTS = $(am_dispersion_fit_OBJECTS)
 dispersion_fit_LDADD = $(LDADD)
 dispersion_fit_DEPENDENCIES =
-am_fitZ_experiment_OBJECTS = fitZ_experiment.$(OBJEXT) \
-	jackknife_fitter.$(OBJEXT) ensem_data.$(OBJEXT) \
-	linear_algebra.$(OBJEXT) plot.$(OBJEXT) fit_forms.$(OBJEXT)
-fitZ_experiment_OBJECTS = $(am_fitZ_experiment_OBJECTS)
-fitZ_experiment_LDADD = $(LDADD)
-fitZ_experiment_DEPENDENCIES =
 am_fit_corr_cosh_OBJECTS = fit_corr_cosh.$(OBJEXT) \
 	fit_correlators.$(OBJEXT) jackknife_fitter.$(OBJEXT) \
 	ensem_data.$(OBJEXT) linear_algebra.$(OBJEXT) plot.$(OBJEXT) \
@@ -138,15 +132,15 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(dispersion_fit_SOURCES) $(fitZ_experiment_SOURCES) \
-	$(fit_corr_cosh_SOURCES) $(fit_corr_cosh_and_const_SOURCES) \
-	$(fit_corr_exp_SOURCES) $(fit_corr_exp_and_const_SOURCES) \
+SOURCES = $(dispersion_fit_SOURCES) $(fit_corr_cosh_SOURCES) \
+	$(fit_corr_cosh_and_const_SOURCES) $(fit_corr_exp_SOURCES) \
+	$(fit_corr_exp_and_const_SOURCES) \
 	$(fit_multiple_princorrs_SOURCES) $(fit_prin_corr_SOURCES) \
 	$(generate_ensem_SOURCES) $(semble_vfit_SOURCES) \
 	$(timeslice_covariance_SOURCES)
-DIST_SOURCES = $(dispersion_fit_SOURCES) $(fitZ_experiment_SOURCES) \
-	$(fit_corr_cosh_SOURCES) $(fit_corr_cosh_and_const_SOURCES) \
-	$(fit_corr_exp_SOURCES) $(fit_corr_exp_and_const_SOURCES) \
+DIST_SOURCES = $(dispersion_fit_SOURCES) $(fit_corr_cosh_SOURCES) \
+	$(fit_corr_cosh_and_const_SOURCES) $(fit_corr_exp_SOURCES) \
+	$(fit_corr_exp_and_const_SOURCES) \
 	$(fit_multiple_princorrs_SOURCES) $(fit_prin_corr_SOURCES) \
 	$(generate_ensem_SOURCES) $(semble_vfit_SOURCES) \
 	$(timeslice_covariance_SOURCES)
@@ -264,7 +258,8 @@ fit_corr_exp_SOURCES = fit_corr_exp.cc fit_correlators.cc jackknife_fitter.cc en
 fit_corr_cosh_SOURCES = fit_corr_cosh.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
 fit_corr_exp_and_const_SOURCES = fit_corr_exp_and_const.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
 fit_corr_cosh_and_const_SOURCES = fit_corr_cosh_and_const.cc fit_correlators.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
-fitZ_experiment_SOURCES = fitZ_experiment.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
+
+#fitZ_experiment_SOURCES = fitZ_experiment.cc jackknife_fitter.cc ensem_data.cc linear_algebra.cc plot.cc fit_forms.cc
 dispersion_fit_SOURCES = dispersion_fit.cc multi_ensemble_fitter.cc jackknife_linear_fitter.cc jackknife_fitter.cc ensem_data.cc plot.cc linear_algebra.cc semble_linear_algebra.cc
 generate_ensem_SOURCES = generate_ensem.cc
 
@@ -339,9 +334,6 @@ clean-noinstPROGRAMS:
 dispersion_fit$(EXEEXT): $(dispersion_fit_OBJECTS) $(dispersion_fit_DEPENDENCIES) 
 	@rm -f dispersion_fit$(EXEEXT)
 	$(CXXLINK) $(dispersion_fit_LDFLAGS) $(dispersion_fit_OBJECTS) $(dispersion_fit_LDADD) $(LIBS)
-fitZ_experiment$(EXEEXT): $(fitZ_experiment_OBJECTS) $(fitZ_experiment_DEPENDENCIES) 
-	@rm -f fitZ_experiment$(EXEEXT)
-	$(CXXLINK) $(fitZ_experiment_LDFLAGS) $(fitZ_experiment_OBJECTS) $(fitZ_experiment_LDADD) $(LIBS)
 fit_corr_cosh$(EXEEXT): $(fit_corr_cosh_OBJECTS) $(fit_corr_cosh_DEPENDENCIES) 
 	@rm -f fit_corr_cosh$(EXEEXT)
 	$(CXXLINK) $(fit_corr_cosh_LDFLAGS) $(fit_corr_cosh_OBJECTS) $(fit_corr_cosh_LDADD) $(LIBS)
@@ -378,7 +370,6 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dispersion_fit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ensem_data.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fitZ_experiment.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fit_corr_cosh.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fit_corr_cosh_and_const.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fit_corr_exp.Po@am__quote@
