@@ -67,6 +67,8 @@ namespace SEMBLE
     void printMassFileReorder(const std::map<int, int> &mapp) const;       // print the reordered jack files
     void printPrinCorrFiles(void) const;                                   // print the unordered pcorr files
     void printPrinCorrFilesReorder(const std::map<int, int> &mapp) const;  // print the reordered pcorr files
+    void printPrinCorrFitLog(void) const;                                  // print the unordered pcorr fit log
+    void printPrinCorrFitLogReorder(const std::map<int,int> &mapp) const;  // print the reordered pcorr fit log
 
   public:
     //overlap methods
@@ -77,7 +79,9 @@ namespace SEMBLE
     void printZFile(void) const;                                           // unordered jack file
     void printZFileReorder(const std::map<int, int> &mapp) const;          // reordered jack file
     void printZt(void) const;                                              // print the z at each time
-    void printZtReorder(const std::map<int, int> &mapp) const;             // print the reorderd z at each time
+    void printZtReorder(const std::map<int, int> &mapp) const;             // print the reordered z at each time
+    void printZFitLog(void) const;                                         // print the unordered fit log
+    void printZFitLogReorder(const std::map<int,int> &mapp) const;         // print the reordered fit log
 
   public:
     //eigenvector methods
@@ -220,7 +224,7 @@ namespace SEMBLE
     //pcorr data
     std::vector<EnsemReal> mass_0, mass_1, A;
     std::stringstream pCorrLog;
-    std::vector<std::string> pCorrFitName, pCorrFitPlot;
+    std::vector<std::string> pCorrFitName, pCorrFitPlot, pCorrFitLog;
     std::vector<double> pCorrChiSqPDoF;
 
     //overlap data
@@ -284,7 +288,7 @@ namespace SEMBLE
         mass_0 = o.mass_0;
         mass_1 = o.mass_1;
         A = o.A;
-        pCorrLog = o.pCorrLog;
+        //pCorrLog = o.pCorrLog;    //can't copy a buffer
         pCorrFitName = o.pCorrFitName;
         pCorrFitPlot = o.pCorrFitPlot;
         pCorrChiSqPDoF = o.pCorrChiSqPDoF;
@@ -357,7 +361,7 @@ namespace SEMBLE
             mass_0 = o.mass_0;
             mass_1 = o.mass_1;
             A = o.A;
-            pCorrLog = o.pCorrLog;
+            //pCorrLog = o.pCorrLog;  //can't copy the buffer
             pCorrFitName = o.pCorrFitName;
             pCorrFitPlot = o.pCorrFitPlot;
             pCorrChiSqPDoF = o.pCorrChiSqPDoF;
@@ -478,11 +482,15 @@ namespace SEMBLE
 
     std::cout << "Constructing Principal Correlator Fits.." << std::endl;
     pCorrLog << "Constructing Principal Correlator Fits for t0 = " << t0 << " rowRank(Ct0) = " << N << " colRank(Ct0) = " << M << std::endl;
+    std::stringstream pfitlog;
 
     //loop on states
     for(int state = 0; state < M; ++state)
       {
-        pCorrLog << "fitting state #" << state << std::endl;
+
+	pfitlog.str(std::string());
+	pfitlog << "fitting unordered state #" << state << std::endl;
+        pCorrLog << "fitting unordered state #" << state << std::endl;
 
         EnsemVectorReal lambda;
         std::vector<double> tslice;
@@ -526,8 +534,16 @@ namespace SEMBLE
         pCorrFitName[state] = pCorrFit.getFitName();
         pCorrFitPlot[state] = pCorrFit.getFitPlotString();
         pCorrChiSqPDoF[state] = pCorrFit.getChisq() / pCorrFit.getNDoF();
+	pfitlog << pCorrFit.getFitSummary() << std::endl;
+	pfitlog << "** ensem fit value ** m= " << toScalar(mean(mass_0[state])) 
+		<< " +/- " << toScalar(variance(mass_0[state])) << std::endl;
+	pCorrFitLog.push_back(pfitlog.str());
 
       }//next pcorr
+
+
+
+
     pcorr = true;
   }
   
@@ -787,6 +803,70 @@ namespace SEMBLE
       }
   }
 
+// print pcorr fit logs unordered
+  template<class T>
+  void ST0Fit<T>::printPrinCorrFitLog(void) const
+  {
+    if(!!!pcorr)
+      {
+	std::cout << "Need to first fit principal correlators in " << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
+	exit(1);
+      }
+
+    std::stringstream ss;
+    ss << "t0" << t0;
+    std::string path = SEMBLEIO::getPath() += ss.str();
+    SEMBLEIO::makeDirectoryPath(path);
+    path += std::string("/PrinCorrFitLogs");
+    SEMBLEIO::makeDirectoryPath(path);
+    path += std::string("/");
+
+    for(int state = 0; state < M; ++state)
+      {
+	std::stringstream s;
+	s << path << "prin_corr_fit_log_t0" << t0 << "_state" << state << ".log";
+	std::ofstream out;
+	out.open(s.str().c_str());
+	out << pCorrFitLog[state];
+	out.close();
+      }
+  }
+
+// print pcorr fit logs reordered 
+  template<class T>
+  void ST0Fit<T>::printPrinCorrFitLogReorder(const std::map<int, int> &mapp) const
+  {
+    
+    if(!!!pcorr)
+      {
+	std::cout << "Need to first fit principal correlators in " << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
+	exit(1);
+      }
+
+    std::stringstream ss;
+    ss << "t0" << t0;
+    std::string path = SEMBLEIO::getPath() += ss.str();
+    SEMBLEIO::makeDirectoryPath(path);
+    path += std::string("/PrinCorrFitLogs");
+    SEMBLEIO::makeDirectoryPath(path);
+    path += std::string("/");
+
+    std::map<int,int>::const_iterator it;
+    for(it = mapp.begin(); it != mapp.end(); ++it)
+      {
+	if(it->second >= M)
+	  {
+	    std::cout << "remapping error, out of bounds" << __PRETTY_FUNCTION__ << std::endl;
+	    exit(1);
+	  }
+	std::stringstream s;
+	s << path << "prin_corr_fit_log_t0" << t0 << "_reorder_state" << it->first << ".log";
+	std::ofstream out;
+	out.open(s.str().c_str());
+	out << pCorrFitLog[it->second];
+	out.close();
+      }
+  }
 
 //make the overlaps
   template<class T>
@@ -1080,6 +1160,70 @@ namespace SEMBLE
   }
 
 
+//print the fits
+  template<class T>
+  void ST0Fit<T>::printZFitLog(void) const
+  {
+
+    zfitChk();
+
+    std::stringstream ss;
+    ss << "t0" << t0;
+    std::string path = SEMBLEIO::getPath() += ss.str();
+    SEMBLEIO::makeDirectoryPath(path);
+    path += std::string("/ZFitLogs");
+    SEMBLEIO::makeDirectoryPath(path);
+    path += std::string("/");
+
+    for(int index = 0; index < M; ++index)
+      {
+        for(int op = 0; op < N; ++op)
+          {
+            std::stringstream s;
+            s << path << "Z_fit_log_t0" << t0 << "_state" << index << "_op" << op << ".log";
+            std::ofstream out;
+            out.open(s.str().c_str());
+            out << zFitResults[index][op];
+            out.close();
+          }
+      }
+  }
+
+  template<class T>
+  void ST0Fit<T>::printZFitLogReorder(const std::map<int, int> &mapp) const
+  {
+
+    zfitChk();
+
+    std::stringstream ss;
+    ss << "t0" << t0;
+    std::string path = SEMBLEIO::getPath() += ss.str();
+    SEMBLEIO::makeDirectoryPath(path);
+    path += std::string("/ZFitLogs");
+    SEMBLEIO::makeDirectoryPath(path);
+    path += std::string("/");
+
+    std::map<int, int>::const_iterator it;
+
+    for(it = mapp.begin(); it != mapp.end(); ++it)
+      {
+	if(it->second >= M) //in bounds check
+	  {
+	    std::cout << "remapping error, out of bounds " << __PRETTY_FUNCTION__ << std::endl;
+	    exit(1);
+	  }
+	
+	for(int op = 0; op < N; ++op)
+	  {
+	    std::stringstream s;
+	    s << path << "Z_fit_log_t0" << t0 << "_reorder_state" << it->first << "_op" << op << ".log";
+	    std::ofstream out;
+	    out.open(s.str().c_str());
+	    out << zFitResults[it->second][op];
+	    out.close();
+	  }
+      }
+  }
 
 
   template<class T>

@@ -51,6 +51,7 @@ namespace SEMBLE
     void printMassFiles(void);                           //jack files
     void printMassT0Files(void);                         //jack file of mt0 fit
     void printEvalFiles(void);                           //the principal correlator in jack format
+    void printPCorrFitLog(void);                         //the principal correlator fit logs by state
 
     void fitZT0(void);                                   //fit Zt0
     void printZ(void);                                   //z plots
@@ -58,6 +59,7 @@ namespace SEMBLE
     void printZT0Files(void);                            //jack files of Z_ij(t0) fit
     void printZFiles(void);                              //jack files
     void printZtFiles(void);                             //z_ij(t) in jack form
+    void printZFitLog(void);                             //the Z fit logs
 
     void printVtFiles(void);                             //eigenvectors
 
@@ -514,6 +516,27 @@ namespace SEMBLE
 
   }
 
+  template<class T>
+  void SMT0Fit<T>::printPCorrFitLog(void)
+  {
+    if(!!!init)
+      {
+	std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << " not initialized, exiting.. " << std::endl;
+	exit(1);
+      }
+
+    int t0;
+    #pragma omp parallel for private(t0)
+    
+    for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+      {
+	if(reordered)
+	  t0_fits[t0]->printPrinCorrFitLogReorder(reorder[t0]);
+	else
+	  t0_fits[t0]->printPrinCorrFitLog();
+      }    
+  }
+
 
   template<class T>
   void SMT0Fit<T>::printMassT0(void)
@@ -762,6 +785,29 @@ namespace SEMBLE
           file << path << "z_fit_state" << index << "_op" << op << ".jack";
           write(file.str(), Z[index][op]);
         }
+  }
+
+
+  template<class T>
+  void SMT0Fit<T>::printZFitLog(void)
+    {
+    if(!!!z_fit)
+      {
+        std::cout << "no overlaps have been fit" << __PRETTY_FUNCTION__ << std::endl;
+        exit(1);
+      }
+
+    int t0;
+
+    #pragma omp parallel for private(t0)
+
+    for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
+      {
+        if(reordered)
+          t0_fits[t0]->printZFitLogReorder(reorder[t0]);
+        else
+          t0_fits[t0]->printZFitLog();
+      }
   }
 
 
@@ -1254,6 +1300,8 @@ std:
       {
         printReorderLog();
         printNResetLog();
+	printPCorrFitLog();
+	printZFitLog();
         std::ofstream out;
         out.open("ini_file");
         out << inikeys;
