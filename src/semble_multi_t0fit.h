@@ -52,6 +52,7 @@ namespace SEMBLE
     void printMassT0Files(void);                         //jack file of mt0 fit
     void printEvalFiles(void);                           //the principal correlator in jack format
     void printPCorrFitLog(void);                         //the principal correlator fit logs by state
+    void printMassT0FitLog(void);                        //the mt0 fit logs
 
     void fitZT0(void);                                   //fit Zt0
     void printZ(void);                                   //z plots
@@ -60,6 +61,7 @@ namespace SEMBLE
     void printZFiles(void);                              //jack files
     void printZtFiles(void);                             //z_ij(t) in jack form
     void printZFitLog(void);                             //the Z fit logs
+    void printZT0FitLog(void);                           //the zt0 fit logs
 
     void printVtFiles(void);                             //eigenvectors
 
@@ -563,6 +565,32 @@ namespace SEMBLE
       }
   }
 
+
+  template<class T>
+  void SMT0Fit<T>::printMassT0FitLog(void)
+  {
+    if(!!!mass_fit_t0)
+      fitMassT0();
+
+    std::stringstream ss;
+    ss << "multi_t0_fits";
+    std::string path = SEMBLEIO::getPath() += ss.str();
+    SEMBLEIO::makeDirectoryPath(path);
+    path += std::string("/Mt0FitLogs");
+    SEMBLEIO::makeDirectoryPath(path);
+    path += std::string("/");
+
+    for(int state = 0; state < mass_summary.size(); ++state)
+      {
+        std::stringstream file;
+        file << path << "mass_fit_log_state" << state << ".log";
+	std::ofstream out;
+	out.open(file.str().c_str());
+	out << mass_summary[state];
+	out.close();
+      }
+  }
+
   //fit Z across t0s
   template<class T>
   void SMT0Fit<T>::fitZT0(void)
@@ -808,6 +836,35 @@ namespace SEMBLE
         else
           t0_fits[t0]->printZFitLog();
       }
+  }
+
+
+  template<class T>
+  void SMT0Fit<T>::printZT0FitLog(void)
+  {
+    if(!!!z_fit_t0)
+      fitZT0();
+
+    std::stringstream ss;
+    ss << "multi_t0_fits";
+    std::string path = SEMBLEIO::getPath() += ss.str();
+    SEMBLEIO::makeDirectoryPath(path);
+    path += std::string("/ZT0FitLogs");
+    SEMBLEIO::makeDirectoryPath(path);
+    path += std::string("/");
+
+    int nops = t0_fits[inikeys.t0Props.t0low]->getN();
+
+    for(int index = 0; index < max_states; ++index)
+      for(int op = 0; op < nops; ++op)
+        {
+          std::stringstream file;
+          file << path << "z_fit_log_state" << index << "_op" << op << ".log";
+	  std::ofstream out;
+	  out.open(file.str().c_str());
+	  out << Z_summary[index][op];
+          out.close();
+        }
   }
 
 
@@ -1302,6 +1359,13 @@ std:
         printNResetLog();
 	printPCorrFitLog();
 	printZFitLog();
+
+	if(out.mT0Files)
+	  printMassT0FitLog();
+
+	if(out.zT0Files)
+	  printZT0FitLog();
+
         std::ofstream out;
         out.open("ini_file");
         out << inikeys;
