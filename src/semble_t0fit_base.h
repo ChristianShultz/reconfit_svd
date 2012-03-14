@@ -15,8 +15,7 @@ namespace SEMBLE
 {
   template<class T>
   struct ST0Base   //this is the abstract base class, its never actually used but I'm writing a full definition so
-  {
-    //I can cut and paste, this and the derived class are just pieces of ST0Fit
+  {                //I can cut and paste, this and the derived class are just pieces of ST0Fit
   public:
     ST0Base(void)
       : init(false) , solved(false) , sort(true) , t(-1) {}

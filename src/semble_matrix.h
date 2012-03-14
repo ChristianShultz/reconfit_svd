@@ -10,61 +10,79 @@ using namespace ENSEM;
 
 namespace SEMBLE
 {
-//forward declaration
+// forward declaration
   template<class T>
   struct SembleMatrix;
 
-//forward dec of unary minus friend
+// forward dec of unary minus friend
   template<class T>
   SembleMatrix<T> operator-(const SembleMatrix<T> &plus);
 
-//no asymmetric operators are supported b/c they arent supported int itpp
+// no asymmetric operators are supported b/c they arent supported in itpp
 
   template <class T>
   struct SembleMatrix
   {
 
   public:
-    //constructors,destructors,assignment
+    // constructors,destructors,assignment
     SembleMatrix(void);
+    // create a row X col X bin semble matrix and set all entries to zero
     SembleMatrix(const int bins_, const int rows_, const int cols_);
+    // create from othere
     SembleMatrix(const SembleMatrix<T> &other);
+    // create from a vector of itpp::Mat<T>, assumes all matrices in vector are same dimension
     SembleMatrix(const typename std::vector<itpp::Mat<T> > &in);
+    // do nothing destructor
     ~SembleMatrix() {}
+    // assignment
     SembleMatrix<T>& operator=(const SembleMatrix<T> &other);
-    SembleMatrix<T>& operator=(const itpp::Mat<T> &other);
+    // returns an esemble of other
+    SembleMatrix<T>& operator=(const itpp::Mat<T> &other);           
 
-  public:
-    //peek data
+  public: // peek data
+    // return the matrix on a bin
     itpp::Mat<T> operator[](const int bin_) const;
+    // return an ensemble element for the row_, col_ element
     typename PromoteEnsem<T>::Type operator()(const int row_, const int col_) const
     {
       return getEnsemElement(row_, col_);
     }
+    // return an ensemble element for the row_, col_ element
     typename PromoteEnsem<T>::Type getEnsemElement(const int row_, const int col_) const;
+    // return a number by location
     typename PromoteScalar<T>::Type operator()(const int bin_, const int row_, const int col_) const;
+    // return an ensemble vector on the row
     SembleVector<T> getRow(const int row) const;
+    // return an ensemble vector on the column
     SembleVector<T> getCol(const int col) const;
 
-  public:
-    //poke data--requires modification
+  public: // poke data
+    // return a reference to the matrix on bin
     itpp::Mat<T>& operator[](const int bin);
+    // load an ensemble element into row_, col_ element, must be of same length
     void loadEnsemElement(const int row_, const int col_, const typename PromoteEnsem<T>::Type &ensem);
+    // set an element by index 
     void setElement(const int bin_, const int row_, const int col_, const T elem_);
+    // set an element by index but element can be of ESCALAR type
     void setElement(const int bin_, const int row_, const int col_, const typename PromoteScalar<T>::Type &scalar);
+    // set the ensemble to zero matrix
     void zeros(void);
+    // set every entry to one
     void ones(void);
 
-  public:
-    //dimension functions--require modification
+  public: // dimension functions
+    // get number of rows
     int getN(void) const
     {
       return N;
     }
+    // get number of cols
     int getM(void) const
     {
       return M;
     }
+    // get 'length' or number of cfgs in ensemble
     int getB(void) const
     {
       return B;
@@ -81,9 +99,13 @@ namespace SEMBLE
     {
       return getB();
     }
+    // set the number of rows, deletes off the end if n < N
     void setN(const int n);
+    // set the number of cols, deletes off the end if m < M
     void setM(const int m);
+    // set the number of bins, deletes off the end if b < B
     void setB(const int b);
+    // delete rows.cols according to the itpp convention
     void del_rows(const int r1, const int r2);
     void del_cols(const int c1, const int c2);
     inline void rows(const int r)
@@ -111,13 +133,11 @@ namespace SEMBLE
       setM(c);
     }
 
-  public:
-    //statistics
+  public: // statistics
     itpp::Mat<T> mean(void) const;
     itpp::Mat<T> variance(void) const;
 
-  public:
-    //rescaling--requires modification
+  public: // rescaling
     void rescaleSembleDown(void);
     void rescaleSembleUp(void);
     inline void rescaleEnsemDown(void)
@@ -129,8 +149,7 @@ namespace SEMBLE
       rescaleSembleUp();
     }
 
-  public:
-    //algebra--requires modification
+  public: // basic algebra
     SembleMatrix<T>& operator+=(const SembleMatrix<T> &rhs);
     SembleMatrix<T>& operator+=(const itpp::Mat<T> &rhs);
     SembleMatrix<T>& operator-=(const SembleMatrix<T> &rhs);
@@ -144,10 +163,10 @@ namespace SEMBLE
     SembleMatrix<T>& operator/=(const typename PromoteScalar<T>::Type &rhs);
     SembleMatrix<T>& operator/=(const typename PromoteEnsem<T>::Type &rhs);   //requires rescaling
 
-    //unary minus--requires modification
+    // unary minus
     friend SembleMatrix<T> operator-<>(const SembleMatrix<T> &plus);
 
-    //hermitian conjugate--requires modification
+    // hermitian conjugate
     SembleMatrix<T>& hermitianConjugate(void);
     inline SembleMatrix<T>& H(void)
     {
@@ -158,7 +177,7 @@ namespace SEMBLE
       return hermitianConjugate();
     }
 
-    //transpose--requires modification
+    // transpose
     SembleMatrix<T>& transpose(void);
     inline SembleMatrix<T>& tran(void)
     {

@@ -43,18 +43,18 @@ namespace SEMBLE
   //enumerate the sorting props
   enum eload_sorting_props_stringCfg
   {
-    eNoneCfg,
-    eRefvecsCfg,
+    eNoneCfg,      //sort by eigenvalues
+    eRefvecsCfg,   //sort by orthogonality of eigenvectors
   };
 
 
   //enumerate the sort evecs tslice choices
   enum eload_sort_evecs_tslice
   {
-    eNone,
-    eRefvecs_Moving,
-    eRefvecs_Fixed,
-    eRefvecs_Fixed_Auto
+    eNone,                    //no sorting across timeslice
+    eRefvecs_Moving,          //sort t+1 by the eigenvectors of t
+    eRefvecs_Fixed,           //sort t_ref+n by the eigenvectors of t_ref
+    eRefvecs_Fixed_Auto       //sort by the auto ref with vixed vectors
   };
 
 
@@ -71,12 +71,12 @@ namespace SEMBLE
     ST0FitPrim<T>& operator=(const ST0FitPrim<T> &o);
 
   public: //const access
-    int getN(void) const
+    int getN(void) const                 //return the number of rows(ops)
     {
       initChk();
       return N;
     }
-    int getM(void) const
+    int getM(void) const                 //return the number of cols(states)
     {
       initChk();
       return M;
@@ -106,9 +106,9 @@ namespace SEMBLE
 
   public: //non const access
     void load(const int t0_, const std::vector<SembleMatrix<T> > &tp_, const FitIniProps_t &inikeys_);
-    void solve(void);
-    void sort_solved(void);
-    void clear(void);
+    void solve(void);                                                    //solve the problem
+    void sort_solved(void);                                              //sort the evecs/vals
+    void clear(void);                                                    //clean up to load a new problem
 
   private:
     void clear_data(void);                                               //delete pointers then clear vector _data
