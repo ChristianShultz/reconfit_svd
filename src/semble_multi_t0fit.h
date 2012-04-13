@@ -3,19 +3,19 @@
 
 
 #include"semble_load_correlators.h"
-#include"semble_matrix.h"
-#include"semble_vector.h"
-#include"semble_file_management.h"
+#include"semble/semble_matrix.h"
+#include"semble/semble_vector.h"
+#include"semble/semble_file_management.h"
 #include"semble_t0fit.h"
 #include"semble_t0fit_prim.h"
-#include"semble_algebra.h"
-#include"semble_linear_algebra.h"
+#include"semble/semble_algebra.h"
+#include"semble/semble_linear_algebra.h"
 #include"ensem/ensem.h"
 #include"adat/handle.h"
 #include"semble_fit_ini_xml.h"
-#include"fit_forms.h"
-#include"fit_correlators.h"
-#include"jackknife_fitter.h"
+#include"jackFitter/fit_forms.h"
+#include"jackFitter/fit_correlators.h"
+#include"jackFitter/jackknife_fitter.h"
 #include<map>
 #include<vector>
 #include<iostream>

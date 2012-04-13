@@ -3,15 +3,15 @@
 
 #include"ensem/ensem.h"
 #include"semble_fit_ini_xml.h"
-#include"semble_file_management.h"
-#include"semble_meta.h"
-#include"semble_matrix.h"
-#include"semble_vector.h"
-#include"semble_linear_algebra.h"
+#include"semble/semble_file_management.h"
+#include"semble/semble_meta.h"
+#include"semble/semble_matrix.h"
+#include"semble/semble_vector.h"
+#include"semble/semble_linear_algebra.h"
 #include"semble_load_correlators.h"
 #include"semble_t0fit_base.h"
-#include"semble_histogram.h"
-#include"semble_histogram_aux.h"
+#include"semble/semble_histogram.h"
+#include"semble/semble_histogram_aux.h"
 #include<string>
 #include<vector>
 #include<iostream>

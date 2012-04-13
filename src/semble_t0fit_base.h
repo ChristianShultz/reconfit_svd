@@ -1,9 +1,9 @@
 #ifndef SEMBLE_T0FIT_BASE_H_H_GUARD
 #define SEMBLE_T0FIT_BASE_H_H_GUARD
 
-#include"semble_matrix.h"
-#include"semble_vector.h"
-#include"semble_linear_algebra.h"
+#include"semble/semble_matrix.h"
+#include"semble/semble_vector.h"
+#include"semble/semble_linear_algebra.h"
 #include<string>
 #include<iostream>
 
