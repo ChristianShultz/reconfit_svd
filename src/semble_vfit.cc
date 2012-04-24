@@ -1,4 +1,7 @@
-#include "semble_semble.h"
+#include "semble/semble_semble.h"
+#include "semble_load_correlators.h"
+#include "semble_fit_ini_xml.h"
+#include "semble_multi_t0fit.h"
 #include <itpp/itbase.h>
 #include <vector>
 #include <ostream>

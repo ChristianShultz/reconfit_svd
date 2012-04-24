@@ -7,8 +7,9 @@
 
 
 #include "ensem/ensem.h"
-#include "semble_matrix.h"
-#include "semble_algebra.h"
+
+#include "semble/semble_matrix.h"
+#include "semble/semble_algebra.h"
 #include "semble_fit_ini_xml.h"
 #include <vector>
 

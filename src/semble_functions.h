@@ -1,8 +1,8 @@
 #ifndef SEMBLE_FUNCTIONS_H_H_GUARD
 #define SEMBLE_FUNCTIONS_H_H_GUARD
 
-#include"semble_matrix.h"
-#include"ensem_data.h"
+#include"semble/semble_matrix.h"
+#include"jackFitter/ensem_data.h"
 #include<vector>
 
 namespace SEMBLE

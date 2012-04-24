@@ -1,4 +1,7 @@
 #include "jackknife_linear_fitter.h"
+#include "semble_typedefs.h"
+#include "semble_algebra.h"
+#include "semble_linear_algebra.h"
 
 using namespace SEMBLE;
 

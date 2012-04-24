@@ -15,9 +15,7 @@
 #include "adat/handle.h"
 
 #include "ensem_data.h"
-#include "semble_typedefs.h"
-#include "semble_algebra.h"
-#include "semble_linear_algebra.h"
+
 
 using namespace ENSEM;
 using namespace ADAT;
