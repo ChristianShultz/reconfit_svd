@@ -2,7 +2,7 @@
 
 #use warnings;
 
-die "Z_histogram.pl <t0> <ops_list_file> <state1> [<state2> ...]" unless $#ARGV > 2;
+die "Z_histogram.pl <t0> <ops_list_file> <state1> [<state2> ...]" unless $#ARGV > 1;
 
 #ops_list_file is a copy of ops_phases with the desired ops indicated by *
 #you can use "all" to show all operators
