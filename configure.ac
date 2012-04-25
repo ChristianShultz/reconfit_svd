@@ -134,30 +134,32 @@ AC_MSG_NOTICE([jackFitter libraries flags: ${JACKFITTER_LIBS}])
 
 
 #dnl itpp support
-#AC_ARG_WITH(itpp, 
-#  AC_HELP_STRING(
-#    [--with-itpp=DIR],
-#    [Use ITPP in DIR]),
-#    [ITPP_HOME="$with_itpp"],
-#    [ITPP_HOME="no"]
-#)
+AC_ARG_WITH(itpp, 
+  AC_HELP_STRING(
+    [--with-itpp=DIR],
+    [Use ITPP in DIR]),
+    [ITPP_HOME="$with_itpp"],
+    [ITPP_HOME="no"]
+)
 
-#if test "X${ITPP_HOME}X" != "XnoX"; then
-#  AC_MSG_NOTICE("Using ITPP in ${ITPP_HOME}")
-#  AC_PATH_PROG(ITPP_CONFIG, [itpp-config], [], [${ITPP_HOME}/bin:$PATH] )
-#  if test "X${ITPP_CONFIG}X" = "XX"; then 
-#    AC_MSG_ERROR([Program itpp-config not found])
-#  fi
-#  AC_MSG_NOTICE([Found ITPP configuration program ${ITPP_CONFIG}])
-#  AC_SUBST(ITPP_CXXFLAGS, "`${ITPP_CONFIG} --cflags`")
-#  AC_MSG_NOTICE([ITPP compile flags: ${ITPP_CXXFLAGS}])
-#  AC_SUBST(ITPP_LIBS,     "`${ITPP_CONFIG} --libs`")
-#  AC_MSG_NOTICE([ITPP libraries flags: ${ITPP_LIBS}])
-#else
-#  AC_MSG_NOTICE([No ITPP configuration program])
-#  AC_SUBST(ITPP_CXXFLAGS, "")
-#  AC_SUBST(ITPP_LIBS,     "")
-#fi
+if test "X${ITPP_HOME}X" != "XnoX"; then
+  AC_MSG_NOTICE("Using ITPP in ${ITPP_HOME}")
+  AC_PATH_PROG(ITPP_CONFIG, [itpp-config], [], [${ITPP_HOME}/bin:$PATH] )
+  if test "X${ITPP_CONFIG}X" = "XX"; then 
+    AC_MSG_ERROR([Program itpp-config not found])
+  fi
+  AC_MSG_NOTICE([Found ITPP configuration program ${ITPP_CONFIG}])
+  AC_SUBST(ITPP_CXXFLAGS, "`${ITPP_CONFIG} --cflags`")
+  AC_MSG_NOTICE([ITPP compile flags: ${ITPP_CXXFLAGS}])
+  AC_SUBST(ITPP_LIBS,     "`${ITPP_CONFIG} --libs`")
+  AC_MSG_NOTICE([ITPP libraries flags: ${ITPP_LIBS}])
+else
+  AC_MSG_ERROR([No ITPP configuration program found
+  		Cannot compile/linke without itpp. 
+		Use --with-itpp=<dir> to select a working version.])
+  AC_SUBST(ITPP_CXXFLAGS, "")
+  AC_SUBST(ITPP_LIBS,     "")
+fi
 
 
 dnl Enable mpi support
