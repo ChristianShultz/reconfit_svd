@@ -23,6 +23,7 @@
     <badList>bad_list</badList>
     <avgMom>false</avgMom>
     <momListFname></momListFname>
+    <readSmearings>false</readSmearings>   <!-- Whether to read smearings from ops list file -->
     <keys>
       <!--  NOTE : src_name and snk_name specified here are NOT used(ops listed in opslistfile)
 	   if avgMode is "lorentz" then src_lorentz and snk_lorentz are ignored

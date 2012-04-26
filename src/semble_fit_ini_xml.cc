@@ -379,6 +379,11 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, InputPropsDB_t &param
   else
     param.momListFname = "";
 
+  if(paramtop.count("readSmearings") > 0)
+    read(paramtop, "readSmearings", param.readSmearings);
+  else
+    param.readSmearings = false;
+
   if(paramtop.count("keys") > 0)
     read(paramtop, "keys", param.keys);
 }
@@ -814,6 +819,7 @@ std::string SEMBLE::write_params(const InputPropsDB_t &prop)
   ss << "badList " << prop.badList << n;
   ss << "avgMom " << prop.avgMom << n;
   ss << "momListFname " << prop.momListFname << n;
+  ss << "readSmearings " << prop.readSmearings << n;
   ss << "keys -- no printing" << n;
   ss << n << n;
 

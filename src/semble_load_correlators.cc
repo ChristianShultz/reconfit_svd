@@ -11,24 +11,27 @@ namespace SEMBLE
     foldTimeReversal = "";
     opsList.clear();
     opsListCConj.clear();
+    opsListSmear.clear();
     Ct.clear();
   } //end constructor
 
 
 // Load correlators from filedb (meson_2pt) database
-  void SembleRCorrs::loadRephaseComplexCorrs(const string &dbfile, const string &opslistfile, int irrepdim_, FF::KeyHadron2PtCorr_t DefaultKeys, const string &avgMode, double avgTol, const string &badlistfile, const string &foldTimeReversal_, const string &rephaseMode_, const bool avgMom, const string &momListFile)
+  void SembleRCorrs::loadRephaseComplexCorrs(const string &dbfile, const string &opslistfile, int irrepdim_, FF::KeyHadron2PtCorr_t DefaultKeys, const string &avgMode, double avgTol, const string &badlistfile, const string &foldTimeReversal_, const string &rephaseMode_, const bool avgMom, const string &momListFile, const bool readSmearings)
   {
     cout << __func__ << ": loading the real correlators from complex correlators in database" << endl;
 
     irrepdim = irrepdim_;
     foldTimeReversal = foldTimeReversal_;
     rephaseMode = rephaseMode_;
-    readOpsList(opslistfile);
+
+    if(readSmearings)
+      readOpsListSmearings(opslistfile);
+    else
+      readOpsList(opslistfile);
 
     if(avgMom)
-      {
-        readMomList(momListFile);
-      }
+      readMomList(momListFile);
     else
       {
         momList.clear();
@@ -36,7 +39,7 @@ namespace SEMBLE
       }
 
     SembleCCorrs ComplexCorrs;
-    ComplexCorrs.loadFromDB(dbfile, opsList, opsListCConj, irrepdim, DefaultKeys, avgMode, avgTol, badlistfile, avgMom, momList);
+    ComplexCorrs.loadFromDB(dbfile, opsList, opsListCConj, irrepdim, DefaultKeys, avgMode, avgTol, badlistfile, avgMom, momList, readSmearings, opsListSmear);
 
     doRephasing(ComplexCorrs);
 
@@ -346,7 +349,10 @@ namespace SEMBLE
   void SembleRCorrs::readOpsList(const string &opslistfile)
   {
     // Read in list of operators to use at source and sink
+    // Format is "irrep opname"
     opsList.clear();
+    opsListCConj.clear();
+    opsListSmear.clear();
     string oneline;
     ifstream opsListData(opslistfile.c_str());
 
@@ -368,15 +374,17 @@ namespace SEMBLE
 
         string opIrrep = oneline.substr(0, sepIndex);
         string opName = oneline.substr(sepIndex + 1);
+
+	// Attempt to extract parity and charge conjugation from irrep name (this is only essential if using foldTimeReversal)
         string opParity = oneline.substr(opIrrep.size() - 2, 1);
         string opChargeConj = oneline.substr(opIrrep.size() - 1, 1);
         int opCConj = 0;
-
         if(opParity != "m" && opParity != "-" && opParity != "p" && opParity != "+")
           {
             if(foldTimeReversal != "none")
               {
-                cerr << __func__ << ": Error: can't extract parity and/or charge conj for operator " << opsList.size() << " (" << opIrrep << " " << opName << ") from " << opslistfile << " and foldTimeReversal != none" << endl;
+                cerr << __func__ << ": Error: can't extract parity and/or charge conj for operator " << opsList.size()
+		     << " (" << opIrrep << " " << opName << ") from " << opslistfile << " and foldTimeReversal != none" << endl;
                 exit(1);
               }
             else
@@ -388,7 +396,8 @@ namespace SEMBLE
           opCConj = +1;
         else if(foldTimeReversal != "none")
           {
-            cerr << __func__ << ": Error: can't extract parity and/or charge conj for operator " << opsList.size() << " (" << opIrrep << " " << opName << ") from " << opslistfile << " and foldTimeReversal != none" << endl;
+            cerr << __func__ << ": Error: can't extract parity and/or charge conj for operator " << opsList.size()
+		 << " (" << opIrrep << " " << opName << ") from " << opslistfile << " and foldTimeReversal != none" << endl;
             exit(1);
           }
         else
@@ -398,9 +407,11 @@ namespace SEMBLE
         opsListCConj.push_back(opCConj);
 
         if(opCConj != 0)
-          cout << __func__ << ": read opslist line: op = " << opName << ", irrep = " << opIrrep << ", Parity = " << opParity << ", CConj = " << opCConj << endl;
+          cout << __func__ << ": read opslist line: op = " << opName << ", irrep = " << opIrrep
+	       << ", Parity = " << opParity << ", CConj = " << opCConj << endl;
         else
-          cout << __func__ << ": read opslist line: op = " << opName << ", irrep = " << opIrrep << ", couldn't extract parity and charge conj." << endl;
+          cout << __func__ << ": read opslist line: op = " << opName << ", irrep = " << opIrrep
+	       << ", couldn't extract parity and charge conj." << endl;
 
       }   // while(getlines ...)
 
@@ -413,7 +424,96 @@ namespace SEMBLE
 
         if(i != dim - 1) cout << ", ";
       }
+    cout << endl;
+  }
 
+
+  void SembleRCorrs::readOpsListSmearings(const string &opslistfile)
+  {
+    // Read in list of operators to use at source and sink
+    // Format is "irrep opname smearing"
+    opsList.clear();
+    opsListCConj.clear();
+    opsListSmear.clear();
+    string oneline;
+    ifstream opsListData(opslistfile.c_str());
+
+    if(!opsListData)
+      {
+        cerr << __func__ << ": opslistfile " << opslistfile << " read error" << endl;
+        exit(1);
+      }
+
+    while(getline(opsListData, oneline))
+      {
+	int sepIndex = oneline.find(" ");
+	if (sepIndex < 0)
+	  {
+	    cerr << __func__ << ": Error: can't extract operator (" << opsList.size() << ") name, irrep and smearing from " << opslistfile << endl;
+	    exit(1);
+	  }
+	string opIrrep = oneline.substr(0,sepIndex);
+	string opNameSmear = oneline.substr(sepIndex+1);
+	sepIndex = opNameSmear.find(" ");
+	if (sepIndex < 0)
+	  {
+	    cerr << __func__ << ": Error: can't extract operator (" << opsList.size() << ") name, irrep and smearing from " << opslistfile << endl;
+	    exit(1);
+	  }
+	string opName = opNameSmear.substr(0,sepIndex);
+	string opSmear = opNameSmear.substr(sepIndex+1);
+	
+	// Attempt to extract parity and charge conjugation from irrep name (this is only essential if using foldTimeReversal)
+        string opParity = oneline.substr(opIrrep.size() - 2, 1);
+        string opChargeConj = oneline.substr(opIrrep.size() - 1, 1);
+        int opCConj = 0;
+
+        if(opParity != "m" && opParity != "-" && opParity != "p" && opParity != "+")
+          {
+            if(foldTimeReversal != "none")
+              {
+                cerr << __func__ << ": Error: can't extract parity and/or charge conj for operator " << opsList.size()
+		     << " (" << opIrrep << " " << opName << ") from " << opslistfile << " and foldTimeReversal != none" << endl;
+                exit(1);
+              }
+            else
+              opCConj = 0;
+          }
+        else if((opChargeConj == "m") || (opChargeConj == "-"))
+          opCConj = -1;
+        else if((opChargeConj == "p") || (opChargeConj == "+"))
+          opCConj = +1;
+        else if(foldTimeReversal != "none")
+          {
+            cerr << __func__ << ": Error: can't extract parity and/or charge conj for operator " << opsList.size()
+		 << " (" << opIrrep << " " << opName << ") from " << opslistfile << " and foldTimeReversal != none" << endl;
+            exit(1);
+          }
+        else
+          opCConj = 0;
+
+        opsList.push_back(opName);
+	opsListSmear.push_back(opSmear);
+        opsListCConj.push_back(opCConj);
+      
+	if (opCConj != 0)
+	  cout << __func__ << ": read opslist line: op = " << opName << ", smearing = " << opSmear << ", irrep = " << opIrrep
+	       << ", Parity = " << opParity << ", CConj = " << opCConj << endl;
+	else
+	  cout << __func__ << ": read opslist line: op = " << opName << ", smearing = " << opSmear << ", irrep = " << opIrrep 
+	       << ", couldn't extract parity and charge conj." << endl;
+
+      }   // while(getlines ...)
+
+    dim = opsList.size();
+    cout << __func__ << ": using " << dim << " operators from " << opslistfile << ": ";
+
+    for(int i = 0; i < dim; i++)
+      {
+        cout << opsList[i];
+
+        if(i != dim - 1) cout << ", ";
+      }
     cout << endl;
   }
 
@@ -527,6 +627,7 @@ namespace SEMBLE
     Ct.clear();
     irrepdim = -1;
     opsList.clear();
+    opsListSmear.clear();
     opsListCConj.clear();
     dim = 0;
   }
@@ -536,15 +637,17 @@ namespace SEMBLE
 // filedb (meson_2pt) database specific functions
 
 // Load from database
-  void SembleCCorrs::loadFromDB(const string &dbfile, vector<string> opsList_, vector<int> opsListCConj_, int irrepdim_, FF::KeyHadron2PtCorr_t DefaultKeys, const string &avgMode, double avgTol, const string &badlistfile, bool avgMom, vector< Array<int> > momList_)
+  void SembleCCorrs::loadFromDB(const string &dbfile, vector<string> opsList_, vector<int> opsListCConj_, int irrepdim_, FF::KeyHadron2PtCorr_t DefaultKeys, const string &avgMode, double avgTol, const string &badlistfile, bool avgMom, vector< Array<int> > momList_, const bool readSmearings_, const vector<string>& opsListSmear_)
   {
     cout << __func__ << ": started loading the complex correlators" << endl;
 
     irrepdim = irrepdim_;
     opsList = opsList_;
     opsListCConj = opsListCConj_;
+    opsListSmear = opsListSmear_;
     dim = opsList.size();
     momList = momList_;
+    readSmearings = readSmearings_;
 
     // Open DB
     FILEDB::AllConfStoreDB< SerialDBKey<FF::KeyHadron2PtCorr_t>,  SerialDBData<SV> > database;
@@ -558,7 +661,11 @@ namespace SEMBLE
     try
       {
         // Construct the keys to extract by iterating over operators
-        Array<FF::KeyHadron2PtCorr_t> keys = createKeys(DefaultKeys, avgMode, avgMom);
+	Array<FF::KeyHadron2PtCorr_t> keys;
+	if (readSmearings)
+	  keys = createKeysSmearings(DefaultKeys, avgMode, avgMom);
+	else
+	  keys = createKeys(DefaultKeys, avgMode, avgMom);
         cout << __func__ << ": Will extract nkeys = " << keys.size() << endl;
 
         // Debugging
@@ -606,7 +713,7 @@ namespace SEMBLE
   }
 
 
-// Create db keys from operator list
+  // Create db keys from operator list
   Array<FF::KeyHadron2PtCorr_t> SembleCCorrs::createKeys(FF::KeyHadron2PtCorr_t DefaultKeys, const string &avgMode, bool avgMom)
   {
     int nkeys = 0;
@@ -696,6 +803,129 @@ namespace SEMBLE
                         keys[count].src_smear = DefaultKeys.src_smear;
                         keys[count].src_lorentz = DefaultKeys.src_lorentz;
                         keys[count].snk_smear = DefaultKeys.snk_smear;
+                        keys[count].snk_lorentz = DefaultKeys.snk_lorentz;
+                        keys[count].mom = momList[i_mom];
+                        keys[count].mass = DefaultKeys.mass;
+                        keys[count].ensemble = DefaultKeys.ensemble;
+
+                        keys[count].src_name = opsList[j_src];
+                        keys[count].snk_name = opsList[j_snk];
+                        keys[count].src_spin = i;
+                        keys[count].snk_spin = i;
+                        count++;
+                      } // loop over i_mom
+                  } // loop over i (irrepdim)
+              } // avgMode == spin
+
+            else
+              {
+                cerr << __func__ << ": unknown avgMode = " << avgMode << endl;
+                exit(1);
+              }
+
+          } // loop over j_snk
+      } // loop over j_src
+
+    if(count != nkeys)
+      {
+        cerr << __func__ << ": error: count not equal to " << nkeys << endl;
+        exit(1);
+      }
+
+    return keys;
+  }
+
+
+  // Create db keys from operator list
+  Array<FF::KeyHadron2PtCorr_t> SembleCCorrs::createKeysSmearings(FF::KeyHadron2PtCorr_t DefaultKeys, const string &avgMode, bool avgMom)
+  {
+    int nkeys = 0;
+
+    if(avgMode == "none")
+      nkeys = dim * dim;
+    else if(avgMode == "lorentz")
+      nkeys = irrepdim * dim * dim;
+    else if(avgMode == "spin")
+      nkeys =  irrepdim * dim * dim;
+    else
+      {
+        cerr << __func__ << ": Error: unknown avgMode = " << avgMode << endl;
+        exit(1);
+      }
+
+    if(avgMom) nkeys *= momList.size();
+
+    Array<FF::KeyHadron2PtCorr_t> keys(nkeys);
+
+    int count = 0;
+
+    for(int j_src = 0; j_src < dim; j_src++)
+      {
+        for(int j_snk = 0; j_snk < dim; j_snk++)
+          {
+
+            if(avgMode == "none")
+              {
+                for(int i_mom = 0; i_mom < momList.size(); i_mom++)
+                  {
+                    keys[count].num_vecs = DefaultKeys.num_vecs;
+		    keys[count].src_smear = opsListSmear[j_src];
+                    keys[count].src_spin = DefaultKeys.src_spin;
+                    keys[count].src_lorentz = DefaultKeys.src_lorentz;
+		    keys[count].snk_smear = opsListSmear[j_snk];
+                    keys[count].snk_spin = DefaultKeys.snk_spin;
+                    keys[count].snk_lorentz = DefaultKeys.snk_lorentz;
+                    keys[count].mom = momList[i_mom];
+                    keys[count].mass = DefaultKeys.mass;
+                    keys[count].ensemble = DefaultKeys.ensemble;
+
+                    keys[count].src_name = opsList[j_src];
+                    keys[count].snk_name = opsList[j_snk];
+                    count++;
+                  } // loop over i_mom
+              } // avgMode == none
+
+            else if(avgMode == "lorentz")
+              {
+                for(int i = 0; i < irrepdim; i++)
+                  {
+                    for(int i_mom = 0; i_mom < momList.size(); i_mom++)
+                      {
+                        keys[count].num_vecs = DefaultKeys.num_vecs;
+			keys[count].src_smear = opsListSmear[j_src];
+                        keys[count].src_spin = DefaultKeys.src_spin;
+			keys[count].snk_smear = opsListSmear[j_snk];
+                        keys[count].snk_spin = DefaultKeys.snk_spin;
+                        keys[count].mom = momList[i_mom];
+                        keys[count].mass = DefaultKeys.mass;
+                        keys[count].ensemble = DefaultKeys.ensemble;
+
+                        keys[count].src_name = opsList[j_src];
+                        keys[count].snk_name = opsList[j_snk];
+
+                        if(irrepdim != 1)
+                          {
+                            keys[count].src_lorentz.resize(1);
+                            keys[count].snk_lorentz.resize(1);
+                            keys[count].src_lorentz[0] = i;
+                            keys[count].snk_lorentz[0] = i;
+                          }
+
+                        count++;
+                      } // loop over i_mom
+                  } // loop over i (irrepdim)
+              } // avgMode == lorentz
+
+            else if(avgMode == "spin")
+              {
+                for(int i = 1; i <= irrepdim; i++)
+                  {
+                    for(int i_mom = 0; i_mom < momList.size(); i_mom++)
+                      {
+                        keys[count].num_vecs = DefaultKeys.num_vecs;
+			keys[count].src_smear = opsListSmear[j_src];
+                        keys[count].src_lorentz = DefaultKeys.src_lorentz;
+			keys[count].snk_smear = opsListSmear[j_snk];
                         keys[count].snk_lorentz = DefaultKeys.snk_lorentz;
                         keys[count].mom = momList[i_mom];
                         keys[count].mass = DefaultKeys.mass;
@@ -910,12 +1140,11 @@ namespace SEMBLE
         cout << __func__ << ": Will extract nkeys = " << keys.size() << endl;
 
         // Debugging
-        cout << __func__ << ": Keys are:" << endl;
-
-        for(int i = 0; i < keys.size(); i++)
-          {
-            cout << keys[i];
-          }
+        // cout << __func__ << ": Keys are:" << endl;
+	// for(int i = 0; i < keys.size(); i++)
+        //   {
+        //     cout << keys[i];
+        //   }
        
 
         // Find number of time slices and check size of ensemble
@@ -1409,18 +1638,24 @@ namespace SEMBLE
       }
 
 
-
+    
     // Write out phases to file
     ofstream opphases("ops_phases");
-
-    for(int i = 0; i < dim; i++)
+    for (int i = 0; i < dim; i++)
       {
-        // cout << "i=  " << i << ": " << opsList[i] << " (" << phase_re[i] << " , " << phase_im[i] << ")" << endl;
-        opphases << i << " " << opsList[i] << " " << op_phase_re[i] << " " << op_phase_im[i] << endl;
+	if (readSmearings)
+	  {
+	    // cout << "i=  " << i << ": " << opsList[i] << " smear=" << opsListSmear[i] << " (" << phase_re[i] << " , " << phase_im[i] << ")" << endl;
+	    opphases << i << " " << opsList[i] << " smear=" << opsListSmear[i] << " " << op_phase_re[i] << " " << op_phase_im[i] << endl;
+	  }
+	else
+	  {
+	    // cout << "i=  " << i << ": " << opsList[i] << " (" << phase_re[i] << " , " << phase_im[i] << ")" << endl;
+	    opphases << i << " " << opsList[i] << " " << op_phase_re[i] << " " << op_phase_im[i] << endl;
+	  }
       }
-
     opphases.close();
-
+    
     vector<SembleMatrix<double> > Cttemp;
     SembleMatrix<double> dum1(nbins, dim, dim);
     Cttemp.push_back(dum1);
@@ -1573,7 +1808,7 @@ namespace SEMBLE
       }
 
     //DEBUG QUIT
-    //  exit(1);
+    // exit(1);
 
     return Cttemp;
   }
@@ -1648,7 +1883,8 @@ namespace SEMBLE
                                           inikeys.inputPropsDB.foldTimeReversal,
                                           inikeys.inputPropsDB.rephaseMode,
                                           inikeys.inputPropsDB.avgMom,
-                                          inikeys.inputPropsDB.momListFname);
+                                          inikeys.inputPropsDB.momListFname,
+					  inikeys.inputPropsDB.readSmearings);
       }
 
     else if((inikeys.dbInputType == "redstar") || (inikeys.dbInputType == "redstar_debug"))

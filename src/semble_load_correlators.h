@@ -28,7 +28,7 @@ namespace SEMBLE
   public:
     SembleCCorrs();
 
-    void loadFromDB(const string &dbfile, vector<string> opsList_, vector<int> opsListCConj_, int irrepdim_, FF::KeyHadron2PtCorr_t DefaultKeys, const string &avgMode, double avgTol, const string &badlistfile, bool avgMom, vector< Array<int> > momList_);
+    void loadFromDB(const string &dbfile, vector<string> opsList_, vector<int> opsListCConj_, int irrepdim_, FF::KeyHadron2PtCorr_t DefaultKeys, const string &avgMode, double avgTol, const string &badlistfile, bool avgMom, vector< Array<int> > momList_, const bool readSmearings_, const vector<string>& opsListSmear_);
 
     void loadFromDB(const string &dbfile, vector<string> opsList_, vector<int> opsListCConj_, const Array<string>& opsxmlfiles, Array<int> avgRows, double avgTol, const string &badlistfile, bool avgMom, vector< Array<int> > momList_, InputPropsRedstarKeys_t keyParams);
 
@@ -50,11 +50,14 @@ namespace SEMBLE
     int irrepdim;   // Dimension of irrep
     int nbins;   // Number of configurations
     vector<string> opsList;   // List of operators to use
+    vector<string> opsListSmear;   // List of operators' smearings
     vector<int> opsListCConj;   // List of operators' charge conjugation
     vector< Array<int> > momList;   // List of momenta to use
+    bool readSmearings;   // Whether to read smearings from ops list file
 
     // Various utils and internal functions
     Array<FF::KeyHadron2PtCorr_t> createKeys(FF::KeyHadron2PtCorr_t DefaultKeys, const string &avgMode, bool avgMom);
+    Array<FF::KeyHadron2PtCorr_t> createKeysSmearings(FF::KeyHadron2PtCorr_t DefaultKeys, const string &avgMode, bool avgMom);
     Array<Hadron::KeyHadronNPartNPtCorr_t> createRedstarKeys(const Array<string>& opsxmlfiles, InputPropsRedstarKeys_t keyParams, const Array<int> avgRows, bool avgMom);
 
     vector<SembleMatrix<std::complex<double> > > loadCorrs(FILEDB::AllConfStoreDB< SerialDBKey<FF::KeyHadron2PtCorr_t>,  SerialDBData<SV> >& database,  Array<FF::KeyHadron2PtCorr_t> keys, const string &avgMode, double avgTol, const string &badlistfile, bool avgMom);
@@ -71,7 +74,7 @@ namespace SEMBLE
   public:
     SembleRCorrs();
 
-    void loadRephaseComplexCorrs(const string &dbfile, const string &opslistfile, int irrepdim_, FF::KeyHadron2PtCorr_t DefaultKeys,  const string &avgMode, double avgTol, string const &badlistfile, const string &foldTimeReversal_, const string &rephaseMode_, bool avgMom, const string &momListFile);
+    void loadRephaseComplexCorrs(const string &dbfile, const string &opslistfile, int irrepdim_, FF::KeyHadron2PtCorr_t DefaultKeys,  const string &avgMode, double avgTol, string const &badlistfile, const string &foldTimeReversal_, const string &rephaseMode_, bool avgMom, const string &momListFile, const bool readSmearings);
 
     void loadRephaseComplexCorrs(const string &dbfile, const string &opslistfile, const Array<string>& opsxmlfiles, Array<int> avgRows, double avgTol, const string &badlistfile, const string &foldTimeReversal_, const string &rephaseMode_, const bool avgMom, const string &momListFile, InputPropsRedstarKeys_t keyParams);
 
@@ -101,6 +104,7 @@ namespace SEMBLE
     int irrepdim;   // Dimension of irrep
     int nbins;   // Number of configurations
     vector<string> opsList;   // List of operators to use
+    vector<string> opsListSmear;   // List of operators to use
     vector<int> opsListCConj;   // List of operators' charge conjugation
     string foldTimeReversal;   // Fold time reversal option
     string rephaseMode;   // Method to use for rephasing correlators
@@ -108,6 +112,7 @@ namespace SEMBLE
 
     // Various utils
     void readOpsList(const string &opslistfile);
+    void readOpsListSmearings(const string &opslistfile);
     void readMomList(const string &momListFile);
     Array<int> stringToIntArray3(const string &input);
     void doRephasing(SembleCCorrs &ComplexCorrs);

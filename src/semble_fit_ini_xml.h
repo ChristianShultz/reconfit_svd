@@ -191,6 +191,7 @@ namespace SEMBLE
     std::string badList;
     bool avgMom;
     std::string momListFname;
+    bool readSmearings;
     FF::KeyHadron2PtCorr_t keys;
   };
 
