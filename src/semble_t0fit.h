@@ -1362,14 +1362,40 @@ namespace SEMBLE
     if(!!!recon)
       reconCorr();
 
+
     if(!!!recon_flat)
       {
 	recon_flat = true;
-	flatData = flattenSym(typename std::vector<SembleMatrix<T> >(tp.begin() + t0 + 1, tp.begin() + rec.tmax));   //tp goes [0,inikeys.globalProps.tmax]
+	typename std::vector<SembleMatrix<T> > d;
+	typename std::vector<SembleMatrix<T> >::const_iterator it;
+	for(it = tp.begin() +t0 +1; it != tp.begin() + rec.tmax +1; it++)
+	  {
+	    if(it == tp.end())
+	      {
+		std::cout << "BARFING" << std::endl;
+		exit(1);
+	      }
+	    d.push_back(*it);
+	  }
+
+	flatData = flattenSym(d);   //tp goes [0,inikeys.globalProps.tmax]
       }
 
     flatData.setSVCutoff(inikeys.globalProps.SVCut);
-    EnsemData flatRecon = flattenSym(typename std::vector<SembleMatrix<T> >(recon_total[tz].begin(), recon_total[tz].end())); //recon_total goes [t0+1,rec.tmax]
+
+    typename std::vector<SembleMatrix<T> > dd;
+    typename std::vector<SembleMatrix<T> >::const_iterator dit;
+    for(dit = recon_total[tz].begin(); dit != recon_total[tz].end(); dit++)
+      {
+	if(dit == tp.end())
+	  {
+	    std::cout << "BARFING" << std::endl;
+	    exit(1);
+	  }
+	dd.push_back(*dit);
+      }
+
+    EnsemData flatRecon = flattenSym(dd); //recon_total goes [t0+1,rec.tmax]
 
     return ensemDataChisq(flatData, flatRecon) / (flatData.getNData() - flatData.getNResetCovSingVals() - (N + N * (N + 1) / 2));
   }
