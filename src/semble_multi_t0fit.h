@@ -966,7 +966,7 @@ namespace SEMBLE
         ss2 << "\n \n \n \n";
       }
     path2 += std::string("/reorder_log_rounded");
-    out.open(path.c_str());
+    out.open(path2.c_str());
     out << ss2.str();
     out.close();
   }
