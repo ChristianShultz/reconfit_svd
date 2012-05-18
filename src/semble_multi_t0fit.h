@@ -961,7 +961,12 @@ namespace SEMBLE
 
         Vp = t0_metrics[mapit->first] * t0_fits[mapit->first]->peekVecs(tz_chisq[mapit->first].first);
 
-        ss2 << itpp::round(mean(adj(V)*Vp)); // nearest integer
+	itpp::Mat<T> foo = itpp::round(mean(adj(V)*Vp));
+
+	ss2 << "(rows X cols) (" << foo.rows() << " X " << foo.cols() << ")";
+	int num =  (foo.rows() < foo.cols() ) ? foo.rows() : foo.cols() ;
+	ss2 << num << " matches were possible \n \n";
+        ss2 << foo; // nearest integer
 
         ss2 << "\n \n \n \n";
       }
