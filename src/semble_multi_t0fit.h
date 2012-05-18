@@ -933,10 +933,41 @@ namespace SEMBLE
         ss << "\n \n \n \n";
       }
 
+    std::string path2 = path;
     path += std::string("/reorder_log");
     std::ofstream out;
     out.open(path.c_str());
     out << ss.str();
+    out.close();
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    // CJS Add another reorder log with rounding to make it a bit easier to read
+    //     The isoscalars are being problematic for pulling out overlaps..
+    std::stringstream ss2;
+    for(mapit = reorder.begin(); mapit != reorder.end(); ++mapit)
+      {
+        ss2 << "t0ref = " << inikeys.t0Props.t0ref << " t0 = " << mapit->first << "\n";
+
+        for(it = mapit->second.begin(); it != mapit->second.end(); ++it)
+          {
+	    if( it->first < refdim)
+	      ss << "ref state " << it->first << " is t0 state " << it->second << "\n";
+	    else
+	      ss << "t0 state " << it->second << " did't match and was assigned to state " << it->first;
+          }
+
+        ss2 << "\n\n mean ovelaps adj(ref)*metric*t0state \n\n";
+
+        Vp = t0_metrics[mapit->first] * t0_fits[mapit->first]->peekVecs(tz_chisq[mapit->first].first);
+
+        ss2 << itpp::round(mean(adj(V)*Vp)); // nearest integer
+
+        ss2 << "\n \n \n \n";
+      }
+    path2 += std::string("/reorder_log_rounded");
+    out.open(path.c_str());
+    out << ss2.str();
     out.close();
   }
 
