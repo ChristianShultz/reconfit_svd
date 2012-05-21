@@ -1123,6 +1123,7 @@ namespace SEMBLE
     opsListCConj = opsListCConj_;
     dim = opsList.size();
     momList = momList_;
+    readSmearings = false;
 
     // Open DB
     FILEDB::AllConfStoreDB< SerialDBKey<Hadron::KeyHadronNPartNPtCorr_t>,  SerialDBData<SV> > database;
