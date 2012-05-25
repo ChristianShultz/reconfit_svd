@@ -21,11 +21,11 @@ void SEMBLE::check_ini(FitIniProps_t &ini)
       if(out.Z_t || out.zFitFiles || out.zFitPlots || out.zT0Files || out.zT0Plots)
 	std::cout << "Notification:  zFit was set to false so no Z output files will be produced" << std::endl;
 	
-      ini.zProps.Z_t = false;
-      ini.zProps.zFitFiles = false;
-      ini.zProps.zFitPlots = false;
-      ini.zT0Files = false;
-      ini.zT0Plots = false;
+      ini.outputProps.Z_t = false;
+      ini.outputProps.zFitFiles = false;
+      ini.outputProps.zFitPlots = false;
+      ini.outputProps.zT0Files = false;
+      ini.outputProps.zT0Plots = false;
       ini.t0FitProps.ZT0 = false;
     } 
 
