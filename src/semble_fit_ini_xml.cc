@@ -13,7 +13,23 @@ void SEMBLE::check_ini(FitIniProps_t &ini)
   ini.t0Props.t0ref = (ini.t0Props.t0ref > ini.t0Props.t0high) ? ini.t0Props.t0high : ini.t0Props.t0ref;
 
   //check output props
-  ini.zProps.fit = (out.Z_t || out.zFitFiles || out.zFitPlots || out.zT0Files || out.zT0Plots) ? true : ini.zProps.fit;
+
+  // NB: give full control of z fitting to <zfit>
+  if(!!!ini.zProps.fit)
+    {
+
+      if(out.Z_t || out.zFitFiles || out.zFitPlots || out.zT0Files || out.zT0Plots)
+	std::cout << "Notification:  zFit was set to false so no Z output files will be produced" << std::endl;
+	
+      ini.zProps.Z_t = false;
+      ini.zProps.zFitFiles = false;
+      ini.zProps.zFitPlots = false;
+      ini.zT0Files = false;
+      ini.zT0Plots = false;
+      ini.t0FitProps.ZT0 = false;
+    } 
+
+  //  ini.zProps.fit = (out.Z_t || out.zFitFiles || out.zFitPlots || out.zT0Files || out.zT0Plots) ? true : ini.zProps.fit;
   ini.t0FitProps.ZT0 = (out.zT0Plots || out.zT0Files) ? true : ini.t0FitProps.ZT0;
   ini.t0FitProps.MT0 = (out.mT0Files || out.mT0Plots) ? true : ini.t0FitProps.MT0;
   ini.reconProps.recon = (out.reconPlots) ? true : ini.reconProps.recon;
