@@ -5,6 +5,7 @@ using namespace SEMBLE;
 //a parser for sanity, ie printing z w/o fitting being true, should eliminate stupid crashes from ill-conceived ini files
 void SEMBLE::check_ini(FitIniProps_t &ini)
 {
+
   OutputProps_t out = ini.outputProps;
 
   //check t0ref
@@ -122,11 +123,10 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, ZProps_t &prop)
 
   if(ptop.count("fit") > 0)
     read(ptop, "fit", prop.fit);
-  else
-    prop.fit = true;
+ else 
+   prop.fit = true;
 
-  if(prop.fit)
-    {
+
       if(ptop.count("tmax") > 0)
         read(ptop, "tmax", prop.tmax);
       else
@@ -146,7 +146,7 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, ZProps_t &prop)
         read(ptop, "accChisq", prop.accChisq);
       else
         prop.accChisq = 3.0;
-    }
+    
 }
 
 void SEMBLE::read(XMLReader &xml, const std::string &path, T0FitProps_t &prop)
@@ -565,6 +565,7 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, GlobalProps_t &prop)
     read(ptop, "skip_nt", prop.skip_nt);
   else
     prop.skip_nt = 0;
+
 }
 
 void SEMBLE::read(XMLReader &xml, const std::string &path, FitIniProps_t &prop)
@@ -911,6 +912,7 @@ std::string SEMBLE::write_params(const GlobalProps_t &prop)
   ss << "tmax " << prop.tmax << n;
   ss << "SVCut " << prop.SVCut << n;
   ss << "verbose " << prop.verbose << n;
+  ss << "skip_nt " << prop.skip_nt << n;
   ss << n << n;
 
   return ss.str();

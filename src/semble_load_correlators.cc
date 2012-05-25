@@ -586,7 +586,19 @@ namespace SEMBLE
 
   SembleMatrix<double> SembleRCorrs::getCt(int t) const
   {
-    return Ct[t];
+	if(t < Ct.size())
+    		return Ct[t];
+	else
+		{
+		std::cout << "Tried to access t = " << t << " and failed." << std::endl;
+		std::cout << "Warning : shifting correlators is going to cause a seg fault."
+			<< " Edit the ini file such that all max t parameters are less than Lt - shift."
+			<< " ie: tmax <= " << t-1 << "\n"		
+			<< "  Exiting to avoid an inevitable seg fault. "  << std::endl;
+	exit(1);
+		}
+	// make the compiler shut up
+	return Ct[t];
   }
 
   int SembleRCorrs::getLt() const

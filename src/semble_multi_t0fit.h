@@ -231,8 +231,10 @@ namespace SEMBLE
   typename std::vector<SembleMatrix<T> > SMT0Fit<T>::maketp(const typename PromoteCorr<T>::Type &tp_, const FitIniProps_t &inikeys_)
   {
     typename std::vector<SembleMatrix<T> > dum;
-
-    for(int t = 0; t <= inikeys_.globalProps.tmax; ++t)
+	
+	// CJS -- DEBUG
+	// std::cout << __func__ << " globalProps.tmax = " <<  inikeys_.globalProps.tmax << std::endl;
+    for(int t = 0; t <= inikeys_.globalProps.tmax; t++)
       dum.push_back(tp_.getCt(t));
 
     return dum;
