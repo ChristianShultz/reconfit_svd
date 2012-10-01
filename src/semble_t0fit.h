@@ -924,14 +924,14 @@ namespace SEMBLE
 
         if(inikeys.globalProps.verbose){
 	  std::cout << "**********************************" << std::endl;
-          std::cout << "fitting Z(state=" << state << ")" << std::endl;
+          std::cout << "t0 = " << t0 << " - fitting Z(state=" << state << ")" << std::endl;
 	  std::cout << "**********************************" << std::endl;
 	}
 
         for(int op = 0; op < N; ++op)
           {
 	    if(inikeys.globalProps.verbose)
-	      std::cout << "****    -> fitting state = " << state << ", op = " << op << std::endl;
+	      std::cout << "**** t0 = " << t0 << "   -> fitting state = " << state << ", op = " << op << std::endl;
 
             EnsemVectorReal z;
             std::vector<double> tslice;
@@ -953,11 +953,11 @@ namespace SEMBLE
 	    //Handle<FitComparator> fitC = new CompareZFits;
             FitZ fitZ(zData, t0, fitC, inikeys.zProps.minTSlices);
 
-	    if(inikeys.globalProps.verbose){
+	    /*	    if(inikeys.globalProps.verbose){
 	      string tmp = fitZ.getFitSummary();
 	      tmp.resize(std::min(int(tmp.size()), 1000));
 	      std::cout << tmp << "    ..." << std::endl << std::endl ;
-	    }
+	      }*/
 
             zFit.loadEnsemElement(state, op, fitZ.getZ());
             zFitPlot[state][op] = fitZ.getFitPlotString();
