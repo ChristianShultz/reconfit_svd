@@ -90,7 +90,7 @@
     <fit>true</fit>
     <tmax>25</tmax>
     <minTSlices>4</minTSlices>
-    <fitCrit>QN</fitCrit>                                        <!--chisq_per_dof,Q,Zfit,QN-->
+    <fitCrit>Zfit</fitCrit>                                        <!--chisq_per_dof,Q,Zfit,QN-->
     <accChisq>3.0</accChisq>
   </zProps>
   
