@@ -82,7 +82,7 @@
     <tmax>25</tmax>
     <minTSlices>4</minTSlices>
     <noiseCutoff>0.12</noiseCutoff>
-    <fitCrit>generic</fitCrit>                                    <!--chisq_per_dof,Q,splitN,generic,QN-->
+    <fitCrit>generic</fitCrit>                                   <!--chisq_per_dof,Q,splitN,generic,QN-->
     <accChisq>3.0</accChisq>
   </prinCorrProps>
   
@@ -90,7 +90,7 @@
     <fit>true</fit>
     <tmax>25</tmax>
     <minTSlices>4</minTSlices>
-    <fitCrit>QN</fitCrit>
+    <fitCrit>Zfit</fitCrit>                                        <!--chisq_per_dof,Q,Zfit,QN-->
     <accChisq>3.0</accChisq>
   </zProps>
   

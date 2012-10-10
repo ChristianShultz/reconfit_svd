@@ -881,7 +881,9 @@ namespace SEMBLE
 
 
     //make it for everything
-    for(int t = 0; t <= inikeys.zProps.tmax; ++t)
+    //    for(int t = 0; t <= inikeys.zProps.tmax; ++t)
+    for(int t = 0; t <= std::max(inikeys.zProps.tmax, inikeys.reconProps.tmax); ++t)
+      //jjd change to make zProps belong to fitting
       {
         SembleVector<T> dum_vals(B, M);
         dum_vals.zeros();
@@ -920,16 +922,25 @@ namespace SEMBLE
     for(int state = 0; state < M; ++state)
       {
 
-        if(inikeys.globalProps.verbose)
-          std::cout << "fitting Z(state=" << state << ")" << std::endl;
+        if(inikeys.globalProps.verbose){
+	  std::cout << "**********************************" << std::endl;
+          std::cout << "t0 = " << t0 << " - fitting Z(state=" << state << ")" << std::endl;
+	  std::cout << "**********************************" << std::endl;
+	}
 
         for(int op = 0; op < N; ++op)
           {
+	    if(inikeys.globalProps.verbose)
+	      std::cout << "**** t0 = " << t0 << "   -> fitting state = " << state << ", op = " << op << std::endl;
+
             EnsemVectorReal z;
             std::vector<double> tslice;
             z.resize(B);
             z.resizeObs(inikeys.zProps.tmax + 1 - inikeys.globalProps.tmin);
 
+	    /////////////////////////////////////////////////////////////////////////////
+	    //std::cout << "DEBUG : zProps.tmax = " <<  inikeys.zProps.tmax << std::endl;
+	    ////////////////////////////////////////////////////////////////////////////
 
             for(int t = inikeys.globalProps.tmin; t <= inikeys.zProps.tmax; ++ t)
               {
@@ -941,6 +952,12 @@ namespace SEMBLE
 	    Handle<FitComparator> fitC = fitComp(inikeys.zProps.fitCrit);
 	    //Handle<FitComparator> fitC = new CompareZFits;
             FitZ fitZ(zData, t0, fitC, inikeys.zProps.minTSlices);
+
+	    /*	    if(inikeys.globalProps.verbose){
+	      string tmp = fitZ.getFitSummary();
+	      tmp.resize(std::min(int(tmp.size()), 1000));
+	      std::cout << tmp << "    ..." << std::endl << std::endl ;
+	      }*/
 
             zFit.loadEnsemElement(state, op, fitZ.getZ());
             zFitPlot[state][op] = fitZ.getFitPlotString();

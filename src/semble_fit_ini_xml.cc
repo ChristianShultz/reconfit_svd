@@ -37,14 +37,17 @@ void SEMBLE::check_ini(FitIniProps_t &ini)
   //check global props
   ini.globalProps.tmax = (ini.globalProps.tmax < ini.prinCorrProps.tmax) ? ini.prinCorrProps.tmax : ini.globalProps.tmax;
 
+
+
   if(ini.zProps.fit)
-    ini.globalProps.tmax = (ini.globalProps.tmax < ini.zProps.tmax) ? ini.zProps.tmax : ini.globalProps.tmax;
+     ini.globalProps.tmax = (ini.globalProps.tmax < ini.zProps.tmax) ? ini.zProps.tmax : ini.globalProps.tmax;
+
 
   if(ini.reconProps.recon)
     ini.globalProps.tmax = (ini.globalProps.tmax < ini.reconProps.tmax) ? ini.reconProps.tmax : ini.globalProps.tmax;
 
-  if(out.reconPlots)
-    ini.zProps.tmax = (ini.zProps.tmax < ini.reconProps.tmax) ? ini.reconProps.tmax : ini.zProps.tmax;
+  //if(out.reconPlots)
+  //  ini.zProps.tmax = (ini.zProps.tmax < ini.reconProps.tmax) ? ini.reconProps.tmax : ini.zProps.tmax;
 
   //check shift
   if(ini.shiftProps.shift && ini.shiftProps.dt == 0)
@@ -147,6 +150,10 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, ZProps_t &prop)
         read(ptop, "tmax", prop.tmax);
       else
         prop.tmax = 25;
+
+      //////////////////////////////////////
+      //std::cout << "read Zprops.tmax = " << prop.tmax << std::endl;
+      ////////////////////////////////
 
       if(ptop.count("minTSlices") > 0)
         read(ptop, "minTSlices", prop.minTSlices);
