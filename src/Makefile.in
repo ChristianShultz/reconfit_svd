@@ -50,7 +50,7 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 bin_PROGRAMS = semble_vfit$(EXEEXT) effective_mass_onecorr$(EXEEXT) \
-	recondb_create$(EXEEXT)
+	recondb_create$(EXEEXT) recondb_util$(EXEEXT)
 noinst_PROGRAMS =
 check_PROGRAMS =
 EXTRA_PROGRAMS =
@@ -76,6 +76,10 @@ am_recondb_create_OBJECTS = semble_fit_ini_xml.$(OBJEXT) \
 recondb_create_OBJECTS = $(am_recondb_create_OBJECTS)
 recondb_create_LDADD = $(LDADD)
 recondb_create_DEPENDENCIES =
+am_recondb_util_OBJECTS = recondb_util.$(OBJEXT)
+recondb_util_OBJECTS = $(am_recondb_util_OBJECTS)
+recondb_util_LDADD = $(LDADD)
+recondb_util_DEPENDENCIES =
 am_semble_vfit_OBJECTS = semble_vfit.$(OBJEXT) \
 	semble_load_correlators.$(OBJEXT) semble_fit_ini_xml.$(OBJEXT)
 semble_vfit_OBJECTS = $(am_semble_vfit_OBJECTS)
@@ -91,9 +95,10 @@ CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
 SOURCES = $(effective_mass_onecorr_SOURCES) $(recondb_create_SOURCES) \
-	$(semble_vfit_SOURCES)
+	$(recondb_util_SOURCES) $(semble_vfit_SOURCES)
 DIST_SOURCES = $(effective_mass_onecorr_SOURCES) \
-	$(recondb_create_SOURCES) $(semble_vfit_SOURCES)
+	$(recondb_create_SOURCES) $(recondb_util_SOURCES) \
+	$(semble_vfit_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -223,6 +228,7 @@ LDADD = @SEMBLE_LIBS@ @JACKFITTER_LIBS@ @ADAT_LIBS@  @ITPP_LIBS@ @LIBS@
 semble_vfit_SOURCES = semble_vfit.cc semble_load_correlators.cc semble_fit_ini_xml.cc
 effective_mass_onecorr_SOURCES = effective_mass_onecorr.cc semble_load_correlators.cc semble_fit_ini_xml.cc
 recondb_create_SOURCES = semble_fit_ini_xml.cc recondb_create.cc
+recondb_util_SOURCES = recondb_util.cc
 #
 # The following rule will always try to rebuild libadat.a when you 
 # try to compile anything else
@@ -315,6 +321,9 @@ effective_mass_onecorr$(EXEEXT): $(effective_mass_onecorr_OBJECTS) $(effective_m
 recondb_create$(EXEEXT): $(recondb_create_OBJECTS) $(recondb_create_DEPENDENCIES) $(EXTRA_recondb_create_DEPENDENCIES) 
 	@rm -f recondb_create$(EXEEXT)
 	$(CXXLINK) $(recondb_create_OBJECTS) $(recondb_create_LDADD) $(LIBS)
+recondb_util$(EXEEXT): $(recondb_util_OBJECTS) $(recondb_util_DEPENDENCIES) $(EXTRA_recondb_util_DEPENDENCIES) 
+	@rm -f recondb_util$(EXEEXT)
+	$(CXXLINK) $(recondb_util_OBJECTS) $(recondb_util_LDADD) $(LIBS)
 semble_vfit$(EXEEXT): $(semble_vfit_OBJECTS) $(semble_vfit_DEPENDENCIES) $(EXTRA_semble_vfit_DEPENDENCIES) 
 	@rm -f semble_vfit$(EXEEXT)
 	$(CXXLINK) $(semble_vfit_OBJECTS) $(semble_vfit_LDADD) $(LIBS)
@@ -327,6 +336,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/effective_mass_onecorr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/recondb_create.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/recondb_util.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semble_fit_ini_xml.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semble_load_correlators.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semble_vfit.Po@am__quote@
