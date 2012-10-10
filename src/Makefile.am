@@ -19,7 +19,7 @@ LDADD = @SEMBLE_LIBS@ @JACKFITTER_LIBS@ @ADAT_LIBS@  @ITPP_LIBS@ @LIBS@
 ##   be built by 'make check' and is not installed.
 #noinst_PROGRAMS = spectrum
 
-bin_PROGRAMS = semble_vfit 
+bin_PROGRAMS = semble_vfit effective_mass_onecorr recondb_create
 noinst_PROGRAMS = 
 check_PROGRAMS =
 EXTRA_PROGRAMS = 
@@ -31,7 +31,9 @@ EXTRA_PROGRAMS =
 
 semble_vfit_SOURCES = semble_vfit.cc semble_load_correlators.cc semble_fit_ini_xml.cc
 
+effective_mass_onecorr_SOURCES = effective_mass_onecorr.cc semble_load_correlators.cc semble_fit_ini_xml.cc
 
+recondb_create_SOURCES = semble_fit_ini_xml.cc recondb_create.cc
 #
 # The following rule will always try to rebuild libadat.a when you 
 # try to compile anything else
