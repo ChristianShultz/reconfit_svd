@@ -49,7 +49,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-bin_PROGRAMS = semble_vfit$(EXEEXT) effective_mass_onecorr$(EXEEXT)
+bin_PROGRAMS = semble_vfit$(EXEEXT) effective_mass_onecorr$(EXEEXT) \
+	eff_mass_from_proj_ops$(EXEEXT)
 noinst_PROGRAMS =
 check_PROGRAMS =
 EXTRA_PROGRAMS =
@@ -65,6 +66,11 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
+am_eff_mass_from_proj_ops_OBJECTS = eff_mass_from_proj_ops.$(OBJEXT) \
+	semble_load_correlators.$(OBJEXT) semble_fit_ini_xml.$(OBJEXT)
+eff_mass_from_proj_ops_OBJECTS = $(am_eff_mass_from_proj_ops_OBJECTS)
+eff_mass_from_proj_ops_LDADD = $(LDADD)
+eff_mass_from_proj_ops_DEPENDENCIES =
 am_effective_mass_onecorr_OBJECTS = effective_mass_onecorr.$(OBJEXT) \
 	semble_load_correlators.$(OBJEXT) semble_fit_ini_xml.$(OBJEXT)
 effective_mass_onecorr_OBJECTS = $(am_effective_mass_onecorr_OBJECTS)
@@ -84,9 +90,10 @@ CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
-SOURCES = $(effective_mass_onecorr_SOURCES) $(semble_vfit_SOURCES)
-DIST_SOURCES = $(effective_mass_onecorr_SOURCES) \
-	$(semble_vfit_SOURCES)
+SOURCES = $(eff_mass_from_proj_ops_SOURCES) \
+	$(effective_mass_onecorr_SOURCES) $(semble_vfit_SOURCES)
+DIST_SOURCES = $(eff_mass_from_proj_ops_SOURCES) \
+	$(effective_mass_onecorr_SOURCES) $(semble_vfit_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -215,7 +222,7 @@ LDADD = @SEMBLE_LIBS@ @JACKFITTER_LIBS@ @ADAT_LIBS@  @ITPP_LIBS@ @LIBS@
 #
 semble_vfit_SOURCES = semble_vfit.cc semble_load_correlators.cc semble_fit_ini_xml.cc
 effective_mass_onecorr_SOURCES = effective_mass_onecorr.cc semble_load_correlators.cc semble_fit_ini_xml.cc
-
+eff_mass_from_proj_ops_SOURCES = eff_mass_from_proj_ops.cc semble_load_correlators.cc semble_fit_ini_xml.cc
 #
 # The following rule will always try to rebuild libadat.a when you 
 # try to compile anything else
@@ -302,6 +309,9 @@ clean-checkPROGRAMS:
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
+eff_mass_from_proj_ops$(EXEEXT): $(eff_mass_from_proj_ops_OBJECTS) $(eff_mass_from_proj_ops_DEPENDENCIES) $(EXTRA_eff_mass_from_proj_ops_DEPENDENCIES) 
+	@rm -f eff_mass_from_proj_ops$(EXEEXT)
+	$(CXXLINK) $(eff_mass_from_proj_ops_OBJECTS) $(eff_mass_from_proj_ops_LDADD) $(LIBS)
 effective_mass_onecorr$(EXEEXT): $(effective_mass_onecorr_OBJECTS) $(effective_mass_onecorr_DEPENDENCIES) $(EXTRA_effective_mass_onecorr_DEPENDENCIES) 
 	@rm -f effective_mass_onecorr$(EXEEXT)
 	$(CXXLINK) $(effective_mass_onecorr_OBJECTS) $(effective_mass_onecorr_LDADD) $(LIBS)
@@ -315,6 +325,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eff_mass_from_proj_ops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/effective_mass_onecorr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semble_fit_ini_xml.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semble_load_correlators.Po@am__quote@

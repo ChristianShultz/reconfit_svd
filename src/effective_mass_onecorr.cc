@@ -61,6 +61,8 @@ int main(int argc, char *argv[])
   EnsemVectorReal oneCorr = twoPoints.getCij(row,col);
   const int loopt = twoPoints.getLt() - deltat;
 
+  ENSEM::write(std::string("oneCorr.jack"),oneCorr); 
+
   EnsemVectorReal effMass;
   effMass.resize(oneCorr.size());
   effMass.resizeObs(loopt);
@@ -72,6 +74,8 @@ int main(int argc, char *argv[])
   effMassPlot.addEnsemData(effMass,"\\sq",1);
 
   effMassPlot.sendToFile(std::string("effMass.ax"));
+
+  ENSEM::write(std::string("effMass.jack"),effMass); 
   
   EnsemVectorReal dt_effMass;
   dt_effMass.resize(effMass.size());
