@@ -1474,6 +1474,8 @@ namespace SEMBLE
     double(ST0Fit<T>::*ptr)(const int, const ReconProps_t &) = NULL;   //member-function pointer
     int best = t0 + 1;
     double prev, next;
+    std::stringstream ss; 
+  
 
     ptr = (rec.type == "fast") ? &ST0Fit<T>::reconChisqFast : &ST0Fit<T>::reconChisq; //maybe this should be a private member function?
     prev = (*this.*ptr)(best, rec);
@@ -1481,19 +1483,23 @@ namespace SEMBLE
     if(inikeys.globalProps.verbose)
       std::cout << "tz = " << best << " with chisq/ndof = " << prev << std::endl;
 
+    ss << "tz = " << best << " chisq/dof = " << prev << "\n";
+
     for(int tz = t0 + 2; tz <= rec.tmax; ++tz)                         //find best by minimizing the chisq
+    {
+      next = (*this.*ptr)(tz, rec);
+
+      ss << "tz = " << tz << " chisq/dof = " << next << "\n";
+
+      if(inikeys.globalProps.verbose)
+        std::cout << "tz = " << tz << " with chisq/ndof = " << next << std::endl;
+
+      if(next < prev)
       {
-        next = (*this.*ptr)(tz, rec);
-
-        if(inikeys.globalProps.verbose)
-          std::cout << "tz = " << tz << " with chisq/ndof = " << next << std::endl;
-
-        if(next < prev)
-          {
-            best = tz;
-            prev = next;
-          }
+        best = tz;
+        prev = next;
       }
+    }
 
     ptr = NULL;
 
@@ -1503,223 +1509,234 @@ namespace SEMBLE
     tz_best = best;
     recon_tz = true;
 
+
+    // we just did a whole bunch of work.. might as well keep track of it
+    std::stringstream name;
+    name << "t0" << t0 ;
+    std::string out = SEMBLE::SEMBLEIO::getPath() + name.str();
+    SEMBLE::SEMBLEIO::makeDirectoryPath(out);
+    out += std::string("/tz_chisq.log");
+    std::ofstream fout(out.c_str());
+    fout << ss.str() << std::endl;
+    fout.close(); 
+
     return pair<int, double>(best, prev);
   }
 
   template<class T>
-  void ST0Fit<T>::makeReconPlots(std::string &mode)
-  {
-    //do a recon if we haven't
-    if(!!!recon_tz)
-      std::pair<int, double> dum = findBestTZ(inikeys.reconProps);
+    void ST0Fit<T>::makeReconPlots(std::string &mode)
+    {
+      //do a recon if we haven't
+      if(!!!recon_tz)
+        std::pair<int, double> dum = findBestTZ(inikeys.reconProps);
 
-    recon_plots.clear();
+      recon_plots.clear();
 
-    SembleMatrix<T> Zt = Z[tz_best];
-    SembleMatrix<T> Zero = 0.0 * Ct0;
-    typename std::vector<std::vector<itpp::Mat<T> > > summed_by_state;
-    typename std::vector<SembleMatrix<T> > total;
-    total.resize(inikeys.reconProps.tmax + 1, Zero);
+      SembleMatrix<T> Zt = Z[tz_best];
+      SembleMatrix<T> Zero = 0.0 * Ct0;
+      typename std::vector<std::vector<itpp::Mat<T> > > summed_by_state;
+      typename std::vector<SembleMatrix<T> > total;
+      total.resize(inikeys.reconProps.tmax + 1, Zero);
 
-    for(int state = 0; state < M; ++state)
+      for(int state = 0; state < M; ++state)
       {
         SembleVector<T> z = getRow(Zt, state);
         SembleMatrix<T> zz = outterProduct(z, z);
         std::vector<itpp::Mat<T> > corr_t_mean;
 
         for(int t = 0; t <= inikeys.reconProps.tmax; ++t)
-          {
-            EnsemReal e = exp(- mass_0[state] * Real(t)) / (Real(2.0) * mass_0[state]);
-            total[t] += zz * e;
-            corr_t_mean.push_back(mean(total[t]));
-          }
+        {
+          EnsemReal e = exp(- mass_0[state] * Real(t)) / (Real(2.0) * mass_0[state]);
+          total[t] += zz * e;
+          corr_t_mean.push_back(mean(total[t]));
+        }
 
         summed_by_state.push_back(corr_t_mean);
       }
 
-    //now make the plots for tz_best
-    //suppose the states have been reordered, we want to multiply by the lowest mass..
-    int lightest = 0;
-    double light = toScalar(mean(mass_0[lightest]));
+      //now make the plots for tz_best
+      //suppose the states have been reordered, we want to multiply by the lowest mass..
+      int lightest = 0;
+      double light = toScalar(mean(mass_0[lightest]));
 
-    for(int i = 1; i < M; ++i)
+      for(int i = 1; i < M; ++i)
       {
         double m = toScalar(mean(mass_0[i]));
 
         if(m < light)
-          {
-            lightest = i;
-            light = m;
-          }
+        {
+          lightest = i;
+          light = m;
+        }
       }
 
-    ConstTimesExp weight(exp(- mass_0[lightest] * Real(t0)), mass_0[lightest]);
-    std::vector<Real> dweight;
-    for(int t = 0; t <= inikeys.reconProps.tmax; ++t)
-      dweight.push_back(toScalar(exp(light*double(t-t0))));
+      ConstTimesExp weight(exp(- mass_0[lightest] * Real(t0)), mass_0[lightest]);
+      std::vector<Real> dweight;
+      for(int t = 0; t <= inikeys.reconProps.tmax; ++t)
+        dweight.push_back(toScalar(exp(light*double(t-t0))));
 
 
-    for(int i = 0; i < N; ++i)
+      for(int i = 0; i < N; ++i)
       {
         int bound = (mode == "diag") ? i + 1 : N;
 
         for(int j = i; j < bound; ++j)
+        {
+          AxisPlot plot;
+          std::vector<std::vector<double> > sum_ij; //outter is state, inner time
+          std::vector<double> time(inikeys.reconProps.tmax + 1, 0.0);
+          sum_ij.resize(M, time);
+
+
+          for(int state = 0; state < M; ++state)
+            for(int t = inikeys.globalProps.tmin; t <= inikeys.reconProps.tmax; ++t)
+              sum_ij[state][t] = summed_by_state[state][t](i, j);
+
+          std::vector<double> dat, tslices;
+
+          for(int t = inikeys.globalProps.tmin; t <= inikeys.reconProps.tmax; ++t)
           {
-            AxisPlot plot;
-            std::vector<std::vector<double> > sum_ij; //outter is state, inner time
-            std::vector<double> time(inikeys.reconProps.tmax + 1, 0.0);
-            sum_ij.resize(M, time);
+            dat.push_back(toScalar(mean(weight(t)))*sum_ij[0][t]);
+            tslices.push_back(t);
+          }
 
+          plot.addLineData(tslices, dat, 1);
+          dat.clear();
 
-            for(int state = 0; state < M; ++state)
-              for(int t = inikeys.globalProps.tmin; t <= inikeys.reconProps.tmax; ++t)
-                sum_ij[state][t] = summed_by_state[state][t](i, j);
-
-            std::vector<double> dat, tslices;
+          //plot data line if it is significant
+          for(int state = 1; state < M - 1; ++state)
+          {
+            if(fabs(sum_ij[state][t0] - sum_ij[state - 1][t0]) < sum_ij[M - 1][t0] / M)
+              continue;
 
             for(int t = inikeys.globalProps.tmin; t <= inikeys.reconProps.tmax; ++t)
-              {
-                dat.push_back(toScalar(mean(weight(t)))*sum_ij[0][t]);
-                tslices.push_back(t);
-              }
+              dat.push_back(toScalar(mean(weight(t)))*sum_ij[state][t]);
 
-            plot.addLineData(tslices, dat, 1);
+            plot.addLineData(tslices, dat, (state) % 5 + 1);
             dat.clear();
+          }
 
-            //plot data line if it is significant
-            for(int state = 1; state < M - 1; ++state)
-              {
-                if(fabs(sum_ij[state][t0] - sum_ij[state - 1][t0]) < sum_ij[M - 1][t0] / M)
-                  continue;
+          //add last state and total
 
-                for(int t = inikeys.globalProps.tmin; t <= inikeys.reconProps.tmax; ++t)
-                  dat.push_back(toScalar(mean(weight(t)))*sum_ij[state][t]);
+          //add the final state & plot the total
+          std::vector<double> m, mpe, mme;
+          tslices.clear();
 
-                plot.addLineData(tslices, dat, (state) % 5 + 1);
-                dat.clear();
-              }
+          for(int t = t0; t <= inikeys.reconProps.tmax; t++)
+          {
+            EnsemReal d = weight(t) * total[t](i, j) ;
+            //	cout << "read an element of total at t=" << t << endl;
+            double me = toDouble(mean(d));
+            double err = toDouble(sqrt(variance(d)));
+            m.push_back(me);
+            mpe.push_back(me + err);
+            mme.push_back(me - err);
+            tslices.push_back(t);
+          }
 
-            //add last state and total
+          plot.addLineData(tslices, m, 1);
+          plot.addLineData(tslices, mpe, 1);
+          plot.addLineData(tslices, mme, 1);
 
-            //add the final state & plot the total
-            std::vector<double> m, mpe, mme;
-            tslices.clear();
+          m.clear();
+          mpe.clear();
+          mme.clear();
+          tslices.clear();
 
-            for(int t = t0; t <= inikeys.reconProps.tmax; t++)
-              {
-                EnsemReal d = weight(t) * total[t](i, j) ;
-                //	cout << "read an element of total at t=" << t << endl;
-                double me = toDouble(mean(d));
-                double err = toDouble(sqrt(variance(d)));
-                m.push_back(me);
-                mpe.push_back(me + err);
-                mme.push_back(me - err);
-                tslices.push_back(t);
-              }
+          for(int t = inikeys.globalProps.tmin; t <= t0; t++)
+          {
+            EnsemReal d = weight(t) * total[t](i, j) ;
+            double me = toDouble(mean(d));
+            double err = toDouble(sqrt(variance(d)));
+            m.push_back(me);
+            mpe.push_back(me + err);
+            mme.push_back(me - err);
+            tslices.push_back(t);
+          }
 
-            plot.addLineData(tslices, m, 1);
-            plot.addLineData(tslices, mpe, 1);
-            plot.addLineData(tslices, mme, 1);
+          plot.addLineData(tslices, m, 3);
+          plot.addLineData(tslices, mpe, 3);
+          plot.addLineData(tslices, mme, 3);
 
-            m.clear();
-            mpe.clear();
-            mme.clear();
-            tslices.clear();
+          //add the ensem data
+          EnsemVectorReal raw;
+          raw.resize(B);
+          raw.resizeObs(inikeys.reconProps.tmax - inikeys.globalProps.tmin + 1);
 
-            for(int t = inikeys.globalProps.tmin; t <= t0; t++)
-              {
-                EnsemReal d = weight(t) * total[t](i, j) ;
-                double me = toDouble(mean(d));
-                double err = toDouble(sqrt(variance(d)));
-                m.push_back(me);
-                mpe.push_back(me + err);
-                mme.push_back(me - err);
-                tslices.push_back(t);
-              }
+          mme.clear();
+          mpe.clear();
+          tslices.clear();
 
-            plot.addLineData(tslices, m, 3);
-            plot.addLineData(tslices, mpe, 3);
-            plot.addLineData(tslices, mme, 3);
+          for(int t = inikeys.globalProps.tmin; t <= inikeys.reconProps.tmax; t++)
+          {
+            pokeObs(raw, dweight[t]*tp[t](i, j), t - inikeys.globalProps.tmin);
+            double me = toDouble(mean(tp[t](i, j)));
+            double err = toDouble(sqrt(variance(tp[t](i, j))));
 
-            //add the ensem data
-            EnsemVectorReal raw;
-            raw.resize(B);
-            raw.resizeObs(inikeys.reconProps.tmax - inikeys.globalProps.tmin + 1);
+            if(t >= t0)
+            {
+              mpe.push_back(me + err);
+              mme.push_back(me - err);
+            }
 
-            mme.clear();
-            mpe.clear();
-            tslices.clear();
+            tslices.push_back(t);
+          }
 
-            for(int t = inikeys.globalProps.tmin; t <= inikeys.reconProps.tmax; t++)
-              {
-                pokeObs(raw, dweight[t]*tp[t](i, j), t - inikeys.globalProps.tmin);
-                double me = toDouble(mean(tp[t](i, j)));
-                double err = toDouble(sqrt(variance(tp[t](i, j))));
+          plot.addEnsemData(tslices, raw, "\\sq", 1);
 
-                if(t >= t0)
-                  {
-                    mpe.push_back(me + err);
-                    mme.push_back(me - err);
-                  }
+          //set ranges & add labels
+          double low = *min_element(mme.begin(), mme.end());
+          double high = *max_element(mpe.begin(), mpe.end()) * 1.5 ;
+          plot.setYRange(low, high);
+          plot.setXRange(-0.5, inikeys.reconProps.tmax + 0.5);
 
-                tslices.push_back(t);
-              }
+          double height = high - low;
+          double unit = height / (M + 1);
 
-            plot.addEnsemData(tslices, raw, "\\sq", 1);
-
-            //set ranges & add labels
-            double low = *min_element(mme.begin(), mme.end());
-            double high = *max_element(mpe.begin(), mpe.end()) * 1.5 ;
-            plot.setYRange(low, high);
-            plot.setXRange(-0.5, inikeys.reconProps.tmax + 0.5);
-
-            double height = high - low;
-            double unit = height / (M + 1);
-
-            for(int state = 0; state < M - 1; state++)
-              {
-                int colour = (state) % 5 + 1;
-                char c[10];
-                int n = sprintf(c, "%.3f", toDouble(mean(mass_0[state])));
-                string str(c);
-                plot.addLabel(inikeys.reconProps.tmax - 1, low + (state + 1)*unit, str, colour, 0.8);
-              }
-
+          for(int state = 0; state < M - 1; state++)
+          {
+            int colour = (state) % 5 + 1;
             char c[10];
-            int n = sprintf(c, "%.3f", toDouble(mean(mass_0[M - 1 ])));
-            std::string str(c);
-            plot.addLabel(inikeys.reconProps.tmax - 1, low + M * unit, str, 1, 0.8);
+            int n = sprintf(c, "%.3f", toDouble(mean(mass_0[state])));
+            string str(c);
+            plot.addLabel(inikeys.reconProps.tmax - 1, low + (state + 1)*unit, str, colour, 0.8);
+          }
 
-            std::pair<int, int> key(std::pair<int, int>(i, j));
-            std::pair<std::string, std::string> data;
-            std::string plot_string = plot.getAxisPlotString();
-            std::stringstream ss;
-            ss <<  "recon_t0" << t0 << "_" << i << "_" << j << ".ax";
-            data = std::pair<std::string, std::string>(ss.str(), plot_string);
+          char c[10];
+          int n = sprintf(c, "%.3f", toDouble(mean(mass_0[M - 1 ])));
+          std::string str(c);
+          plot.addLabel(inikeys.reconProps.tmax - 1, low + M * unit, str, 1, 0.8);
 
-            recon_plots[key] = data;
+          std::pair<int, int> key(std::pair<int, int>(i, j));
+          std::pair<std::string, std::string> data;
+          std::string plot_string = plot.getAxisPlotString();
+          std::stringstream ss;
+          ss <<  "recon_t0" << t0 << "_" << i << "_" << j << ".ax";
+          data = std::pair<std::string, std::string>(ss.str(), plot_string);
 
-          }//end j
+          recon_plots[key] = data;
+
+        }//end j
       }//end i
-  }
+    }
 
   template<class T>
-  void ST0Fit<T>::printReconPlots(void)
-  {
-    if(recon_plots.begin() == recon_plots.end())
-      makeReconPlots(inikeys.outputProps.reconType);
+    void ST0Fit<T>::printReconPlots(void)
+    {
+      if(recon_plots.begin() == recon_plots.end())
+        makeReconPlots(inikeys.outputProps.reconType);
 
-    std::stringstream ss;
-    ss << "t0" << t0;
-    std::string path = SEMBLEIO::getPath() += ss.str();
-    SEMBLEIO::makeDirectoryPath(path);
-    path += std::string("/ReconPlots");
-    SEMBLEIO::makeDirectoryPath(path);
-    path += std::string("/");
+      std::stringstream ss;
+      ss << "t0" << t0;
+      std::string path = SEMBLEIO::getPath() += ss.str();
+      SEMBLEIO::makeDirectoryPath(path);
+      path += std::string("/ReconPlots");
+      SEMBLEIO::makeDirectoryPath(path);
+      path += std::string("/");
 
-    std::map<std::pair<int, int>, std::pair<std::string, std::string> >::const_iterator it;
+      std::map<std::pair<int, int>, std::pair<std::string, std::string> >::const_iterator it;
 
-    for(it = recon_plots.begin(); it != recon_plots.end(); ++it)
+      for(it = recon_plots.begin(); it != recon_plots.end(); ++it)
       {
         std::stringstream ss;
         std::ofstream out;
@@ -1728,61 +1745,61 @@ namespace SEMBLE
         out << it->second.second;
         out.close();
       }
-  }
+    }
 
 
   template<class T>
-  std::string ST0Fit<T>::getPCorrFitLog(const std::map<int,int> &mapp)
-  {
-    std::stringstream ss;
-    std::string n("\n");
-    std::map<int,int>::const_iterator it;
- 
-    ss << n << n;
-    ss << "**********************" << n;
-    ss << "* REORDERED SPECTRUM *" << n;
-    ss << "**********************" << n;
+    std::string ST0Fit<T>::getPCorrFitLog(const std::map<int,int> &mapp)
+    {
+      std::stringstream ss;
+      std::string n("\n");
+      std::map<int,int>::const_iterator it;
 
-    ss << "state|unord|        mass       |           fit           |chisq/nDoF|   fit parameters " << endl;
-  
-  
-    for(it = mapp.begin(); it != mapp.end(); ++it)
+      ss << n << n;
+      ss << "**********************" << n;
+      ss << "* REORDERED SPECTRUM *" << n;
+      ss << "**********************" << n;
+
+      ss << "state|unord|        mass       |           fit           |chisq/nDoF|   fit parameters " << endl;
+
+
+      for(it = mapp.begin(); it != mapp.end(); ++it)
       {
-	ss << setw(5) << it->first << "|" << setw(5) << it->second << "|"                               // states
-	   << setw(8) << fixed << setprecision(5) << toScalar(mean(mass_0[it->second])) << "+/-"        // m_0
-	   << setw(8) << fixed << setprecision(5) << std::sqrt(toScalar(variance(mass_0[it->second])))  // var(m_0)
-	   << "|" << setw(25) << pCorrFitName[it->second] << "|"                                        // fit name
-	   << setw(10) << fixed << setprecision(2) << pCorrChiSqPDoF[it->second] << "|";                // fit chisq
-	   
-	  if(toScalar(mean(mass_0[it->second])) > 0.)
-	    ss << " m'=" << setw(6) << fixed << setprecision(3) << toScalar(mean(mass_1[it->second]))   // second exp mass
-	       << " +/- " << setw(6) << fixed << setprecision(3) << std::sqrt(toScalar(variance(mass_1[it->second])))
-	       << ", A=" << setw(6) << fixed << setprecision(3) << toScalar(mean(A[it->second]))        // coeff
-	       << " +/- " << setw(6) << fixed << setprecision(3) << std::sqrt(toScalar(variance(A[it->second]))) << n;
+        ss << setw(5) << it->first << "|" << setw(5) << it->second << "|"                               // states
+          << setw(8) << fixed << setprecision(5) << toScalar(mean(mass_0[it->second])) << "+/-"        // m_0
+          << setw(8) << fixed << setprecision(5) << std::sqrt(toScalar(variance(mass_0[it->second])))  // var(m_0)
+          << "|" << setw(25) << pCorrFitName[it->second] << "|"                                        // fit name
+          << setw(10) << fixed << setprecision(2) << pCorrChiSqPDoF[it->second] << "|";                // fit chisq
+
+        if(toScalar(mean(mass_0[it->second])) > 0.)
+          ss << " m'=" << setw(6) << fixed << setprecision(3) << toScalar(mean(mass_1[it->second]))   // second exp mass
+            << " +/- " << setw(6) << fixed << setprecision(3) << std::sqrt(toScalar(variance(mass_1[it->second])))
+            << ", A=" << setw(6) << fixed << setprecision(3) << toScalar(mean(A[it->second]))        // coeff
+            << " +/- " << setw(6) << fixed << setprecision(3) << std::sqrt(toScalar(variance(A[it->second]))) << n;
       }
 
-    return ss.str();
-  }
+      return ss.str();
+    }
 
 
 
   template<class T>
-  void ST0Fit<T>::fixedCoeffMethod(const int tstar) const
-  {
-    if(!!!init)
+    void ST0Fit<T>::fixedCoeffMethod(const int tstar) const
+    {
+      if(!!!init)
       {
         std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << " cant solve without init, exiting" << std::endl;
         exit(1);
       }
 
-    if(inikeys.globalProps.verbose)
-      std::cout << __func__ << ": Trying the fixed coeff method at t0 = " << t0 << ": solving at t* = " << tstar << std::endl;
+      if(inikeys.globalProps.verbose)
+        std::cout << __func__ << ": Trying the fixed coeff method at t0 = " << t0 << ": solving at t* = " << tstar << std::endl;
 
-    SembleMatrix<T> refEvecs = eVecs[tstar];
-    typename std::vector<SembleMatrix<T> > rCorr;
-    typename std::vector<SembleVector<T> > rPCorr;
+      SembleMatrix<T> refEvecs = eVecs[tstar];
+      typename std::vector<SembleMatrix<T> > rCorr;
+      typename std::vector<SembleVector<T> > rPCorr;
 
-    for(int t = inikeys.globalProps.tmin; t <= inikeys.prinCorrProps.tmax; ++t)
+      for(int t = inikeys.globalProps.tmin; t <= inikeys.prinCorrProps.tmax; ++t)
       {
         rCorr.push_back(adj(refEvecs)*tp[t]*refEvecs);
         SembleVector<T> tmp(B, M);
@@ -1793,21 +1810,21 @@ namespace SEMBLE
         rPCorr.push_back(tmp);
       }
 
-    //now write them out to a file
-    if(inikeys.globalProps.verbose)
-      std::cout << __func__ << ": Writing fixedcoeff_prin_corr files" << std::endl;
+      //now write them out to a file
+      if(inikeys.globalProps.verbose)
+        std::cout << __func__ << ": Writing fixedcoeff_prin_corr files" << std::endl;
 
-    //make a directory
-    std::stringstream ss;
-    ss << "t0" << t0;
-    std::string path = SEMBLEIO::getPath() += ss.str();
-    SEMBLEIO::makeDirectoryPath(path);
-    path += std::string("/FixedCoeffPrinCorr");
-    SEMBLEIO::makeDirectoryPath(path);
-    path += std::string("/");
+      //make a directory
+      std::stringstream ss;
+      ss << "t0" << t0;
+      std::string path = SEMBLEIO::getPath() += ss.str();
+      SEMBLEIO::makeDirectoryPath(path);
+      path += std::string("/FixedCoeffPrinCorr");
+      SEMBLEIO::makeDirectoryPath(path);
+      path += std::string("/");
 
-    //write out each state
-    for(int state = 0; state < M; ++state)
+      //write out each state
+      for(int state = 0; state < M; ++state)
       {
         typename PromoteEnsemVec<T>::Type pt;
         pt.resize(B);
@@ -1827,169 +1844,169 @@ namespace SEMBLE
         write(file.str(), pt);
       }
 
-  }
+    }
 
 
   template<class T> //this is expensive!!! it should be called before everything else, it assumes the states are already ordered within this t0 fit
-  void ST0Fit<T>::rephase(const typename std::map<int, typename PromoteScalar<T>::Type> &mapped)
-  {
-    initChk();
-    //sanity
-    std::vector<bool> used(M, false);
-    typename std::map<int, typename PromoteScalar<T>::Type>::const_iterator it;
-    bool check = true;
+    void ST0Fit<T>::rephase(const typename std::map<int, typename PromoteScalar<T>::Type> &mapped)
+    {
+      initChk();
+      //sanity
+      std::vector<bool> used(M, false);
+      typename std::map<int, typename PromoteScalar<T>::Type>::const_iterator it;
+      bool check = true;
 
-    for(it = mapped.begin(); it != mapped.end(); ++it)
+      for(it = mapped.begin(); it != mapped.end(); ++it)
       {
         if(it->first >= M)
-          {
-            check = false;
-            std::cout << "t0 = " << t0 << " it->first = " << it->first << " " << M << " states possible in" << std::endl;
-            std::cout << __PRETTY_FUNCTION__ << std::endl;
-            break;
-          }
+        {
+          check = false;
+          std::cout << "t0 = " << t0 << " it->first = " << it->first << " " << M << " states possible in" << std::endl;
+          std::cout << __PRETTY_FUNCTION__ << std::endl;
+          break;
+        }
 
         used[it->first] = true;
       }
 
-    if(check)
+      if(check)
       {
         std::vector<bool>::const_iterator bit;
 
         for(bit = used.begin(); bit != used.end(); ++bit)
           if(!!!*bit)
-            {
-              std::cout << "unphased state in" << std::endl;
-              std::cout << __PRETTY_FUNCTION__ << std::endl;
-              check = false;
-              break;
-            }
+          {
+            std::cout << "unphased state in" << std::endl;
+            std::cout << __PRETTY_FUNCTION__ << std::endl;
+            check = false;
+            break;
+          }
       }
 
-    if(!!!check)
+      if(!!!check)
       {
         std::cout << "Rephasing error in " << __PRETTY_FUNCTION__ << std::endl;
         exit(1);
       }
 
-    for(int t = inikeys.globalProps.tmin; t < eVecs.size(); ++t)
+      for(int t = inikeys.globalProps.tmin; t < eVecs.size(); ++t)
       {
         SembleMatrix<T> cp = eVecs[t];
 
         for(it = mapped.begin(); it != mapped.end(); ++it)
-          {
-            for(int row = 0; row < N; ++row)
-              eVecs[t].loadEnsemElement(row, it->first, it->second*cp.getEnsemElement(row, it->first));
-          }
+        {
+          for(int row = 0; row < N; ++row)
+            eVecs[t].loadEnsemElement(row, it->first, it->second*cp.getEnsemElement(row, it->first));
+        }
       }
 
-    //make sure any Z's we already made have the correct phase
-    if(zinit)
-      makeZ();
+      //make sure any Z's we already made have the correct phase
+      if(zinit)
+        makeZ();
 
-    if(zfit)
-      fitZ();
-  }
+      if(zfit)
+        fitZ();
+    }
 
-//Internal Functions
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //Internal Functions
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   template<class T>
-  Handle<FitComparator> ST0Fit<T>::fitComp(std::string &in) const
-  {
-    if(in == "chisq_per_dof")
+    Handle<FitComparator> ST0Fit<T>::fitComp(std::string &in) const
+    {
+      if(in == "chisq_per_dof")
+        return Handle<FitComparator>(new CompareFitsByChisqPerNDoF);
+
+      if(in == "Q")
+        return Handle<FitComparator>(new CompareFitsByQ);
+
+      if(in == "splitN")
+        return Handle<FitComparator>(new CompareFitsBySplitN);
+
+      if(in == "generic")
+        return Handle<FitComparator>(new CompareFitsByGeneric);
+
+      if(in == "QN")
+        return Handle<FitComparator>(new CompareFitsByQN);
+
+      if(in == "Zfit")
+        return Handle<FitComparator>(new CompareZFits);
+
+      std::cout << __PRETTY_FUNCTION__ << "Fit Criterion " << in << " unknown, defaulting to chisq_per_dof" << std::endl;
       return Handle<FitComparator>(new CompareFitsByChisqPerNDoF);
-
-    if(in == "Q")
-      return Handle<FitComparator>(new CompareFitsByQ);
-
-    if(in == "splitN")
-      return Handle<FitComparator>(new CompareFitsBySplitN);
-
-    if(in == "generic")
-      return Handle<FitComparator>(new CompareFitsByGeneric);
-
-    if(in == "QN")
-      return Handle<FitComparator>(new CompareFitsByQN);
-
-    if(in == "Zfit")
-      return Handle<FitComparator>(new CompareZFits);
-
-    std::cout << __PRETTY_FUNCTION__ << "Fit Criterion " << in << " unknown, defaulting to chisq_per_dof" << std::endl;
-    return Handle<FitComparator>(new CompareFitsByChisqPerNDoF);
-  }
+    }
 
   template<class T>
-  void ST0Fit<T>::cleanUp(void)
-  {
-    N = -1;
-    M = -1;
-    B = -1;
-    t0 = -1;
-    inikeys = FitIniProps_t();
-    Ct0 = SembleMatrix<T>();
-    primFit.clear();
-    primFit = ST0FitPrim<T>();
-    eVals.clear();
-    eVecs.clear();
-    Z.clear();
-    mass_0.clear();
-    mass_1.clear();
-    A.clear();
-    init = pcorr = zfit = zinit = recon = recon_flat = recon_tz = false;
-    pCorrFitName.clear();
-    pCorrFitPlot.clear();
-    pCorrChiSqPDoF.clear();
-    zFitPlot.clear();
-    zFitResults.clear();
-    zFitChiSqPDof.clear();
-    zFit = SembleMatrix<T>();
-    recon_total.clear();
-    tp.clear();
+    void ST0Fit<T>::cleanUp(void)
+    {
+      N = -1;
+      M = -1;
+      B = -1;
+      t0 = -1;
+      inikeys = FitIniProps_t();
+      Ct0 = SembleMatrix<T>();
+      primFit.clear();
+      primFit = ST0FitPrim<T>();
+      eVals.clear();
+      eVecs.clear();
+      Z.clear();
+      mass_0.clear();
+      mass_1.clear();
+      A.clear();
+      init = pcorr = zfit = zinit = recon = recon_flat = recon_tz = false;
+      pCorrFitName.clear();
+      pCorrFitPlot.clear();
+      pCorrChiSqPDoF.clear();
+      zFitPlot.clear();
+      zFitResults.clear();
+      zFitChiSqPDof.clear();
+      zFit = SembleMatrix<T>();
+      recon_total.clear();
+      tp.clear();
 
-  }
+    }
 
-//bool checks
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //bool checks
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   template<class T>
-  void ST0Fit<T>::initChk(void) const
-  {
-    if(!!!init)
+    void ST0Fit<T>::initChk(void) const
+    {
+      if(!!!init)
       {
         std::cout << "Need to Initialize in " << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
         exit(100);
       }
-  }
+    }
 
   template<class T>
-  void ST0Fit<T>::pcorrChk(void) const
-  {
-    if(!!!pcorr)
+    void ST0Fit<T>::pcorrChk(void) const
+    {
+      if(!!!pcorr)
       {
         std::cout << "Need to construct Principal Correlators in " << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
         exit(101);
       }
-  }
+    }
 
   template<class T>
-  void ST0Fit<T>::zfitChk(void) const
-  {
-    if(!!!zfit)
+    void ST0Fit<T>::zfitChk(void) const
+    {
+      if(!!!zfit)
       {
         std::cout << "Need to fit Z in " << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
         exit(102);
       }
-  }
+    }
 
   template<class T>
-  void ST0Fit<T>::zinitChk(void) const
-  {
-    if(!!!zinit)
+    void ST0Fit<T>::zinitChk(void) const
+    {
+      if(!!!zinit)
       {
         std::cout << "Need to construct Z in " << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
         exit(102);
       }
-  }
+    }
 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
