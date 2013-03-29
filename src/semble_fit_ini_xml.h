@@ -4,10 +4,19 @@
 #include "formfac/hadron_2pt_corr.h"
 #include "io/adat_xmlio.h"
 
+#include "io/adat_io.h"
+#include "io/adat_xml_group_reader.h"
+
+
+
+
+
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <utility>
 
+using namespace ADAT;
 using namespace ADATXML;
 using namespace ADATIO;
 
@@ -33,6 +42,8 @@ namespace SEMBLE
   struct GlobalProps_t;
   struct FitIniProps_t;
 
+  struct WeightShiftCorrectProps_t;
+
   //a parser for sanity, ie printing z w/o fitting being true, should eliminate stupid crashes from ill-conceived ini files
   void check_ini(FitIniProps_t &ini);
 
@@ -54,6 +65,8 @@ namespace SEMBLE
   void read(XMLReader &xml, const std::string &path, WeightProps_t &prop);
   void read(XMLReader &xml, const std::string &path, GlobalProps_t &prop);
   void read(XMLReader &xml, const std::string &path, FitIniProps_t &prop);
+
+  void read(XMLReader &xml, const std::string &path, WeightShiftCorrectProps_t &prop);
 
   //the associated writers
   std::string write_params(const SortingProps_t &prop);
@@ -236,6 +249,13 @@ namespace SEMBLE
     double E;
   };
 
+
+  struct WeightShiftCorrectProps_t
+  {
+    std::vector< std::pair< double, int > > E_dt;
+  };
+
+
   struct GlobalProps_t
   {
     int tmin;
@@ -264,6 +284,8 @@ namespace SEMBLE
     FixedCoeffProps_t fixedCoeffProps;
     WeightProps_t weightProps;
     GlobalProps_t globalProps;
+
+    WeightShiftCorrectProps_t weightShiftCorrectProps;
   };
 
 

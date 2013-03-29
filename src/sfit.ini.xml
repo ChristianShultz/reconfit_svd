@@ -147,6 +147,22 @@
     <weight>false</weight>
     <E>0.</E>
   </weightProps>
+
+<!-- multiple weighting, shifting, correcting -->
+<!-- use this in place of the weight, shift options above --> 
+  <!--weightShiftCorrectProps>
+    <E_dt>
+      <elem>
+        <weight_energy>0.02792</weight_energy>
+        <shift_tslices>3</shift_tslices>
+      </elem>
+      <elem>
+        <weight_energy>-0.02792</weight_energy>
+        <shift_tslices>3</shift_tslices>
+      </elem>
+    </E_dt>
+  </weightShiftCorrectProps -->
+
   
   <globalProps>
     <tmin>1</tmin>
