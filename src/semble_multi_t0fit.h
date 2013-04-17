@@ -251,18 +251,27 @@ namespace SEMBLE
     int t0;
 
     int maxThreads = omp_get_max_threads();
-    //    std::cout << "MAX THREADS = " << maxThreads << std::endl;
+  
 
     if( (inikeys.t0Props.nThreads > 0) && ( inikeys.t0Props.nThreads < maxThreads ) ){
       omp_set_num_threads(inikeys.t0Props.nThreads);
       std::cout << "SET NTHREADS = " << inikeys.t0Props.nThreads << " FROM A MAXIMUM " << maxThreads << std::endl; 
     }
+    else{
+        std::cout << "USING THE MAX THREADS = " << maxThreads << std::endl;
+    }
 
+    //std::map<int, std::string> thread_list;
 
     #pragma omp parallel for private(t0)
 
     for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
+	//std::stringstream tmp; tmp << "#######   t0= " << t0 << " sent to thread " << omp_get_thread_num() << "   ########";
+	//thread_list.insert( std::pair<int,std::string>(t0, tmp.str() ) ); 
+
+
+
         ST0Fit<T> *ptr = new ST0Fit<T>(t0, tp, inikeys);
         Handle<ST0Fit<T> > fit(ptr);
         t0_fits.insert(make_pair(t0, fit));
@@ -293,6 +302,10 @@ namespace SEMBLE
       }
     // end the threading
 
+    //for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0){
+    //  std::cout << thread_list[t0] << std::endl;
+    //}
+
 
     mass_fit = true;
 
@@ -312,15 +325,24 @@ namespace SEMBLE
     if(inikeys.t0FitProps.MT0)
       fitMassT0();
 
+    //thread_list.clear();
+
     if(inikeys.zProps.fit)
       {
         #pragma omp parallel for private(t0)
         for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
           {
+	    //std::stringstream tmp; tmp << "#######   t0= " << t0 << " sent to thread " << omp_get_thread_num() << "   ########";
+	    //thread_list.insert( std::pair<int,std::string>(t0, tmp.str() ) ); 
+
             t0_fits[t0]->makeZ();
             t0_fits[t0]->fitZ();
           }
 	// end threading
+
+	//for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0){
+	//  std::cout << thread_list[t0] << std::endl;
+	//}
 
         z_fit = true;
 
