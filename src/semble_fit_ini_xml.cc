@@ -560,6 +560,40 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, WeightProps_t &prop)
     }
 }
 
+
+
+
+
+void SEMBLE::read(XMLReader &xml, const std::string &path, WeightShiftCorrectProps_t &prop)
+{
+  XMLReader ptop(xml, path);
+
+  if(ptop.count("E_dt") > 0){
+    
+    Array<GroupXML_t> params = readXMLArrayGroup(ptop, "E_dt", "weight_energy");
+    for(int p = 0; p < params.size(); p++){
+      std::pair<double, int> tmp;
+      
+      const GroupXML_t& param_xml = params[p];
+      std::istringstream xml_s(param_xml.xml);
+      XMLReader paramtop(xml_s);
+      
+      read( paramtop, "weight_energy", tmp.first );
+      read( paramtop, "shift_tslices", tmp.second );
+      
+      prop.E_dt.push_back(tmp); 
+      
+    }
+  }
+
+}
+
+
+
+
+
+
+
 void SEMBLE::read(XMLReader &xml, const std::string &path, GlobalProps_t &prop)
 {
   XMLReader ptop(xml, path);
@@ -590,6 +624,12 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, GlobalProps_t &prop)
     prop.skip_nt = 0;
 
 }
+
+
+
+
+
+
 
 void SEMBLE::read(XMLReader &xml, const std::string &path, FitIniProps_t &prop)
 {
@@ -670,6 +710,11 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, FitIniProps_t &prop)
   read(ptop, "fixedCoeffProps", prop.fixedCoeffProps);
   read(ptop, "weightProps", prop.weightProps);
   read(ptop, "globalProps", prop.globalProps);
+
+  if(ptop.count("weightShiftCorrectProps") > 0){
+    read(ptop, "weightShiftCorrectProps", prop.weightShiftCorrectProps);
+  }
+
 }
 
 

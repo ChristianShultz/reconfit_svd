@@ -83,9 +83,15 @@ namespace SEMBLE
     void changeNumCfgs(int newbins);
     void useEnsemMean();
 
+
+    //*******************************************************
     void skipTimeslices(int nt);
     void shiftCorrs(int dt);
     void expWeightCorrs(double E);
+    void weightShiftCorrectCorrs( vector< pair<double, int> > params );
+    //********************************************************
+
+
 
     SembleMatrix<double> getCt(int t) const;
     int getLt() const;

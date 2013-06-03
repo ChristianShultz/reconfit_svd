@@ -345,6 +345,40 @@ namespace SEMBLE
     Ct = Ct_new;
   }
 
+  void SembleRCorrs::weightShiftCorrectCorrs( vector< pair<double, int> > params )
+  {
+    //loop over the following procedure:
+    //weight   Cw(t)   = exp(E*t) * C(t)
+    //shift    Cws(t)  = Cw(t) - Cw(t+dt)
+    //correct  Cwsc(t) = exp(-E*t) * Cws(t)
+
+    vector<SembleMatrix<double> > Ct_local, Ct_tmp;
+    SembleMatrix<double> dum_new(nbins, dim, dim);
+    Ct_local.push_back(dum_new);  Ct_tmp.push_back(dum_new);
+    Ct_local.resize(Lt, dum_new); Ct_tmp.resize(Lt, dum_new);   
+    for(int t = 0; t < Lt; t++){  Ct_local[t] = Ct[t];  }
+
+    int lost_slices = 0;
+
+    for(int it = 0; it < params.size(); it++){
+      double E = params[it].first;
+      int dt = params[it].second;
+      lost_slices += dt;
+
+      cout << "weight, shift, correct with E=" << E << ", dt=" << dt << endl;
+      
+      for(int t = 0; t < Lt - lost_slices; t++){  Ct_tmp[t] = Ct_local[t] - exp( E*dt ) * Ct_local[t+dt] ;  }
+      for(int t = 0; t < Lt - lost_slices; t++){  Ct_local[t] = Ct_tmp[t];  }
+    }
+    
+    //reduce down to the correct length
+    Ct_local.resize(Lt - lost_slices);
+    Lt -= lost_slices;
+    Ct = Ct_local;
+
+    cout << "after weighting, shifting, correcting, max corr length is now " << Lt << endl;
+  }
+
 
   void SembleRCorrs::readOpsList(const string &opslistfile)
   {
@@ -1979,6 +2013,8 @@ namespace SEMBLE
         cout << "Debugging mode (" << inikeys.dbInputType << "): written out real correlators (mean and sd) to debug.log" << endl;
       }
 
+
+
     // If expWeight == true, consider exp(Et)*C(t)
     if(inikeys.weightProps.weight)
       {
@@ -2002,6 +2038,14 @@ namespace SEMBLE
         cout << "Not shifting correlators" << endl;
       }
 
+
+    
+    // looped weighting, shifting correcting
+    if( inikeys.weightShiftCorrectProps.E_dt.size() > 0 ){
+      cout << "weighting, shifting, correcting correlators" << endl;
+      twoPoints.weightShiftCorrectCorrs( inikeys.weightShiftCorrectProps.E_dt );
+    }
+    
 
 
 
