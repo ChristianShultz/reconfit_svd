@@ -118,14 +118,14 @@ sub make_gnu {
     close(GNU);
 
     #make the window a sensible size
-    $read = `xdpyinfo  | grep \'dimensions:\'`; chomp $read;
-    ($a, $dims, $a, $a,$a) = split(' ', $read);
-    ($width, $height) = split('x', $dims);
-    $width = int( 0.9* $width);
-    $height = int( 0.9* $height);
+#    $read = `xdpyinfo  | grep \'dimensions:\'`; chomp $read;
+#    ($a, $dims, $a, $a,$a) = split(' ', $read);
+#    ($width, $height) = split('x', $dims);
+#    $width = 900;
+#    $height = 600;
 
-#$width = 900;
-#$height = 600;
+    $width = 900;
+    $height = 600;
 
 #    system("gnuplot -geometry 1500x800 -persist /tmp/histo_$random.gnu");
     system("gnuplot -geometry ${width}x${height} -persist /tmp/histo_$random.gnu");

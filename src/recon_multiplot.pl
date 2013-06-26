@@ -62,11 +62,11 @@ print OUT "pause -1\n";
 close(OUT);
 
 #make the window a sensible size
-$read = `xdpyinfo  | grep \'dimensions:\'`; chomp $read;
-($a, $dims, $a, $a,$a) = split(' ', $read);
-($width, $height) = split('x', $dims);
-$width = int( 0.9* $width);
-$height = int( 0.9* $height);
+##$read = `xdpyinfo  | grep \'dimensions:\'`; chomp $read;
+##($a, $dims, $a, $a,$a) = split(' ', $read);
+##($width, $height) = split('x', $dims);
+$width = 900;
+$height = 600;
 
 system("gnuplot -geometry ${width}x${height} -persist /tmp/multiplot_${random}.gnu");
 
