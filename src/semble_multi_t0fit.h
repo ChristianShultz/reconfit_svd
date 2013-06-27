@@ -263,7 +263,7 @@ namespace SEMBLE
 
     //std::map<int, std::string> thread_list;
 
-    #pragma omp parallel for private(t0)
+    #pragma omp parallel for private(t0) schedule(dynamic)
 
     for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
@@ -329,7 +329,7 @@ namespace SEMBLE
 
     if(inikeys.zProps.fit)
       {
-        #pragma omp parallel for private(t0)
+        #pragma omp parallel for private(t0) schedule(dynamic)
         for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
           {
 	    //std::stringstream tmp; tmp << "#######   t0= " << t0 << " sent to thread " << omp_get_thread_num() << "   ########";
@@ -397,7 +397,7 @@ namespace SEMBLE
 
 
     int state;
-    #pragma omp parallel for private(state)
+    #pragma omp parallel for private(state) schedule(dynamic) 
 
     for(state = 0; state < max_states; ++state)
       {
@@ -467,7 +467,7 @@ namespace SEMBLE
 
     int t0;
 
-    #pragma omp parallel for private(t0)
+    #pragma omp parallel for private(t0) schedule(dynamic)
 
     for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       if(reordered)
@@ -487,7 +487,7 @@ namespace SEMBLE
 
     int t0;
 
-    #pragma omp parallel for private(t0)
+    #pragma omp parallel for private(t0) schedule(dynamic)
 
     for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       if(reordered)
@@ -530,7 +530,7 @@ namespace SEMBLE
       }
 
     int t0;
-    #pragma omp parallel for private(t0)
+    #pragma omp parallel for private(t0) schedule(dynamic)
 
     for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
@@ -552,7 +552,7 @@ namespace SEMBLE
       }
 
     int t0;
-    #pragma omp parallel for private(t0)
+    #pragma omp parallel for private(t0) schedule(dynamic)
     
     for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
@@ -626,7 +626,7 @@ namespace SEMBLE
     if(!!!z_fit)
       {
         int t0;
-        #pragma omp parallel for private(t0)
+        #pragma omp parallel for private(t0) schedule(dynamic)
 
         for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
           {
@@ -652,7 +652,7 @@ namespace SEMBLE
 
     int state = 0;
 
-    #pragma omp parallel for private(state) shared(std::cout)
+    #pragma omp parallel for private(state) shared(std::cout) schedule(dynamic)
 
     for(state = 0; state < max_states; ++state)
       {
@@ -727,7 +727,7 @@ namespace SEMBLE
       }
 
     int t0;
-    #pragma omp parallel for private(t0)
+    #pragma omp parallel for private(t0) schedule(dynamic)
 
     for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
@@ -748,7 +748,7 @@ namespace SEMBLE
       }
 
     int t0;
-    #pragma omp parallel for private(t0)
+    #pragma omp parallel for private(t0) schedule(dynamic)
 
     for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
@@ -771,7 +771,7 @@ namespace SEMBLE
 
     int t0;
 
-    #pragma omp parallel for private(t0)
+    #pragma omp parallel for private(t0) schedule(dynamic)
 
     for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
@@ -851,7 +851,7 @@ namespace SEMBLE
 
     int t0;
 
-    #pragma omp parallel for private(t0)
+    #pragma omp parallel for private(t0) schedule(dynamic)
 
     for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
@@ -902,7 +902,7 @@ namespace SEMBLE
       }
 
     int t0;
-    #pragma omp parallel for private(t0)
+    #pragma omp parallel for private(t0) schedule(dynamic)
 
     for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
@@ -1081,7 +1081,7 @@ std:
       std::cout << "Making Recon Plots.." << std::endl;
 
     int t0;
-    #pragma omp parallel for private(t0)
+    #pragma omp parallel for private(t0) schedule(dynamic)
 
     for(t0 = inikeys.t0Props.t0low; t0 <= inikeys.t0Props.t0high; ++t0)
       {
