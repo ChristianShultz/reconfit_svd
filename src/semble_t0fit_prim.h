@@ -238,27 +238,32 @@ namespace SEMBLE
     //and phasing conventions, we do this for each svd case below before we 
     //do our resetting and move into the reduced subspace
 
+    _data.resize(inikeys.globalProps.tmax - inikeys.globalProps.tmin + 1); 
+    int t;
+    int toff = inikeys.globalProps.tmin; // the jlab gcc is stupid and doesnt like const vars in omp 
+
     switch(lges_hash(inikeys.genEigProps.type))
-      {
+    {
       case eCho:
-	if(!!!cholesky(Ct0, F))
-	  {
-	    std::cout << "WARNING CHOLESKY FACTORIZATION FAILED ON t0 = " << t0 << "\n EXITING..." << std::endl;
-	    exit(1);
-	  }
-        for(int t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
-          {
-            Cts = tp_[t];
-            sCt = symmetrize(Cts);
-            _data.push_back(new ChoF<double>(sCt, F, t, sort));
-          }
+        if(!!!cholesky(Ct0, F))
+        {
+          std::cout << "WARNING CHOLESKY FACTORIZATION FAILED ON t0 = " << t0 << "\n EXITING..." << std::endl;
+          exit(1);
+        }
+#pragma omp parallel for shared(t,toff) schedule(dynamic)
+        for(t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
+        {
+          Cts = tp_[t];
+          sCt = symmetrize(Cts);
+          _data[t - toff] = new ChoF<double>(sCt, F, t, sort);
+        }
 
         break;
 
       case eSvdCond:
 
         thresh = inikeys.genEigProps.thresh;
-        svdRematchingLog << svd(Ct0, U, rsp, Ud);
+        svdRematchingLog << "--\n--\n--\ndoing svd on Ct0\n" << svd(Ct0, U, rsp, Ud);
 
         path = SEMBLEIO::getPath() + std::string("/SVDLogs/");
         SEMBLEIO::makeDirectoryPath(path);
@@ -276,18 +281,19 @@ namespace SEMBLE
         RSP = diag(rsp);
         RSP.rows(M);
 
-        for(int t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
-          {
-            Cts = tp_[t];
-            sCt = symmetrize(Cts);
-            _data.push_back(new SvdF<double>(sCt, RSP, U, t, sort));
-          }
+#pragma omp parallel for shared(t,toff) schedule(dynamic)
+        for(t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
+        {
+          Cts = tp_[t];
+          sCt = symmetrize(Cts);
+          _data[t-toff] = new SvdF<double>(sCt, RSP, U, t, sort);
+        }
 
         break;
 
       case eSvdValue:
         thresh = inikeys.genEigProps.thresh;
-        svdRematchingLog << svd(Ct0, U, rsp, Ud);
+        svdRematchingLog << "--\n--\n--\ndoing svd on Ct0\n" << svd(Ct0, U, rsp, Ud);
 
         path = SEMBLEIO::getPath() + std::string("/SVDLogs/");
         SEMBLEIO::makeDirectoryPath(path);
@@ -305,18 +311,19 @@ namespace SEMBLE
         RSP = diag(rsp);
         RSP.rows(M);
 
-        for(int t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
-          {
-            Cts = tp_[t];
-            sCt = symmetrize(Cts);
-            _data.push_back(new SvdF<double>(sCt, RSP, U, t, sort));
-          }
+#pragma omp parallel for shared(t,toff) schedule(dynamic)
+        for(t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
+        {
+          Cts = tp_[t];
+          sCt = symmetrize(Cts);
+          _data[t-toff] = new SvdF<double>(sCt, RSP, U, t, sort);
+        }
 
         break;
 
       case eSvdSigma:
         sigma = inikeys.genEigProps.sigma;
-        svdRematchingLog << svd(Ct0, U, rsp, Ud);
+        svdRematchingLog << "--\n--\n--\ndoing svd on Ct0\n" << svd(Ct0, U, rsp, Ud);
 
         path = SEMBLEIO::getPath() + std::string("/SVDLogs/");
         SEMBLEIO::makeDirectoryPath(path);
@@ -334,19 +341,20 @@ namespace SEMBLE
         RSP = diag(rsp);
         RSP.rows(M);
 
-        for(int t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
-          {
-            Cts = tp_[t];
-            sCt = symmetrize(Cts);
-            _data.push_back(new SvdF<double>(sCt, RSP, U, t, sort));
-          }
+#pragma omp parallel for shared(t,toff) schedule(dynamic)
+        for(t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
+        {
+          Cts = tp_[t];
+          sCt = symmetrize(Cts);
+          _data[t-toff] = new SvdF<double>(sCt, RSP, U, t, sort);
+        }
 
         break;
 
       case eSvdSigmaValue:
         sigma = inikeys.genEigProps.sigma;
         thresh = inikeys.genEigProps.thresh;
-        svdRematchingLog << svd(Ct0, U, rsp, Ud);
+        svdRematchingLog << "--\n--\n--\ndoing svd on Ct0\n" << svd(Ct0, U, rsp, Ud);
 
         path = SEMBLEIO::getPath() + std::string("/SVDLogs/");
         SEMBLEIO::makeDirectoryPath(path);
@@ -364,12 +372,13 @@ namespace SEMBLE
         RSP = diag(rsp);
         RSP.rows(M);
 
-        for(int t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
-          {
-            Cts = tp_[t];
-            sCt = symmetrize(Cts);
-            _data.push_back(new SvdF<double>(sCt, RSP, U, t, sort));
-          }
+#pragma omp parallel for shared(t,toff) schedule(dynamic)
+        for(t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
+        {
+          Cts = tp_[t];
+          sCt = symmetrize(Cts);
+          _data[t-toff] = new SvdF<double>(sCt, RSP, U, t, sort);
+        }
 
         break;
 
@@ -377,7 +386,7 @@ namespace SEMBLE
       case eSvdSigmaCond:
         sigma = inikeys.genEigProps.sigma;
         thresh = inikeys.genEigProps.thresh;
-        svdRematchingLog << svd(Ct0, U, rsp, Ud);
+        svdRematchingLog << "--\n--\n--\ndoing svd on Ct0\n" << svd(Ct0, U, rsp, Ud);
 
         path = SEMBLEIO::getPath() + std::string("/SVDLogs/");
         SEMBLEIO::makeDirectoryPath(path);
@@ -395,12 +404,13 @@ namespace SEMBLE
         RSP = diag(rsp);
         RSP.rows(M);
 
-        for(int t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
-          {
-            Cts = tp_[t];
-            sCt = symmetrize(Cts);
-            _data.push_back(new SvdF<double>(sCt, RSP, U, t, sort));
-          }
+#pragma omp parallel for shared(t,toff) schedule(dynamic)
+        for(t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
+        {
+          Cts = tp_[t];
+          sCt = symmetrize(Cts);
+          _data[t-toff] = new SvdF<double>(sCt, RSP, U, t, sort);
+        }
 
         break;
 
@@ -409,102 +419,134 @@ namespace SEMBLE
         std::cout << "Unsupported generalized eigen problem solution type, defaulting to Cholesky" << std::endl;
         cholesky(Ct0, F);
 
-        for(int t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
-          {
-            Cts = tp_[t];
-            sCt = symmetrize(Cts);
-            _data.push_back(new ChoF<double>(sCt, F, t, sort));
-          }
+#pragma omp parallel for shared(t,toff) schedule(dynamic)
+        for(t = inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax; ++t)
+        {
+          Cts = tp_[t];
+          sCt = symmetrize(Cts);
+          _data[t-toff] = new ChoF<double>(sCt, F, t, sort);
+        }
 
-      }//end switch
+    }//end switch
+
+
+
   }//end load
 
   template<class T>
-  void ST0FitPrim<T>::solve(void)
-  {
-    initChk();
+    void ST0FitPrim<T>::solve(void)
+    {
+      initChk();
 
-    if(inikeys.globalProps.verbose)
-      std::cout << "Solving the generalized eigen problem using " << inikeys.genEigProps.type << ".." << std::endl;
+      if(inikeys.globalProps.verbose)
+        std::cout << "Solving the generalized eigen problem using " << inikeys.genEigProps.type << ".." << std::endl;
 
-    if(!!!solved)
+      if(!!!solved)
       {
-        typename std::vector<ST0Base<T>* >::iterator it;
 
-        for(it = _data.begin(); it != _data.end(); ++it)
-          (*it)->eval();
+        int t;
+#pragma omp parallel for shared(t)
+        for(t = 0; t < _data.size(); ++t)
+          _data[t]->eval();
 
         solved = true;
       }
-  }
 
-  template<class T>
-  void ST0FitPrim<T>::sort_solved(void)   //NB _data[index], index runs [0,inikeys.globalProps.tmax] so need to include possible offsets
-  {
-    initChk();
 
-    if(!!!solved)
-      solve();
+      typename std::vector<ST0Base<T>* >::const_iterator it; 
 
-    if(inikeys.globalProps.verbose)
-      std::cout << "sorting on timeslices using " << inikeys.sortingProps.sortEvecsTimeslice << std::endl;
-
-    typename std::vector<ST0Base<T>* >::iterator it;
-    ST0Base<T> *ptr, *ptrRef;
-
-    switch(lset_hash(inikeys.sortingProps.sortEvecsTimeslice))
+      // pump out log files -- single thread so we dont piss off the file system too much
+      for(it = _data.begin(); it != _data.end(); ++it)
       {
-      case eNone: 
-	for(it = _data.begin(); it != _data.end(); ++it)
-	  {
-	    if((*it)->getT() >= t0)
-	      reorderEigenValues((*it)->evals(), (*it)->w(), (*it)->evecs(), false);
-	    else
-	      reorderEigenValues((*it)->evals(), (*it)->w(), (*it)->evecs(), true);
-	  }
-        break;
-
-      case eRefvecs_Moving: //phase starting with t0 -1 and carry it forward (backwards)
-
-	//enforce the convention that the lowest state is indexed by 0
-	ptrRef = _data[t0 - 1 - inikeys.globalProps.tmin];
-	reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),true);
+        std::stringstream path;  
+        path << SEMBLEIO::getPath() + std::string("/SVDLogs/");
+        SEMBLEIO::makeDirectoryPath(path.str());
+        path << "t_logs_t0" << t0 << "/";
+        SEMBLEIO::makeDirectoryPath(path.str());
+        path << "svdRematchingLog_t0" << t0 << "__t" << (*it)->get_t() << ".log";
+        std::ofstream out;
+        out.open(path.str().c_str());
+        out << (*it)->get_log();
+        out.close();
+      }
+    }
 
 
-	//rephase/reoder from t0-1 to inikeys.globalProps.tmin
-        for(int t = t0 - 2 - inikeys.globalProps.tmin; t >= 0; --t)
+  // this looks like it should be parallelized -- someday CJS should do it
+  template<class T>
+    void ST0FitPrim<T>::sort_solved(void)   //NB _data[index], index runs [0,inikeys.globalProps.tmax] so need to include possible offsets
+    {
+      initChk();
+
+      if(!!!solved)
+        solve();
+
+      if(inikeys.globalProps.verbose)
+        std::cout << "sorting on timeslices using " << inikeys.sortingProps.sortEvecsTimeslice << std::endl;
+    
+      std::stringstream matchlog; 
+
+      typename std::vector<ST0Base<T>* >::iterator it;
+      ST0Base<T> *ptr, *ptrRef;
+
+      switch(lset_hash(inikeys.sortingProps.sortEvecsTimeslice))
+      {
+        case eNone: 
+          for(it = _data.begin(); it != _data.end(); ++it)
+          {
+            if((*it)->getT() >= t0)
+              reorderEigenValues((*it)->evals(), (*it)->w(), (*it)->evecs(), false);
+            else
+              reorderEigenValues((*it)->evals(), (*it)->w(), (*it)->evecs(), true);
+          }
+          break;
+
+        case eRefvecs_Moving: //phase starting with t0 -1 and carry it forward (backwards)
+
+          //enforce the convention that the lowest state is indexed by 0
+          ptrRef = _data[t0 - 1 - inikeys.globalProps.tmin];
+          reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),true);
+
+
+          //rephase/reoder from t0-1 to inikeys.globalProps.tmin
+          for(int t = t0 - 2 - inikeys.globalProps.tmin; t >= 0; --t)
           {
             ptrRef = _data[t + 1];
             ptr = _data[t];
-            matchEigenVectorsEnsembleMetric(Ct0, ptrRef->evecs(), ptr->evecs(), ptr->evals());
+            matchlog << "--\n--\n--   tr = " << t + 1 + inikeys.globalProps.tmin
+              << " t = " << t + inikeys.globalProps.tmin 
+              << matchEigenVectorsEnsembleMetric(Ct0, ptrRef->evecs(), ptr->evecs(), ptr->evals());
           }
 
-        //the gen eig solution is junk on t = t0 so skip it, put phase/order from t0-1 to t0+1
-        matchEigenVectorsEnsembleMetric(Ct0,
-                                        (_data[t0 - 1 - inikeys.globalProps.tmin])->evecs(),
-                                        (_data[t0 + 1 - inikeys.globalProps.tmin])->evecs(),
-                                        (_data[t0 + 1 - inikeys.globalProps.tmin])->evals());
-	
-	//carry the phase from t0+1 forward to inikeys.globalProps.tmax
-        for(int t = t0 + 2 - inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax - inikeys.globalProps.tmin; ++t)
+          //the gen eig solution is junk on t = t0 so skip it, put phase/order from t0-1 to t0+1
+          matchlog << "--\n--\n--   tr = " << t0 - 1 << " t = " << t0 + 1  
+            << matchEigenVectorsEnsembleMetric(Ct0,
+                (_data[t0 - 1 - inikeys.globalProps.tmin])->evecs(),
+                (_data[t0 + 1 - inikeys.globalProps.tmin])->evecs(),
+                (_data[t0 + 1 - inikeys.globalProps.tmin])->evals());
+
+          //carry the phase from t0+1 forward to inikeys.globalProps.tmax
+          for(int t = t0 + 2 - inikeys.globalProps.tmin; t <= inikeys.globalProps.tmax - inikeys.globalProps.tmin; ++t)
           {
             ptrRef = _data[t - 1];
             ptr = _data[t];
-            matchEigenVectorsEnsembleMetric(Ct0, ptrRef->evecs(), ptr->evecs(), ptr->evals());
+            matchlog << "--\n--\n--   tr = " << t - 1 + inikeys.globalProps.tmin
+              << " t = " << t + inikeys.globalProps.tmin 
+              <<matchEigenVectorsEnsembleMetric(Ct0, ptrRef->evecs(), ptr->evecs(), ptr->evals());
           }
 
-        break;
+          break;
 
-      case eRefvecs_Fixed:
+        case eRefvecs_Fixed:
 
-	//enforce the convention that the lowest state is indexed by 0
-        ptrRef = _data[t0 + inikeys.sortingProps.deltaRef - inikeys.globalProps.tmin];
-	if(ptrRef->getT() >= t0)
-	  reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),false);
-	else
-	  reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),true);
+          //enforce the convention that the lowest state is indexed by 0
+          ptrRef = _data[t0 + inikeys.sortingProps.deltaRef - inikeys.globalProps.tmin];
+          if(ptrRef->getT() >= t0)
+            reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),false);
+          else
+            reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),true);
 
-        for(int t = 0; t <= inikeys.globalProps.tmax  - inikeys.globalProps.tmin; ++t)
+          for(int t = 0; t <= inikeys.globalProps.tmax  - inikeys.globalProps.tmin; ++t)
           {
             if(t == t0 - inikeys.globalProps.tmin) //skip b/c its junk
               continue;
@@ -513,139 +555,160 @@ namespace SEMBLE
               continue;
 
             ptr = _data[t];
-            matchEigenVectorsEnsembleMetric(Ct0, ptrRef->evecs(), ptr->evecs(), ptr->evals());
+            matchlog << "--\n--\n--   tr = " << t0 + inikeys.sortingProps.deltaRef
+              << " t = " << t + inikeys.globalProps.tmin 
+              << matchEigenVectorsEnsembleMetric(Ct0, ptrRef->evecs(), ptr->evecs(), ptr->evals());
           }
 
-        break;
+          break;
 
-      case eRefvecs_Fixed_Auto:
-
-	//enforce the convention that the lowest state is indexed by 0
-        ptrRef = _data[findRefT() - inikeys.globalProps.tmin];
-	if(ptrRef->getT() >= t0)
-	  reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),false);
-	else
-	  reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),true);
-
-        for(int t = 0; t <= inikeys.globalProps.tmax - inikeys.globalProps.tmin; ++t)
+        case eRefvecs_Fixed_Auto:
           {
-            if(t == t0  - inikeys.globalProps.tmin)
-              continue;
+            //enforce the convention that the lowest state is indexed by 0
+            int refT = findRefT(); 
+            ptrRef = _data[refT - inikeys.globalProps.tmin];
+            if(ptrRef->getT() >= t0)
+              reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),false);
+            else
+              reorderEigenValues(ptrRef->evals(),ptrRef->w(),ptrRef->evecs(),true);
 
-            ptr = _data[t];
-            matchEigenVectorsEnsembleMetric(Ct0, ptrRef->evecs(), ptr->evecs(), ptr->evals());
+            for(int t = 0; t <= inikeys.globalProps.tmax - inikeys.globalProps.tmin; ++t)
+            {
+              if(t == t0  - inikeys.globalProps.tmin)
+                continue;
+
+              ptr = _data[t];
+              matchlog << "--\n--\n--   tr = " << refT << " t = " << t + inikeys.globalProps.tmin 
+                << matchEigenVectorsEnsembleMetric(Ct0, ptrRef->evecs(), ptr->evecs(), ptr->evals());
+            }
+
+            break;
           }
-
-        break;
+        default:
+          std::cerr << "you open a door to a roomfull of orcs and are slain" 
+            << "\n seriously though what did you do to get this error" << std::endl;
+          exit(1); 
       }//end switch
 
-  }
+
+        std::stringstream path;  
+        path << SEMBLEIO::getPath() + std::string("/t0");
+        path << t0 << "/";
+        SEMBLEIO::makeDirectoryPath(path.str());
+        path << "t_2_t_eigenvector_reordering" << ".log";
+        std::ofstream out;
+        out.open(path.str().c_str());
+        out << matchlog.str();
+        out.close();
+
+
+    }
 
   template<class T>
-  void ST0FitPrim<T>::clear(void)
-  {
-    clear_data();
-    Ct0 = SembleMatrix<T>(1,1,1);
-    N = M = B = t0 = 0;
-    init = solved = false;
-    svdRematchingLog.str(std::string());
-  }
+    void ST0FitPrim<T>::clear(void)
+    {
+      clear_data();
+      Ct0 = SembleMatrix<T>(1,1,1);
+      N = M = B = t0 = 0;
+      init = solved = false;
+      svdRematchingLog.str(std::string());
+    }
 
   //private
 
   template<class T>
-  void ST0FitPrim<T>::clear_data(void)   //need to delete the pointers before clearing the vector..
-  {
-    typename std::vector<ST0Base<T>* >::iterator it;
+    void ST0FitPrim<T>::clear_data(void)   //need to delete the pointers before clearing the vector..
+    {
+      typename std::vector<ST0Base<T>* >::iterator it;
 
-    for(it = _data.begin(); it != _data.end(); ++it)
-      delete *it;
+      for(it = _data.begin(); it != _data.end(); ++it)
+        delete *it;
 
-    _data.clear();
-  }
+      _data.clear();
+    }
 
   template<class T>
-  void ST0FitPrim<T>::initChk(void) const
-  {
-    if(!!!init)
+    void ST0FitPrim<T>::initChk(void) const
+    {
+      if(!!!init)
       {
         std::cout << __PRETTY_FUNCTION__ << " need to initialize" << std::endl;
         exit(1);
       }
-  }
+    }
 
   template<class T>
-  void ST0FitPrim<T>::solveChk(void) const
-  {
-    if(!!!solved)
+    void ST0FitPrim<T>::solveChk(void) const
+    {
+      if(!!!solved)
       {
         std::cout << __PRETTY_FUNCTION__ << " need to solve" << std::endl;
         exit(1);
       }
-  }
+    }
 
   template<class T>
-  bool ST0FitPrim<T>::sortEvecsCfg(void) const
-  {
+    bool ST0FitPrim<T>::sortEvecsCfg(void) const
+    {
 
-    if(!!!init)
+      if(!!!init)
       {
         std::cout << "Problem not initialized in " << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << std::endl;
         exit(1);
       }
 
-    bool r = true;
+      bool r = true;
 
-    switch(lspscfg_hash(inikeys.sortingProps.sortEvecsCfg))
+      switch(lspscfg_hash(inikeys.sortingProps.sortEvecsCfg))
       {
-      case eNoneCfg:
-        r = false;
-        break;
-      case eRefvecsCfg: //this is the err condition in the 'hash'
-        r = true;
-        break;
+        case eNoneCfg:
+          r = false;
+          break;
+        case eRefvecsCfg: //this is the err condition in the 'hash'
+          r = true;
+          break;
       }
 
-    return r;
-  }
+      return r;
+    }
 
   template<class T>
-  int ST0FitPrim<T>::findRefT(void) const
-  {
-    if(inikeys.globalProps.verbose)
-      std::cout << "Finding a suitable reference t close to t0" << std::endl;
+    int ST0FitPrim<T>::findRefT(void) const
+    {
+      if(inikeys.globalProps.verbose)
+        std::cout << "Finding a suitable reference t close to t0" << std::endl;
 
-    typename std::map<int, SembleMatrix<T> > tvecs;
-    typename std::vector<ST0Base<T>* >::const_iterator it;
+      typename std::map<int, SembleMatrix<T> > tvecs;
+      typename std::vector<ST0Base<T>* >::const_iterator it;
 
-    //now we have a map of where the key is time and the data is the generalized eigenvector
-    for(it = _data.begin(); it != _data.end(); ++it)
-      tvecs[(*it)->getT()] = (*it)->getEvecs();
+      //now we have a map of where the key is time and the data is the generalized eigenvector
+      for(it = _data.begin(); it != _data.end(); ++it)
+        tvecs[(*it)->getT()] = (*it)->getEvecs();
 
-    //sort all of the generalized eigenvectors that we have access too
-    typename std::map<int, SembleMatrix<T> >::iterator mapit;
-    typename std::map<int, SembleMatrix<T> >::const_iterator refit;
-    SembleVector<T> dum = (*_data[0]).getEvals();
-    refit = tvecs.begin();
+      //sort all of the generalized eigenvectors that we have access too
+      typename std::map<int, SembleMatrix<T> >::iterator mapit;
+      typename std::map<int, SembleMatrix<T> >::const_iterator refit;
+      SembleVector<T> dum = (*_data[0]).getEvals();
+      refit = tvecs.begin();
 
-    for(mapit = tvecs.begin(); mapit != tvecs.end(); ++mapit)
-      matchEigenVectorsEnsembleMetric(Ct0, refit->second, mapit->second, dum);
+      for(mapit = tvecs.begin(); mapit != tvecs.end(); ++mapit)
+        matchEigenVectorsEnsembleMetric(Ct0, refit->second, mapit->second, dum);
 
-    //now we have the overlaps and variance for each vector onto itself
-    typename std::map<int, std::pair<itpp::Vec<T>, itpp::Vec<T> > > mandv;
+      //now we have the overlaps and variance for each vector onto itself
+      typename std::map<int, std::pair<itpp::Vec<T>, itpp::Vec<T> > > mandv;
 
-    for(int t = inikeys.globalProps.tmin; t < inikeys.globalProps.tmax; ++t)
+      for(int t = inikeys.globalProps.tmin; t < inikeys.globalProps.tmax; ++t)
       {
         SembleVector<T> dum = diag(adj(tvecs[t]) * Ct0 * tvecs[t + 1]);
         mandv[t] = std::pair<itpp::Vec<T>, itpp::Vec<T> >(mean(dum), variance(dum));
       }
 
-    //now lets find tbest
-    int tbest = t0 + 1;
-    double bcomp = itpp::sum(mandv[tbest - 2].second) + itpp::sum(mandv[tbest].second);
+      //now lets find tbest
+      int tbest = t0 + 1;
+      double bcomp = itpp::sum(mandv[tbest - 2].second) + itpp::sum(mandv[tbest].second);
 
-    // search +/- 7 tslices of t0
-    for(int t = t0 - 7; t < t0 + 7; ++t)
+      // search +/- 7 tslices of t0
+      for(int t = t0 - 7; t < t0 + 7; ++t)
       {
         if((t < inikeys.globalProps.tmin) || (t == t0) || (t > inikeys.globalProps.tmax))
           continue;
@@ -659,37 +722,37 @@ namespace SEMBLE
         comp = itpp::sum(mandv[tm].second) + itpp::sum(mandv[t].second);
 
         if(comp < bcomp)
-          {
-            bcomp = comp;
-            tbest = t;
-          }
+        {
+          bcomp = comp;
+          tbest = t;
+        }
       }
 
-    return tbest;
-  }
+      return tbest;
+    }
 
   template<class T>
-  void ST0FitPrim<T>::makeSVDHistos(const SembleVector<double> &svals) const
-  {
+    void ST0FitPrim<T>::makeSVDHistos(const SembleVector<double> &svals) const
+    {
 
 
-    std::pair<std::vector<double>, std::vector<double> > range = findRange(svals);
-    std::vector<int> bins(svals.getN(), inikeys.genEigProps.nHistoBins);
+      std::pair<std::vector<double>, std::vector<double> > range = findRange(svals);
+      std::vector<int> bins(svals.getN(), inikeys.genEigProps.nHistoBins);
 
-    SembleMultiHisto histo(range.first, range.second, bins);
-    histo.Add(svals);
+      SembleMultiHisto histo(range.first, range.second, bins);
+      histo.Add(svals);
 
-    std::vector<std::string> histograms = histo.genHisto();
+      std::vector<std::string> histograms = histo.genHisto();
 
-    std::string path = SEMBLEIO::getPath();
-    std::stringstream ss;
-    ss << "t0" << t0 << "/";
-    path += ss.str();
-    SEMBLEIO::makeDirectoryPath(path);
-    path += std::string("SVDHistos/");
-    SEMBLEIO::makeDirectoryPath(path);
+      std::string path = SEMBLEIO::getPath();
+      std::stringstream ss;
+      ss << "t0" << t0 << "/";
+      path += ss.str();
+      SEMBLEIO::makeDirectoryPath(path);
+      path += std::string("SVDHistos/");
+      SEMBLEIO::makeDirectoryPath(path);
 
-    for(int elem = 0; elem < histograms.size(); ++elem)
+      for(int elem = 0; elem < histograms.size(); ++elem)
       {
         std::stringstream fname;
         std::ofstream out;
@@ -702,106 +765,106 @@ namespace SEMBLE
         file << path << "svdSingluarValue_" << elem << "_t0" << t0 << ".jack";
         write(file.str(), svals.getEnsemElement(elem));
       }
-  }
+    }
 
   template<class T>   //hash the result for something useful in a switch
-  eload_gen_eig_string ST0FitPrim<T>::lges_hash(const std::string &in) const
-  {
-    if(in == "Cho") return eCho;
+    eload_gen_eig_string ST0FitPrim<T>::lges_hash(const std::string &in) const
+    {
+      if(in == "Cho") return eCho;
 
-    if(in == "Cholesky") return eCho;
+      if(in == "Cholesky") return eCho;
 
-    if(in == "SvdCond") return eSvdCond;
+      if(in == "SvdCond") return eSvdCond;
 
-    if(in == "SvdValue") return eSvdValue;
+      if(in == "SvdValue") return eSvdValue;
 
-    if(in == "SvdSigma") return eSvdSigma;
+      if(in == "SvdSigma") return eSvdSigma;
 
-    if(in == "SvdSigmaValue") return eSvdSigmaValue;
+      if(in == "SvdSigmaValue") return eSvdSigmaValue;
 
-    if(in == "SvdSigmaCond") return eSvdSigmaCond;
+      if(in == "SvdSigmaCond") return eSvdSigmaCond;
 
-    std::cout << __PRETTY_FUNCTION__ << "key: " << in << " is not a supported type" << std::endl;
+      std::cout << __PRETTY_FUNCTION__ << "key: " << in << " is not a supported type" << std::endl;
 
-    return eGenErr;
-  }
+      return eGenErr;
+    }
 
   template<class T> //hash the result
-  eload_sorting_props_stringCfg ST0FitPrim<T>::lspscfg_hash(const std::string &in) const
-  {
-    if(in == "None") return eNoneCfg;
+    eload_sorting_props_stringCfg ST0FitPrim<T>::lspscfg_hash(const std::string &in) const
+    {
+      if(in == "None") return eNoneCfg;
 
-    if(in == "Refvecs") return eRefvecsCfg;
+      if(in == "Refvecs") return eRefvecsCfg;
 
-    std::cout << in << " is not a supported type, defaulting to Refvecs" << std::endl;
+      std::cout << in << " is not a supported type, defaulting to Refvecs" << std::endl;
 
-    return eRefvecsCfg; //default
-  }
-  
+      return eRefvecsCfg; //default
+    }
+
   template<class T> //hash the result
-  eload_sort_evecs_tslice ST0FitPrim<T>::lset_hash(const std::string &in) const
-  {
-    if(in == "None") return eNone;
+    eload_sort_evecs_tslice ST0FitPrim<T>::lset_hash(const std::string &in) const
+    {
+      if(in == "None") return eNone;
 
-    if(in == "Refvecs_Moving") return eRefvecs_Moving;
+      if(in == "Refvecs_Moving") return eRefvecs_Moving;
 
-    if(in == "Refvecs_Fixed") return eRefvecs_Fixed;
+      if(in == "Refvecs_Fixed") return eRefvecs_Fixed;
 
-    if(in == "Refvecs_Fixed_Auto") return eRefvecs_Fixed_Auto;
+      if(in == "Refvecs_Fixed_Auto") return eRefvecs_Fixed_Auto;
 
-    std::cout << in << " is not a supported type, defaulting to Refvecs_Fixed" << std::endl;
+      std::cout << in << " is not a supported type, defaulting to Refvecs_Fixed" << std::endl;
 
-    return eRefvecs_Fixed; //default
-  }
+      return eRefvecs_Fixed; //default
+    }
 
   template<class T>
-  std::vector<SembleVector<double> > ST0FitPrim<T>::getEvals(void)
-  {
-    if(!!!solved)
+    std::vector<SembleVector<double> > ST0FitPrim<T>::getEvals(void)
+    {
+      if(!!!solved)
       {
         initChk();
         solve();
         sort_solved();
       }
 
-    std::vector<SembleVector<double> > dum;
+      std::vector<SembleVector<double> > dum;
 
-    SembleVector<double> one(B, M);
-    one.ones();
+      SembleVector<double> one(B, M);
+      one.ones();
 
-    for(int i = 0; i < inikeys.globalProps.tmin; ++i)
-      dum.push_back(one);
+      for(int i = 0; i < inikeys.globalProps.tmin; ++i)
+        dum.push_back(one);
 
 
-    for(int t = 0; t <= inikeys.globalProps.tmax - inikeys.globalProps.tmin; ++t)
-      dum.push_back(_data[t]->getEvals());
+      for(int t = 0; t <= inikeys.globalProps.tmax - inikeys.globalProps.tmin; ++t)
+        dum.push_back(_data[t]->getEvals());
 
-    return dum;
-  }
+      return dum;
+    }
 
   template<class T>
-  typename std::vector<SembleMatrix<T> > ST0FitPrim<T>::getEvecs(void)
-  {
-    if(!!!solved)
+    typename std::vector<SembleMatrix<T> > ST0FitPrim<T>::getEvecs(void)
+    {
+      if(!!!solved)
       {
         initChk();
         solve();
         sort_solved();
       }
 
-    typename std::vector<SembleMatrix<T> > dum;
+      typename std::vector<SembleMatrix<T> > dum;
 
-    SembleMatrix<T> one(B,N, M);
-    one.ones();
+      SembleMatrix<T> one(B,N, M);
+      one.ones();
 
-    for(int i = 0; i < inikeys.globalProps.tmin; ++i)
-      dum.push_back(one);
+      for(int i = 0; i < inikeys.globalProps.tmin; ++i)
+        dum.push_back(one);
 
-    for(int t = 0; t <= inikeys.globalProps.tmax - inikeys.globalProps.tmin; ++t)
-      dum.push_back(_data[t]->getEvecs());
+      for(int t = 0; t <= inikeys.globalProps.tmax - inikeys.globalProps.tmin; ++t)
+        dum.push_back(_data[t]->getEvecs());
 
-    return dum;
-  }
+      return dum;
+    }
 
 
 }

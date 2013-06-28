@@ -83,11 +83,14 @@ namespace SEMBLE
     virtual std::string echo(void) const = 0;
     virtual void eval(void) = 0;
     virtual ST0Base<T>* clone(void) const = 0;
+    virtual std::string get_log(void) const = 0; 
+    virtual int get_t(void) const = 0; 
 
   public:                                       //data members need to be public b/c this is effectively a fancy container class
     SembleMatrix<T> Ct, Ct0, W, V, F, U;        //possible ensembles
     SembleVector<double> eVals;                 //doing it this way will make t0fitting look cleaner and easier to implement
     SembleMatrix<double> RSP;
+    std::string log;
     int t;
     bool sort, init, solved;
   };
@@ -241,9 +244,14 @@ namespace SEMBLE
       return new ChoF<T>(*this);
     }
 
+    std::string get_log(void) const {return log;}
+
+    int get_t(void) const {return t;} 
+
   public:
     SembleMatrix<T> Ct, W, V, F;
     SembleVector<double> eVals;
+    std::string log; 
     int t;
     bool sort, init, solved;
   };
@@ -273,6 +281,7 @@ namespace SEMBLE
             {
               W = o.W;
               V = o.V;
+              log = o.log; 
               eVals = o.eVals;
             }
         }
@@ -299,6 +308,7 @@ namespace SEMBLE
                 {
                   W = o.W;
                   V = o.V;
+                  log = o.log;
                   eVals = o.eVals;
                 }
             }
@@ -391,17 +401,22 @@ namespace SEMBLE
         }
 
       solved = true;
-      genEigSvdF(Ct, RSP, U, V, W, eVals, sort);
+      log = genEigSvdF(Ct, RSP, U, V, W, eVals, sort);
     }
     SvdF<T>* clone(void) const
     {
       return new SvdF<T>(*this);
     }
 
+    std::string get_log(void) const {return log;}
+
+    int get_t(void) const {return t;} 
+
   public:
     SembleMatrix<T> Ct, W, V, U;
     SembleMatrix<double> RSP;
     SembleVector<double> eVals;
+    std::string log; 
     int t;
     bool sort, init, solved;
   };
