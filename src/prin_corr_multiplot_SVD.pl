@@ -99,8 +99,8 @@ sub make_gnu_from_ax{
 
     #label text
     my $line = `cat $filename | grep 'gx'`;
-    my ($junk, $chisq, $Z) = split('=', $line);
-    chop $chisq; chop $chisq; chop $chisq;
+    my ($junk, $chisq, $junk2,$Z) = split('=', $line);
+    chop $chisq; chop $chisq; chop $chisq; chop $chisq; chop $chisq; chop $chisq; 
     chop $Z;
     my($Zval, $Zerr) = split('\+-', $Z);
     chop $Zval; chop $Zerr;
