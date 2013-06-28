@@ -420,6 +420,6 @@ namespace SEMBLE
     int t;
     bool sort, init, solved;
   };
-
+   
 }
 #endif
