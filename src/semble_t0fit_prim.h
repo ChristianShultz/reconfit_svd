@@ -196,6 +196,8 @@ namespace SEMBLE
               _data.push_back((*it)->clone());
           }
       }
+
+    return *this;
   }
 
 
