@@ -21,7 +21,9 @@
 #include<iostream>
 #include<string>
 
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 namespace SEMBLE
 {
@@ -250,8 +252,8 @@ namespace SEMBLE
     init = true;
     int t0;
 
+#ifdef _OPENMP
     int maxThreads = omp_get_max_threads();
-  
 
     if( (inikeys.t0Props.nThreads > 0) && ( inikeys.t0Props.nThreads < maxThreads ) ){
       omp_set_num_threads(inikeys.t0Props.nThreads);
@@ -260,6 +262,7 @@ namespace SEMBLE
     else{
         std::cout << "USING THE MAX THREADS = " << maxThreads << std::endl;
     }
+#endif
 
     //std::map<int, std::string> thread_list;
 
