@@ -356,7 +356,8 @@ sub write_data{
   }
   print DATA "\n";
 
-  foreach $state (@states){
+  # cjs, do a sort so that the states come out ordered by mass 
+  foreach $state ( sort { get_masses($a) <=> get_masses($b) } @states){
     $mass = &get_masses($state);
     print DATA "[${state}]${mass}  ";
     foreach $key (sort {$a <=> $b} keys %opnames){

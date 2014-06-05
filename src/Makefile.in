@@ -33,7 +33,8 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 bin_PROGRAMS = semble_vfit$(EXEEXT) effective_mass_onecorr$(EXEEXT) \
-	eff_mass_from_proj_ops$(EXEEXT) recon_util$(EXEEXT)
+	eff_mass_from_proj_ops$(EXEEXT) recon_util$(EXEEXT) \
+	proj_overlap_sign$(EXEEXT)
 noinst_PROGRAMS =
 check_PROGRAMS =
 EXTRA_PROGRAMS =
@@ -59,6 +60,11 @@ am_effective_mass_onecorr_OBJECTS = effective_mass_onecorr.$(OBJEXT) \
 effective_mass_onecorr_OBJECTS = $(am_effective_mass_onecorr_OBJECTS)
 effective_mass_onecorr_LDADD = $(LDADD)
 effective_mass_onecorr_DEPENDENCIES =
+am_proj_overlap_sign_OBJECTS = proj_overlap_sign.$(OBJEXT) \
+	semble_load_correlators.$(OBJEXT) semble_fit_ini_xml.$(OBJEXT)
+proj_overlap_sign_OBJECTS = $(am_proj_overlap_sign_OBJECTS)
+proj_overlap_sign_LDADD = $(LDADD)
+proj_overlap_sign_DEPENDENCIES =
 am_recon_util_OBJECTS = recon_util.$(OBJEXT) \
 	semble_load_correlators.$(OBJEXT) semble_fit_ini_xml.$(OBJEXT)
 recon_util_OBJECTS = $(am_recon_util_OBJECTS)
@@ -79,11 +85,11 @@ CXXLD = $(CXX)
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
 	-o $@
 SOURCES = $(eff_mass_from_proj_ops_SOURCES) \
-	$(effective_mass_onecorr_SOURCES) $(recon_util_SOURCES) \
-	$(semble_vfit_SOURCES)
+	$(effective_mass_onecorr_SOURCES) $(proj_overlap_sign_SOURCES) \
+	$(recon_util_SOURCES) $(semble_vfit_SOURCES)
 DIST_SOURCES = $(eff_mass_from_proj_ops_SOURCES) \
-	$(effective_mass_onecorr_SOURCES) $(recon_util_SOURCES) \
-	$(semble_vfit_SOURCES)
+	$(effective_mass_onecorr_SOURCES) $(proj_overlap_sign_SOURCES) \
+	$(recon_util_SOURCES) $(semble_vfit_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -207,6 +213,7 @@ LDADD = @SEMBLE_LIBS@ @JACKFITTER_LIBS@ @ADAT_LIBS@  @ITPP_LIBS@ @LIBS@
 semble_vfit_SOURCES = semble_vfit.cc semble_load_correlators.cc semble_fit_ini_xml.cc
 effective_mass_onecorr_SOURCES = effective_mass_onecorr.cc semble_load_correlators.cc semble_fit_ini_xml.cc
 eff_mass_from_proj_ops_SOURCES = eff_mass_from_proj_ops.cc semble_load_correlators.cc semble_fit_ini_xml.cc
+proj_overlap_sign_SOURCES = proj_overlap_sign.cc semble_load_correlators.cc semble_fit_ini_xml.cc
 recon_util_SOURCES = recon_util.cc semble_load_correlators.cc semble_fit_ini_xml.cc
 
 #
@@ -298,6 +305,9 @@ eff_mass_from_proj_ops$(EXEEXT): $(eff_mass_from_proj_ops_OBJECTS) $(eff_mass_fr
 effective_mass_onecorr$(EXEEXT): $(effective_mass_onecorr_OBJECTS) $(effective_mass_onecorr_DEPENDENCIES) 
 	@rm -f effective_mass_onecorr$(EXEEXT)
 	$(CXXLINK) $(effective_mass_onecorr_OBJECTS) $(effective_mass_onecorr_LDADD) $(LIBS)
+proj_overlap_sign$(EXEEXT): $(proj_overlap_sign_OBJECTS) $(proj_overlap_sign_DEPENDENCIES) 
+	@rm -f proj_overlap_sign$(EXEEXT)
+	$(CXXLINK) $(proj_overlap_sign_OBJECTS) $(proj_overlap_sign_LDADD) $(LIBS)
 recon_util$(EXEEXT): $(recon_util_OBJECTS) $(recon_util_DEPENDENCIES) 
 	@rm -f recon_util$(EXEEXT)
 	$(CXXLINK) $(recon_util_OBJECTS) $(recon_util_LDADD) $(LIBS)
@@ -313,6 +323,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eff_mass_from_proj_ops.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/effective_mass_onecorr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/proj_overlap_sign.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/recon_util.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semble_fit_ini_xml.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semble_load_correlators.Po@am__quote@
