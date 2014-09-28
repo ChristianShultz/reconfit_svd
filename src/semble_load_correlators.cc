@@ -1269,8 +1269,9 @@ namespace SEMBLE
                     keys[count].npoint[1].irrep.mom         = momList[i_mom];
                     keys[count].npoint[1].irrep.creation_op = false;
                     keys[count].npoint[1].irrep.smearedP    = opsxml[j_snk].smearedP;
-                    keys[count].npoint[1].irrep.CGs         = opsxml[j_snk].CGs;
-                    keys[count].npoint[1].irrep.ops         = opsxml[j_snk].ops;
+                    keys[count].npoint[1].irrep.op          = opsxml[j_snk].op;
+                    //keys[count].npoint[1].irrep.CGs         = opsxml[j_snk].CGs;
+                    //keys[count].npoint[1].irrep.ops         = opsxml[j_snk].ops;
 
                     // The source op
                     keys[count].npoint[2].t_slice           = keyParams.source_tslice;
@@ -1279,8 +1280,9 @@ namespace SEMBLE
                     keys[count].npoint[2].irrep.mom         = momList[i_mom];
                     keys[count].npoint[2].irrep.creation_op = true;
                     keys[count].npoint[2].irrep.smearedP    = opsxml[j_src].smearedP;
-                    keys[count].npoint[2].irrep.CGs         = opsxml[j_src].CGs;
-                    keys[count].npoint[2].irrep.ops         = opsxml[j_src].ops;
+                    keys[count].npoint[2].irrep.op          = opsxml[j_src].op;
+                    //keys[count].npoint[2].irrep.CGs         = opsxml[j_src].CGs;
+                    //keys[count].npoint[2].irrep.ops         = opsxml[j_src].ops;
 
                     count++;
                   } // loop over i_mom
