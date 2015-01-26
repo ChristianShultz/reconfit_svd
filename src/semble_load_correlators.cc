@@ -1250,7 +1250,7 @@ namespace SEMBLE
     Array<Hadron::KeyHadronNPartNPtCorr_t> keys(nkeys);
     int count = 0;
 
-    for(int j_src = 0; j_src < dim; j_src++)
+    for(int j_src =  0; j_src < dim; j_src++)
       {
         for(int j_snk = 0; j_snk < dim; j_snk++)
           {
@@ -1269,9 +1269,16 @@ namespace SEMBLE
                     keys[count].npoint[1].irrep.mom         = momList[i_mom];
                     keys[count].npoint[1].irrep.creation_op = false;
                     keys[count].npoint[1].irrep.smearedP    = opsxml[j_snk].smearedP;
+<<<<<<< HEAD
                     keys[count].npoint[1].irrep.op          = opsxml[j_snk].op;
                     //keys[count].npoint[1].irrep.CGs         = opsxml[j_snk].CGs;
                     //keys[count].npoint[1].irrep.ops         = opsxml[j_snk].ops;
+=======
+
+                    keys[count].npoint[1].irrep.op.CGs         = opsxml[j_snk].op.CGs;
+                    keys[count].npoint[1].irrep.op.ops         = opsxml[j_snk].op.ops;
+
+>>>>>>> devel
 
                     // The source op
                     keys[count].npoint[2].t_slice           = keyParams.source_tslice;
@@ -1280,9 +1287,14 @@ namespace SEMBLE
                     keys[count].npoint[2].irrep.mom         = momList[i_mom];
                     keys[count].npoint[2].irrep.creation_op = true;
                     keys[count].npoint[2].irrep.smearedP    = opsxml[j_src].smearedP;
+<<<<<<< HEAD
                     keys[count].npoint[2].irrep.op          = opsxml[j_src].op;
                     //keys[count].npoint[2].irrep.CGs         = opsxml[j_src].CGs;
                     //keys[count].npoint[2].irrep.ops         = opsxml[j_src].ops;
+=======
+                    keys[count].npoint[2].irrep.op.CGs         = opsxml[j_src].op.CGs;
+                    keys[count].npoint[2].irrep.op.ops         = opsxml[j_src].op.ops;
+>>>>>>> devel
 
                     count++;
                   } // loop over i_mom

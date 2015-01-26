@@ -2,6 +2,7 @@
 
 #include "ensem/ensem.h"
 #include "adat/handle.h"
+#include "jackFitter/jackFitter.h"
 
 #include <ostream>
 #include <sstream>

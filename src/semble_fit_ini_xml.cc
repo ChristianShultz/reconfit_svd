@@ -536,10 +536,12 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, FixedCoeffProps_t &pr
     prop.fixed = false;
 
   if(prop.fixed)
+  {
     if(ptop.count("tstar") > 0)
       read(ptop, "tstar", prop.tstar);
     else
       prop.tstar = 0;
+  }
 }
 
 void SEMBLE::read(XMLReader &xml, const std::string &path, WeightProps_t &prop)

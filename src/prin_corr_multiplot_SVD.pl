@@ -45,6 +45,8 @@ foreach $state (@states){
     print OUT "set label 1 \"state$state, chisq=$chisq\" at $xpos,$ypos \n";
     $ypos = $yhigh - 0.30 * abs($yhigh - $ylow);
     print OUT "set label 2 \"m= $Zval +/- $Zerr\" at $xpos,$ypos \n";
+    $ypos = $yhigh - 0.40 * abs($yhigh - $ylow);
+    print OUT "set label 3 \"t0_$t0 \" at $xpos,$ypos \n";
 
     print OUT "$text\n\n";
 
