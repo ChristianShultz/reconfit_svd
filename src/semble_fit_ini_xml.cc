@@ -502,6 +502,9 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, InputPropsRedstarKeys
   else
     prop.twoI_z = 0;
 
+  if(ptop.count("threeY") > 0)
+    read(ptop, "threeY", prop.threeY);
+
   if(ptop.count("source_tslice") > 0)
     read(ptop, "source_tslice", prop.source_tslice);
   else
@@ -927,6 +930,7 @@ std::string SEMBLE::write_params(const InputPropsRedstarKeys_t &prop)
   ss << "ensemble " << prop.ensemble << n;
   ss << "mom -- no printing support " << n;
   ss << "twoI_z " << prop.twoI_z << n;
+  ss << "threeY " << prop.threeY << n;
   ss << "source_tslice " << prop.source_tslice << n;
   ss << n << n;
 

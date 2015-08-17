@@ -213,6 +213,7 @@ namespace SEMBLE
     std::string ensemble;
     Array<int> mom;
     int twoI_z;
+    int threeY;
     int source_tslice;
   };
 
