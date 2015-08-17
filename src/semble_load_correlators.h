@@ -2,7 +2,8 @@
 #define __LOAD_CORRELATORS_H__
 
 #include "formfac/hadron_2pt_corr.h"
-#include "hadron/hadron_npart_npt_corr.h"
+#include "hadron/su2_corr/hadron_npart_npt_corr.h"
+#include "hadron/hadron_sun_npart_npt_corr.h"
 #include "AllConfStoreDB.h"
 
 
