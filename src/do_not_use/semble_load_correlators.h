@@ -1,3 +1,4 @@
+// -*- C++ -*-
 #ifndef __LOAD_CORRELATORS_H__
 #define __LOAD_CORRELATORS_H__
 
@@ -63,8 +64,6 @@ namespace SEMBLE
 
     vector<SembleMatrix<std::complex<double> > > loadCorrs(FILEDB::AllConfStoreDB< SerialDBKey<FF::KeyHadron2PtCorr_t>,  SerialDBData<SV> >& database,  Array<FF::KeyHadron2PtCorr_t> keys, const string &avgMode, double avgTol, const string &badlistfile, bool avgMom);
     vector<SembleMatrix<std::complex<double> > > loadCorrs(FILEDB::AllConfStoreDB< SerialDBKey<Hadron::KeyHadronNPartNPtCorr_t>,  SerialDBData<SV> >& database,  Array<Hadron::KeyHadronNPartNPtCorr_t> keys, const Array<int> avgRows, double avgTol, const string &badlistfile, bool avgMom);
-
-    Array<Hadron::KeyHadronNPartIrrep_t> readOpsxml(const Array<string>& opsxmlfiles);
   };
 
 
@@ -136,14 +135,8 @@ namespace SEMBLE
   bool phaseCorr(SembleMatrix<std::complex<double> > C, int row, int &phase_re, int  &phase_im, int refrow, int ref_phase_re, int ref_phase_im);
   bool test_done(vector<bool> in);
 
-// opsxml input structure
-  struct opsxml_t
-  {
-    string opnamekey;                     // operator name
-    Hadron::KeyHadronNPartIrrep_t irrep;  // operator xml structure
-  };
-  void read(XMLReader &xml, const std::string &path, opsxml_t &param);
-
+  // Need this here because the key/value names are non-standard
+  void read(XMLReader &xml, const std::string &path, std::map<std::string, Hadron::KeyHadronNPartIrrep_t>& param);
 
 //*******************************************************************
 // Various db utils (a lot of these are modified version of dbutils.cc)

@@ -1,3 +1,4 @@
+// -*- C++ -*-
 #ifndef __FIT_INI_XML_H__
 #define __FIT_INI_XML_H__
 
@@ -32,10 +33,6 @@ namespace SEMBLE
   struct T0Props_t;
   struct ReconProps_t;
   struct OutputProps_t;
-  struct InputPropsEnsem_t;
-  struct InputPropsDB_t;
-  struct InputPropsRedstar_t;
-  struct InputPropsRedstarKeys_t;
   struct ShiftProps_t;
   struct WeightProps_t;
   struct FixedCoeffProps_t;
@@ -56,10 +53,6 @@ namespace SEMBLE
   void read(XMLReader &xml, const std::string &path, T0Props_t &prop);
   void read(XMLReader &xml, const std::string &path, ReconProps_t &prop);
   void read(XMLReader &xml, const std::string &path, OutputProps_t &prop);
-  void read(XMLReader &xml, const std::string &path, InputPropsEnsem_t &prop);
-  void read(XMLReader &xml, const std::string &path, InputPropsDB_t &prop);
-  void read(XMLReader &xml, const std::string &path, InputPropsRedstar_t &prop);
-  void read(XMLReader &xml, const std::string &path, InputPropsRedstarKeys_t &prop);
   void read(XMLReader &xml, const std::string &path, ShiftProps_t &prop);
   void read(XMLReader &xml, const std::string &path, FixedCoeffProps_t &prop);
   void read(XMLReader &xml, const std::string &path, WeightProps_t &prop);
@@ -77,10 +70,6 @@ namespace SEMBLE
   std::string write_params(const T0Props_t &prop);
   std::string write_params(const ReconProps_t &prop);
   std::string write_params(const OutputProps_t &prop);
-  std::string write_params(const InputPropsEnsem_t &prop);
-  std::string write_params(const InputPropsDB_t &prop);
-  std::string write_params(const InputPropsRedstar_t &prop);
-  std::string write_params(const InputPropsRedstarKeys_t &prop);
   std::string write_params(const ShiftProps_t &prop);
   std::string write_params(const FixedCoeffProps_t &prop);
   std::string write_params(const WeightProps_t &prop);
@@ -96,10 +85,6 @@ namespace SEMBLE
   std::ostream &operator<<(std::ostream &o, const T0Props_t &prop);
   std::ostream &operator<<(std::ostream &o, const ReconProps_t &prop);
   std::ostream &operator<<(std::ostream &o, const OutputProps_t &prop);
-  std::ostream &operator<<(std::ostream &o, const InputPropsEnsem_t &prop);
-  std::ostream &operator<<(std::ostream &o, const InputPropsDB_t &prop);
-  std::ostream &operator<<(std::ostream &o, const InputPropsRedstar_t &prop);
-  std::ostream &operator<<(std::ostream &o, const InputPropsRedstarKeys_t &prop);
   std::ostream &operator<<(std::ostream &o, const ShiftProps_t &prop);
   std::ostream &operator<<(std::ostream &o, const FixedCoeffProps_t &prop);
   std::ostream &operator<<(std::ostream &o, const WeightProps_t &prop);
@@ -186,6 +171,7 @@ namespace SEMBLE
     bool logs;
   };
 
+#if 0
   struct InputPropsEnsem_t
   {
     std::string dbFname;
@@ -231,6 +217,8 @@ namespace SEMBLE
     std::string momListFname;
     InputPropsRedstarKeys_t KeyParams;
   };
+#endif
+  
 
   struct ShiftProps_t
   {
@@ -278,9 +266,7 @@ namespace SEMBLE
     T0Props_t t0Props;
     ReconProps_t reconProps;
     OutputProps_t outputProps;
-    InputPropsEnsem_t inputPropsEnsem;
-    InputPropsDB_t inputPropsDB;
-    InputPropsRedstar_t inputPropsRedstar;
+    GroupXML_t    inputProps;          /*!< input correlator xml */
     ShiftProps_t shiftProps;
     FixedCoeffProps_t fixedCoeffProps;
     WeightProps_t weightProps;

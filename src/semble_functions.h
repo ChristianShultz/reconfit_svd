@@ -1,3 +1,4 @@
+// -*- C++ -*-
 #ifndef SEMBLE_FUNCTIONS_H_H_GUARD
 #define SEMBLE_FUNCTIONS_H_H_GUARD
 

@@ -1,3 +1,4 @@
+// -*- C++ -*-
 #ifndef SEMBLE_T0FIT_PRIM_H_H_GUARD
 #define SEMBLE_T0FIT_PRIM_H_H_GUARD
 
@@ -8,7 +9,7 @@
 #include"semble/semble_matrix.h"
 #include"semble/semble_vector.h"
 #include"semble/semble_linear_algebra.h"
-#include"semble_load_correlators.h"
+//#include"semble_load_correlators.h"
 #include"semble_t0fit_base.h"
 #include"semble/semble_histogram.h"
 #include"semble/semble_histogram_aux.h"

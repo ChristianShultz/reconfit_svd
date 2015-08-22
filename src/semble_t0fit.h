@@ -1,3 +1,4 @@
+// -*- C++ -*-
 #ifndef SEMBLE_T0FIT_H_H_GUARD
 #define SEMBLE_T0FIT_H_H_GUARD
 
@@ -12,7 +13,7 @@
 #include"semble/semble_matrix.h"
 #include"semble/semble_vector.h"
 #include"semble_t0fit_prim.h"
-#include"semble_load_correlators.h"
+//#include"semble_load_correlators.h"
 #include"semble_functions.h"
 #include"semble/semble_meta.h"
 #include<map>
@@ -37,6 +38,30 @@
 
 namespace SEMBLE
 {
+  //cook up a promotion scheme to use with template types
+  ///////////////////////////////////////////////////////////////////////////////
+  template<class T>
+  struct PromoteCorr
+  {
+    typedef T Type;
+  };
+
+#if 0
+  template<>
+  struct PromoteCorr<double>
+  {
+    typedef SembleRCorrs Type;
+  };
+
+  template<>
+  struct PromoteCorr<std::complex<double> >
+  {
+    typedef SembleCCorrs Type;
+  };
+#endif
+
+
+  /////////////////////////////////////////////////////////////////////////////////////////
 
   template<class T>
     struct ST0Fit

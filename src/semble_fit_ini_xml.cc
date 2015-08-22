@@ -1,4 +1,5 @@
 #include "semble_fit_ini_xml.h"
+#include "io/adat_xml_group_reader.h"
 
 using namespace SEMBLE;
 
@@ -332,185 +333,6 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, OutputProps_t &prop)
     prop.logs = false;
 }
 
-void SEMBLE::read(XMLReader &xml, const std::string &path, InputPropsEnsem_t &param)
-{
-  XMLReader paramtop(xml, path);
-
-  if(paramtop.count("dbFname") > 0)
-    read(paramtop, "dbFname", param.dbFname);
-  else
-    param.dbFname = "";
-
-  if(paramtop.count("dim") > 0)
-    read(paramtop, "dim", param.dim);
-  else
-    param.dim = -1;
-}
-
-
-void SEMBLE::read(XMLReader &xml, const std::string &path, InputPropsDB_t &param)
-{
-  XMLReader paramtop(xml, path);
-
-  if(paramtop.count("dbFname") > 0)
-    read(paramtop, "dbFname", param.dbFname);
-  else
-    param.dbFname = "";
-
-  if(paramtop.count("opsListFname") > 0)
-    read(paramtop, "opsListFname", param.opsListFname);
-  else
-    param.opsListFname = "";
-
-  if(paramtop.count("irrepDim") > 0)
-    read(paramtop, "irrepDim", param.irrepDim);
-  else
-    param.irrepDim = -1;
-
-  if(paramtop.count("rephaseMode") > 0)
-    read(paramtop, "rephaseMode", param.rephaseMode);
-  else
-    param.rephaseMode = "";
-
-  if(paramtop.count("foldTimeReversal") > 0)
-    read(paramtop, "foldTimeReversal", param.foldTimeReversal);
-  else
-    param.foldTimeReversal = "";
-
-  if(paramtop.count("avgMode") > 0)
-    read(paramtop, "avgMode", param.avgMode);
-  else
-    param.avgMode = "";
-
-  if(paramtop.count("avgTol") > 0)
-    read(paramtop, "avgTol", param.avgTol);
-  else
-    param.avgTol = 0;
-
-  if(paramtop.count("badList") > 0)
-    read(paramtop, "badList", param.badList);
-  else
-    param.badList = "badList";
-
-  if(paramtop.count("avgMom") > 0)
-    read(paramtop, "avgMom", param.avgMom);
-  else
-    param.avgMom = false;
-
-  if(paramtop.count("momListFname") > 0)
-    read(paramtop, "momListFname", param.momListFname);
-  else
-    param.momListFname = "";
-
-  if(paramtop.count("readSmearings") > 0)
-    read(paramtop, "readSmearings", param.readSmearings);
-  else
-    param.readSmearings = false;
-
-  if(paramtop.count("keys") > 0)
-    read(paramtop, "keys", param.keys);
-}
-
-void SEMBLE::read(XMLReader &xml, const std::string &path, InputPropsRedstar_t &prop)
-{
-  XMLReader ptop(xml, path);
-
-  if(ptop.count("dbFname") > 0)
-    read(ptop, "dbFname", prop.dbFname);
-  else
-    prop.dbFname = "";
-
-  if(ptop.count("opsListFname") > 0)
-    read(ptop, "opsListFname", prop.opsListFname);
-  else
-    prop.opsListFname = "";
-
-  if(ptop.count("opsXMLFiles") > 0)
-    read(ptop, "opsXMLFiles", prop.opsXMLFiles);
-  else
-    prop.opsXMLFiles.resize(0);
-
-  if(ptop.count("rephaseMode") > 0)
-    read(ptop, "rephaseMode", prop.rephaseMode);
-  else
-    prop.rephaseMode = "";
-
-  if(ptop.count("foldTimeReversal") > 0)
-    read(ptop, "foldTimeReversal", prop.foldTimeReversal);
-  else
-    prop.foldTimeReversal = "";
-
-  if(ptop.count("avgRows") > 0)
-    read(ptop, "avgRows", prop.avgRows);
-  else
-    {
-      prop.avgRows.resize(1);
-      prop.avgRows[0] = 0;
-    }
-
-  if(ptop.count("avgTol") > 0)
-    read(ptop, "avgTol", prop.avgTol);
-  else
-    prop.avgTol = 0.;
-
-  if(ptop.count("badList") > 0)
-    read(ptop, "badList", prop.badList);
-  else
-    prop.badList = "";
-
-  if(ptop.count("avgMom") > 0)
-    read(ptop, "avgMom", prop.avgMom);
-  else
-    prop.avgMom = false;
-
-  if(ptop.count("momListFname") > 0)
-    read(ptop, "momListFname", prop.momListFname);
-  else
-    prop.momListFname = "";
-
-  if(ptop.count("KeyParams") > 0)
-    read(ptop, "KeyParams", prop.KeyParams);
-  else
-    {
-      std::cout << __PRETTY_FUNCTION__ << __LINE__ << __FILE__ << "Error : KeyParams required in xml in file, exiting." << std::endl;
-      exit(1);
-    }
-
-}
-
-void SEMBLE::read(XMLReader &xml, const std::string &path, InputPropsRedstarKeys_t &prop)
-{
-  XMLReader ptop(xml, path);
-
-  if(ptop.count("ensemble") > 0)
-    read(ptop, "ensemble", prop.ensemble);
-  else
-    prop.ensemble = "";
-
-  if(ptop.count("mom") > 0)
-    read(ptop, "mom", prop.mom);
-  else
-    {
-      prop.mom.resize(3);
-      prop.mom[0] = 0;
-      prop.mom[1] = 0;
-      prop.mom[2] = 0;
-    }
-
-  if(ptop.count("twoI_z") > 0)
-    read(ptop, "twoI_z", prop.twoI_z);
-  else
-    prop.twoI_z = 0;
-
-  if(ptop.count("threeY") > 0)
-    read(ptop, "threeY", prop.threeY);
-
-  if(ptop.count("source_tslice") > 0)
-    read(ptop, "source_tslice", prop.source_tslice);
-  else
-    prop.source_tslice = 0;
-}
-
 void SEMBLE::read(XMLReader &xml, const std::string &path, ShiftProps_t &prop)
 {
   XMLReader ptop(xml, path);
@@ -639,68 +461,24 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, GlobalProps_t &prop)
 void SEMBLE::read(XMLReader &xml, const std::string &path, FitIniProps_t &prop)
 {
   XMLReader ptop(xml, path);
-  const int version = 1;
+  const int version = 2;
 
   //check version
-  if(ptop.count("version") > 0)
-    read(ptop, "version", prop.version);
-  else
-    {
-      std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << "\n Missing Version input, trying to continue \n" << std::endl;
-      prop.version = version;
-    }
+  read(ptop, "version", prop.version);
 
-  if(version != prop.version)
-    {
-      std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << "\n" << "Error: version" << prop.version
-                << " is not supported, trying to continue, supported version is " << version << std::endl;
-    }
+  // Read
+  switch (version) 
+  {
+  case 2:
+    break;
+    
+  default:
+    std::cerr << "Input parameter version " << version << " unsupported." << std::endl;
+    exit(1);
+  }
 
   //get db input
-  if(ptop.count("dbInputType") > 0)
-    read(ptop, "dbInputType", prop.dbInputType);
-  else
-    {
-      std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << "\n" << "Error: dbInputType required, exiting." << std::endl;
-      exit(1);
-    }
-
-  //try to read db input
-  if(prop.dbInputType == "ensem" || prop.dbInputType == "ensem_debug" || prop.dbInputType == "ensem_onecorr")
-    {
-      if(ptop.count("inputPropsEnsem") > 0)
-        read(ptop, "inputPropsEnsem", prop.inputPropsEnsem);
-      else
-        {
-          std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << " Error: no ensem input, exiting." << std::endl;
-          exit(1);
-        }
-    }
-  else if(prop.dbInputType == "dbnew" || prop.dbInputType == "dbnew_debug")
-    {
-      if(ptop.count("inputPropsDB") > 0)
-        read(ptop, "inputPropsDB", prop.inputPropsDB);
-      else
-        {
-          std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << " Error: no dbnew input, exiting." << std::endl;
-          exit(1);
-        }
-    }
-  else if(prop.dbInputType == "redstar" || prop.dbInputType == "redstar_debug")
-    {
-      if(ptop.count("inputPropsRedstar") > 0)
-        read(ptop, "inputPropsRedstar", prop.inputPropsRedstar);
-      else
-        {
-          std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << " Error: no redstar input, exiting." << std::endl;
-          exit(1);
-        }
-    }
-  else
-    {
-      std::cout << __PRETTY_FUNCTION__ << __FILE__ << __LINE__ << "\n Error: dbInputType," << prop.dbInputType << ", not recognized,  exiting." << std::endl;
-      exit(1);
-    }
+  prop.inputProps  = readXMLGroup(ptop, "InputProps", "dbInputType");
 
   //assume they are there and try to read, if not there it should default to the else values
   read(ptop, "sortingProps", prop.sortingProps);
@@ -715,11 +493,7 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, FitIniProps_t &prop)
   read(ptop, "fixedCoeffProps", prop.fixedCoeffProps);
   read(ptop, "weightProps", prop.weightProps);
   read(ptop, "globalProps", prop.globalProps);
-
-  if(ptop.count("weightShiftCorrectProps") > 0){
-    read(ptop, "weightShiftCorrectProps", prop.weightShiftCorrectProps);
-  }
-
+  read(ptop, "weightShiftCorrectProps", prop.weightShiftCorrectProps);
 }
 
 
@@ -864,79 +638,6 @@ std::string SEMBLE::write_params(const OutputProps_t &prop)
   return ss.str();
 }
 
-std::string SEMBLE::write_params(const InputPropsEnsem_t &prop)
-{
-  std::stringstream ss;
-  std::string n("\n");
-
-  ss << "inputPropsEnsem" << n;
-  ss << "dbFname " << prop.dbFname << n;
-  ss << "dim " << prop.dim << n;
-  ss << n << n;
-
-  return ss.str();
-}
-
-std::string SEMBLE::write_params(const InputPropsDB_t &prop)
-{
-  std::stringstream ss;
-  std::string n("\n");
-
-  ss << "inputPropsDB" << n;
-  ss << "dbFname " << prop.dbFname << n;
-  ss << "opsListFname " << prop.opsListFname << n;
-  ss << "irrepDim " << prop.irrepDim << n;
-  ss << "rephaseMode " << prop.rephaseMode << n;
-  ss << "foldTimeReversal " << prop.foldTimeReversal << n;
-  ss << "avgMode " << prop.avgMode << n;
-  ss << "avgTol " << prop.avgTol << n;
-  ss << "badList " << prop.badList << n;
-  ss << "avgMom " << prop.avgMom << n;
-  ss << "momListFname " << prop.momListFname << n;
-  ss << "readSmearings " << prop.readSmearings << n;
-  ss << "keys -- no printing" << n;
-  ss << n << n;
-
-  return ss.str();
-}
-
-std::string SEMBLE::write_params(const InputPropsRedstar_t &prop)
-{
-  std::stringstream ss;
-  std::string n("\n");
-
-  ss << "inputPropsRedstar" << n;
-  ss << "dbFname " << prop.dbFname << n;
-  ss << "opsListFname " << prop.opsListFname << n;
-  ss << "opsXMLFiles -- no printing support" << n;
-  ss << "rephaseMode " << prop.rephaseMode << n;
-  ss << "foldTimeReversal " << prop.foldTimeReversal << n;
-  ss << "avgRows -- no printing support" << n;
-  ss << "avgTol " << prop.avgTol << n;
-  ss << "badList " << prop.badList << n;
-  ss << "avgMom " << prop.avgMom << n;
-  ss << "momListFname " << prop.momListFname << n;
-  ss << "KeyParams " << prop.KeyParams << n;
-  ss << n << n;
-
-  return ss.str();
-}
-std::string SEMBLE::write_params(const InputPropsRedstarKeys_t &prop)
-{
-  std::stringstream ss;
-  std::string n("\n");
-
-  ss << "inputPropsRedstarKeys" << n;
-  ss << "ensemble " << prop.ensemble << n;
-  ss << "mom -- no printing support " << n;
-  ss << "twoI_z " << prop.twoI_z << n;
-  ss << "threeY " << prop.threeY << n;
-  ss << "source_tslice " << prop.source_tslice << n;
-  ss << n << n;
-
-  return ss.str();
-}
-
 std::string SEMBLE::write_params(const ShiftProps_t &prop)
 {
   std::stringstream ss;
@@ -1008,9 +709,7 @@ std::string SEMBLE::write_params(const FitIniProps_t &prop)
   ss << "t0Props " << prop.t0Props << n;
   ss << "reconProps " << prop.reconProps << n;
   ss << "outputProps " << prop.outputProps << n;
-  ss << "inputPropsEnsem " << prop.inputPropsEnsem << n;
-  ss << "inputPropsDB " << prop.inputPropsDB << n;
-  ss << "inputPropsRedstar " << prop.inputPropsRedstar << n;
+  ss << "inputProps " << prop.inputProps.xml << n;
   ss << "shiftProps " << prop.shiftProps << n;
   ss << "fixedCoeffProps " << prop.fixedCoeffProps << n;
   ss << "weightProps " << prop.weightProps << n;
@@ -1066,30 +765,6 @@ std::ostream &SEMBLE::operator<<(std::ostream &o, const ReconProps_t &prop)
 }
 
 std::ostream &SEMBLE::operator<<(std::ostream &o, const OutputProps_t &prop)
-{
-  o << write_params(prop);
-  return o;
-}
-
-std::ostream &SEMBLE::operator<<(std::ostream &o, const InputPropsEnsem_t &prop)
-{
-  o << write_params(prop);
-  return o;
-}
-
-std::ostream &SEMBLE::operator<<(std::ostream &o, const InputPropsDB_t &prop)
-{
-  o << write_params(prop);
-  return o;
-}
-
-std::ostream &SEMBLE::operator<<(std::ostream &o, const InputPropsRedstar_t &prop)
-{
-  o << write_params(prop);
-  return o;
-}
-
-std::ostream &SEMBLE::operator<<(std::ostream &o, const InputPropsRedstarKeys_t &prop)
 {
   o << write_params(prop);
   return o;

@@ -1,13 +1,16 @@
+// -*- C++ -*-
 #ifndef SEMBLE_MULTI_T0FIT_H_H_GUARD
 #define SEMBLE_MULTI_T0FIT_H_H_GUARD
 
 
-#include"semble_load_correlators.h"
+//#include"semble_load_correlators.h"
+#include"correlator_reader.h"
 #include"semble/semble_matrix.h"
 #include"semble/semble_vector.h"
 #include"semble/semble_file_management.h"
 #include"semble_t0fit.h"
 #include"semble_t0fit_prim.h"
+#include"correlator_reader.h"
 #include"semble/semble_algebra.h"
 #include"semble/semble_linear_algebra.h"
 #include"ensem/ensem.h"
@@ -35,14 +38,11 @@ namespace SEMBLE
   public: //constructor, destructor, copy, assignment
     SMT0Fit(void);                                                                             //construct
     SMT0Fit(const SMT0Fit<T> &o);                                                              //copy
-    SMT0Fit(const typename PromoteCorr<T>::Type &tp_, const FitIniProps_t &inikeys_);          //load a correlator
     SMT0Fit(const typename std::vector<SembleMatrix<T> > &tp_, const FitIniProps_t &inikeys_); //load a fake correlator
     ~SMT0Fit(void) {}                                                                          //nothing fancy
     SMT0Fit<T>& operator=(const SMT0Fit<T> &o);                                                //copy
 
   public:
-    //convert a correlator to a std::vector of SembleMatrix<T> to be able to load correlators
-    typename std::vector<SembleMatrix<T> > maketp(const typename PromoteCorr<T>::Type &tp_, const FitIniProps_t &inikeys_); 
     //load a std::vector of SembleMatrix<T> to solve
     void load(const typename std::vector<SembleMatrix<T> > &tp_, const FitIniProps_t &inikeys_);                            
 
@@ -168,12 +168,6 @@ namespace SEMBLE
   }
 
   template<class T>
-  SMT0Fit<T>::SMT0Fit(const typename PromoteCorr<T>::Type &tp_, const FitIniProps_t &inikeys_)
-  {
-    load(maketp(tp_, inikeys_), inikeys_);
-  }
-
-  template<class T>
   SMT0Fit<T>::SMT0Fit(const typename std::vector<SembleMatrix<T> > &tp_, const FitIniProps_t &inikeys_)
   {
     load(tp_, inikeys_);
@@ -229,28 +223,23 @@ namespace SEMBLE
     return *this;
   }
 
-  template<class T>
-  typename std::vector<SembleMatrix<T> > SMT0Fit<T>::maketp(const typename PromoteCorr<T>::Type &tp_, const FitIniProps_t &inikeys_)
-  {
-    typename std::vector<SembleMatrix<T> > dum;
-	
-	// CJS -- DEBUG
-	// std::cout << __func__ << " globalProps.tmax = " <<  inikeys_.globalProps.tmax << std::endl;
-    for(int t = 0; t <= inikeys_.globalProps.tmax; t++)
-      dum.push_back(tp_.getCt(t));
-
-    return dum;
-  }
-
   //this is where most of the heavy lifting is done
   template<class T>
   void SMT0Fit<T>::load(const typename std::vector<SembleMatrix<T> > &tp_, const FitIniProps_t &inikeys_)
   {
     clear();
     tp = tp_;
+
     inikeys = inikeys_;
     init = true;
     int t0;
+
+    if (tp.size() < inikeys.globalProps.tmax)
+    {
+      std::cerr << __func__ << ": twopoint correlator shorter than the required globalProps.tmax = " << inikeys.globalProps.tmax << std::endl;
+      exit(1);
+    }
+
 
 #ifdef _OPENMP
     int maxThreads = omp_get_max_threads();

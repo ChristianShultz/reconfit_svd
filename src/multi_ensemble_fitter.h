@@ -1,3 +1,4 @@
+// -*- C++ -*-
 #ifndef __MULTI_ENSEM_FITTER_H__
 #define __MULTI_ENSEM_FITTER_H__
 

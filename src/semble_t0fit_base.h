@@ -1,3 +1,4 @@
+// -*- C++ -*-
 #ifndef SEMBLE_T0FIT_BASE_H_H_GUARD
 #define SEMBLE_T0FIT_BASE_H_H_GUARD
 

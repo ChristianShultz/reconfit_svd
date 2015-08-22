@@ -1,3 +1,4 @@
+// -*- C++ -*-
 #ifndef __JACKKNIFE_LINEAR_FITTER_H__
 #define __JACKKNIFE_LINEAR_FITTER_H__
 
