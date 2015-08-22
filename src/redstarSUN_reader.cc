@@ -147,6 +147,9 @@ namespace CorrReaderEnv
 
 	//! Rephasing mode
 	virtual std::string getRephaseMode() const {return params.rephaseMode;}
+  
+	//! This is "required" as a convenience - it is nice to see bad operators, whether or not they rephase
+	virtual std::vector<std::string> getOpsList() const {return opsList;}
 
       private:
 	Params                                          params;

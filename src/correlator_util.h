@@ -35,7 +35,9 @@ namespace CorrReaderEnv
   //----------------------------------------------------------------------------------
   // Rephase complex correlators
   std::vector< SEMBLE::SembleMatrix<double> > rephaseCorrs(const std::vector< SEMBLE::SembleMatrix<std::complex<double> > >& ComplexCorrs,
-							   const std::string& rephaseMode, int tmax);
+							   const std::string& rephaseMode,
+							   const std::vector<std::string>& opsList,
+							   int tmax);
 
 
   //----------------------------------------------------------------------------------

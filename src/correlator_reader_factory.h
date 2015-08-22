@@ -9,6 +9,7 @@
 #include "adat/singleton.h"
 #include "adat/objfactory.h"
 #include "correlator_reader.h"
+#include <io/adat_xml_group_reader.h>
 #include <string>
 
 namespace CorrReaderEnv
@@ -27,6 +28,9 @@ namespace CorrReaderEnv
 
   bool registerAll();
 
+  //----------------------------------------------------------------------------------
+  //! For the lazy, this is a quick way to return correlators
+  std::vector< SEMBLE::SembleMatrix<double> > getCorrs(const ADATXML::GroupXML_t& inputProps);
 }
 
 #endif

@@ -55,7 +55,10 @@ namespace CorrReaderEnv
 
     //! Rephasing mode
     virtual std::string getRephaseMode() const = 0;
-  };
+  
+    //! This is "required" as a convenience - it is nice to see bad operators, whether or not they rephase
+    virtual std::vector<std::string> getOpsList() const = 0;
+};
 
 } // namespace SEMBLE
 

@@ -4,16 +4,20 @@
   <annotation>Example ini file for semble_vfit</annotation>
   <annotation>See semble_fit_ini_xml.h for more options</annotation>
   
-  <version>1</version>
-  <dbInputType>dbnew</dbInputType>          <!--ensem,ensem_debug,ensem_onecorr,dbnew,dbnew_debug,redstar,redstar_debug-->
-  
-  <inputPropsEnsem>
+  <version>2</version>
+
+  <inputProps>
+    <dbInputType>dbnew</dbInputType> <!--ensem,ensem_debug,ensem_onecorr,dbnew,dbnew_debug,redstar,redstar_debug,redstarSUN-->
+
+    <annotation>
+    <dbInputType>ensem</dbInputType>
     <dbFname></dbFname>
     <dim>5</dim>
-  </inputPropsEnsem>
+    </annotation>
   
-  <inputPropsDB>
-    <dbFname>T1mm.edb</dbFname>
+    <annotation>
+    <dbInputType>dbnew</dbInputType>
+    <dbFname><elem>T1mm.edb</elem></dbFname>
     <opsListFname>T1mm.list</opsListFname>
     <irrepDim>3</irrepDim>
     <rephaseMode>auto</rephaseMode>    <!--auto,auto_positive,real-->
@@ -42,10 +46,11 @@
       <mass>D-743</mass>
       <ensemble>szscl3_16_128_b1p50_t_x4p300_um0p0743_n1p265_per</ensemble>
     </keys>
-  </inputPropsDB>
+    </annotation>
   
-  <inputPropsRedstar>
-    <dbFname>T1mm.edb</dbFname>
+    <annotation>
+    <dbInputType>redstar</dbInputType>
+    <dbFnames><elem>T1mm.edb</elem></dbFnames>
     <opsListFname>T1mm.list</opsListFname>
     <opsXMLFiles><elem>ops_example.xml</elem></opsXMLFiles>
     <rephaseMode>auto_positive</rephaseMode>
@@ -61,7 +66,28 @@
       <twoI_z>0</twoI_z>
       <source_tslice>5</source_tslice>
     </KeyParams>
-  </inputPropsRedstar>
+    </annotation>
+  
+    <annotation>
+    <dbInputType>redstarSUN</dbInputType>
+    <dbFnames><elem>T1mm.edb</elem></dbFnames>
+    <opsListFname>T1mm.list</opsListFname>
+    <opsXMLFiles><elem>ops_example.xml</elem></opsXMLFiles>
+    <rephaseMode>auto_positive</rephaseMode>
+    <KeyParams>
+      <irmom>
+        <row>1</row>
+        <mom>0 0 0</mom>
+      </irmom>
+      <flavor>
+        <twoI>0</twoI>
+        <threeY>0</threeY>
+        <twoI_z>0</twoI_z>
+      </flavor>
+      <source_tslice>5</source_tslice>
+    </KeyParams>
+    </annotation>
+  </inputProps>
   
   
   <sortingProps>

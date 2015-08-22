@@ -45,31 +45,8 @@ int main(int argc, char *argv[])
   check_ini(inikeys);
 
   // Load correlation matrix from appropriate source
-  std::vector< SEMBLE::SembleMatrix<double> > twoPoints;
-  
-  try
-  {
-    std::cout << "Initalize correlator reader" << std::endl;
-  
-    std::istringstream  xml_l(inikeys.inputProps.xml);
-    XMLReader  linktop(xml_l);
-    std::cout << "Correlator type = " << inikeys.inputProps.id << std::endl;
-	
-    Handle< CorrReaderEnv::RealCorrReader > corrs(CorrReaderEnv::TheCorrReaderFactory::Instance().createObject(inikeys.inputProps.id,
-														   linktop, 
-														   inikeys.inputProps.path));
-    
-    // Read correlators
-    twoPoints = corrs->getCt();
-  }
-  catch(const std::string& e) 
-  {
-    std::cerr << argv[0] << ": Caught Exception correlator reader: " << e << std::endl;
-    exit(1);
-  }
-
   std::cout << "Correlator reader successfully initialized" << std::endl;
-
+  std::vector< SEMBLE::SembleMatrix<double> > twoPoints = CorrReaderEnv::getCorrs(inikeys.inputProps);
   std::cout << "LOADED " << std::endl;
 
   // do fits at all desired t0 values
