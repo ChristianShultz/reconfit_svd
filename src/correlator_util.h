@@ -7,6 +7,7 @@
 #define __correlator_util_h__
 
 #include "AllConfStoreDB.h"
+#include "AllConfStoreMultipleDB.h"
 #include "io/key_val_db.h"
 #include "semble/semble_matrix.h"
 #include "semble/semble_algebra.h"
@@ -43,7 +44,7 @@ namespace CorrReaderEnv
   // New database format
   template<typename K, typename V>
   V printKeyValue(const K& ky,
-                  FILEDB::AllConfStoreDB< ADATIO::SerialDBKey<K>,  ADATIO::SerialDBData<typename EnsemScalar<V>::Type_t> >& database)
+                  FILEDB::AllConfStoreMultipleDB< ADATIO::SerialDBKey<K>,  ADATIO::SerialDBData<typename EnsemScalar<V>::Type_t> >& database)
   {
     typedef typename EnsemScalar<V>::Type_t SV;
 
@@ -135,7 +136,7 @@ namespace CorrReaderEnv
   //----------------------------------------------------------------------------------
   // Get correlators from database, averaging over lorentz/spin if required
   template<typename T>
-  std::vector< SEMBLE::SembleMatrix<std::complex<double> > > loadCorrs(FILEDB::AllConfStoreDB< ADATIO::SerialDBKey<T>, ADATIO::SerialDBData<EnsemScalar<EnsemVectorComplex>::Type_t> >& database,
+  std::vector< SEMBLE::SembleMatrix<std::complex<double> > > loadCorrs(FILEDB::AllConfStoreMultipleDB< ADATIO::SerialDBKey<T>, ADATIO::SerialDBData<EnsemScalar<EnsemVectorComplex>::Type_t> >& database,
 								       const Array2d<T>& keys)
   {
     if ((keys.nrows() != keys.ncols()) || keys.nrows() == 0)

@@ -35,7 +35,7 @@ namespace CorrReaderEnv
 	Params() {}
 	Params(XMLReader& xml_in, const std::string& path);
 
-	std::string                dbFname;
+	std::vector<std::string>   dbFnames;
 	std::string                opsListFname;
 	std::vector<std::string>   opsXMLFiles;
 	std::string                rephaseMode;
@@ -55,7 +55,7 @@ namespace CorrReaderEnv
       {
 	XMLReader ptop(xml, path);
 
-	read(ptop, "dbFname", prop.dbFname);
+	read(ptop, "dbFnames", prop.dbFnames);
 	read(ptop, "opsListFname", prop.opsListFname);
 	read(ptop, "opsXMLFiles", prop.opsXMLFiles);
 	read(ptop, "rephaseMode", prop.rephaseMode);
@@ -136,56 +136,85 @@ namespace CorrReaderEnv
       {
       public:
 	//! Constructor
-	CorrReaderImpl(const Params& p_) : params(p_) {}
+	CorrReaderImpl(const Params& p_);
 
 	//! Virtual destructor
 	virtual ~CorrReaderImpl() {}
 
       protected:
 	//! Read the complex version of the correlators
-	virtual std::vector< SEMBLE::SembleMatrix<std::complex<double> > > getComplexCorrs() const;
+	virtual std::vector< SEMBLE::SembleMatrix<std::complex<double> > > getComplexCorrs();
 
 	//! Rephasing mode
 	virtual std::string getRephaseMode() const {return params.rephaseMode;}
 
       private:
-	Params  params;
+	Params                                          params;
+	std::vector<std::string>                        opsList;
+	std::map<std::string, KeyHadronSUNNPartIrrep_t> opsMap;
+ 	std::vector<KeyHadronSUNNPartIrrep_t>           opsxml;
+	FILEDB::AllConfStoreMultipleDB< ADATIO::SerialDBKey<KeyHadronSUNNPartNPtCorr_t>,  ADATIO::SerialDBData<EnsemScalar<EnsemVectorComplex>::Type_t> > database;
       };
 
 
       //----------------------------------------------------------------------------------
-      //! Return the complex correlators
-      std::vector< SEMBLE::SembleMatrix<std::complex<double> > > CorrReaderImpl::getComplexCorrs() const
+      //! Constructor
+      CorrReaderImpl::CorrReaderImpl(const Params& p_) : params(p_)
       {
-	// Read the dbtype from the metadata of the first file
-	std::string dbtype = getDBType(params.dbFname);
-
-	if (dbtype != "hadronSUNNPartNPtCorr")
+	if (params.dbFnames.empty())
 	{
-	  std::cerr << "Error - corr edb dbFname = " << params.dbFname << "  not appropriate type, found type = " << dbtype << std::endl;
+	  std::cerr << __func__ << ": error - expect at least one ensemble file\n";
 	  exit(1);
 	}
 
 	try
 	{
-	  // Open DB
-	  FILEDB::AllConfStoreDB< ADATIO::SerialDBKey<KeyHadronSUNNPartNPtCorr_t>,  ADATIO::SerialDBData<EnsemScalar<EnsemVectorComplex>::Type_t> > database;
-	  
-	  if (database.open(params.dbFname, O_RDONLY, 0400) != 0)
+	  // Read the dbtype from the metadata of the first file
+	  std::string dbtype = getDBType(params.dbFnames[0]);
+
+	  if (dbtype != "hadronSUNNPartNPtCorr")
 	  {
-	    std::cerr << __func__ << ": error opening database " << params.dbFname << std::endl;
+	    std::cerr << "Error - corr edb dbFname = " << params.dbFnames[0] << "  not appropriate type, found type = " << dbtype << std::endl;
+	    exit(1);
+	  }
+
+	  // Open DB
+	  if (database.open(params.dbFnames) != 0)
+	  {
+	    std::cerr << __func__ << ": error opening databases " << params.dbFnames[0] << std::endl;
 	    exit(1);
 	  }
 	  
 	  // Read the operator list file
-	  std::vector<std::string> opsList = readOpsList(params.opsListFname);
+	  opsList = readOpsList(params.opsListFname);
 
 	  // Read the operator maps
-	  std::map<std::string, KeyHadronSUNNPartIrrep_t> ops_map = readOpsMap<KeyHadronSUNNPartIrrep_t>(params.opsXMLFiles);
+	  opsMap = readOpsMap<KeyHadronSUNNPartIrrep_t>(params.opsXMLFiles);
 
 	  // Find the xml for the desired operator list
-	  std::vector<KeyHadronSUNNPartIrrep_t> opsxml = findOpsXml<KeyHadronSUNNPartIrrep_t>(ops_map, opsList);
+	  opsxml = findOpsXml<KeyHadronSUNNPartIrrep_t>(opsMap, opsList);
+	}
+	catch(const std::string &e)
+	{
+	  std::cerr << __func__ << ": Caught Exception: " << e << std::endl;
+	  exit(1);
+	}
+	catch(std::exception &e)
+	{
+	  std::cerr << __func__ << ": Caught standard library exception: " << e.what() << std::endl;
+	  exit(1);
+	}
 
+	std::cout << __func__ << ": finished loading the complex correlators" << std::endl;
+      }
+
+
+      //----------------------------------------------------------------------------------
+      //! Return the complex correlators
+      std::vector< SEMBLE::SembleMatrix<std::complex<double> > > CorrReaderImpl::getComplexCorrs()
+      {
+	try
+	{
 	  // And construct the keys
 	  Array2d<KeyHadronSUNNPartNPtCorr_t> keys = createKeys(opsxml, params.KeyParams.flavor, params.KeyParams.irrep_mom, params.KeyParams.source_tslice);
 
@@ -195,7 +224,7 @@ namespace CorrReaderEnv
 	  EnsemVectorComplex Test = printKeyValue<KeyHadronSUNNPartNPtCorr_t, EnsemVectorComplex>(keys(0,0), database);
 	  int Lt = Test.numElem();
 	  int nbins = peekObs(Test, 0).size();
-	  std::cout << __func__ << ": filedb database (" << params.dbFname << ") has Lt = " << Lt << ", nbins = " << nbins << std::endl;
+	  std::cout << __func__ << ": filedb database (" << params.dbFnames[0] << ") has Lt = " << Lt << ", nbins = " << nbins << std::endl;
       
 	  // Read the correlators
 	  return loadCorrs(database, keys);

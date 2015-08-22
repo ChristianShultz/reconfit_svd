@@ -32,7 +32,7 @@ namespace CorrReaderEnv
     virtual ~RealCorrReader() {}
 
     //! Only one thing - read the correlators
-    virtual std::vector< SEMBLE::SembleMatrix<double> > getCt() const = 0;
+    virtual std::vector< SEMBLE::SembleMatrix<double> > getCt() = 0;
   };
 
 
@@ -47,11 +47,11 @@ namespace CorrReaderEnv
     virtual ~ComplexCorrReader() {}
 
     //! Can provide a default version
-    virtual std::vector< SEMBLE::SembleMatrix<double> > getCt() const;
+    virtual std::vector< SEMBLE::SembleMatrix<double> > getCt();
 
   protected:
     //! Read the complex corrs
-    virtual std::vector< SEMBLE::SembleMatrix< std::complex<double> > > getComplexCorrs() const = 0;
+    virtual std::vector< SEMBLE::SembleMatrix< std::complex<double> > > getComplexCorrs() = 0;
 
     //! Rephasing mode
     virtual std::string getRephaseMode() const = 0;

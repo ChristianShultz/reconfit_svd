@@ -13,7 +13,7 @@ namespace CorrReaderEnv
 {
   //----------------------------------------------------------------------------------
   //! Return the complex correlators
-  std::vector< SEMBLE::SembleMatrix<double> > ComplexCorrReader::getCt() const
+  std::vector< SEMBLE::SembleMatrix<double> > ComplexCorrReader::getCt()
   {
     // Actually do the rephasing
     return rephaseCorrs(this->getComplexCorrs(), getRephaseMode(), 20); //stupid hardwire of tmax
