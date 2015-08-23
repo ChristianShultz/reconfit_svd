@@ -6,8 +6,9 @@
 #include "correlator_reader.h"
 #include "correlator_reader_factory.h"
 #include "correlator_util.h"
-//#include "redstar_reader.h"
+#include "redstar_reader.h"
 #include "redstarSUN_reader.h"
+#include "colorvec_db_reader.h"
 
 #include <string>
 
@@ -64,6 +65,8 @@ namespace CorrReaderEnv
 
     bool success = true;
     success &= RedstarSUNReaderEnv::registerAll();
+    success &= RedstarReaderEnv::registerAll();
+    success &= ColorVecDBReaderEnv::registerAll();
 
     return success &= (registered = true);
   }

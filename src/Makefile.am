@@ -17,7 +17,9 @@ lib_LIBRARIES = libreconfit.a
 libreconfit_a_SOURCES = \
     correlator_reader_factory.cc \
     correlator_util.cc \
+    redstar_reader.cc \
     redstarSUN_reader.cc \
+    colorvec_db_reader.cc \
     semble_fit_ini_xml.cc
 
 #    semble_load_correlators.cc

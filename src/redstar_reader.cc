@@ -1,11 +1,12 @@
 /*! \file
- *  \brief Factory for reading redstarSUN
+ *  \brief Factory for reading redstar SU(2)
  */
 
 #include "correlator_reader_factory.h"
 #include "correlator_util.h"
-#include "redstarSUN_reader.h"
-#include "hadron/hadron_sun_npart_npt_corr.h"
+#include "redstar_reader.h"
+#include "hadron/su2_corr/hadron_npart_npt_corr.h"
+#include "hadron/cgc_irrep_mom.h"
 #include <adat/handle.h>
 #include <xml_array2d.h>
 #include <string>
@@ -15,7 +16,7 @@ namespace CorrReaderEnv
 {
   using namespace Hadron;
   
-  namespace RedstarSUNReaderEnv
+  namespace RedstarReaderEnv
   { 
     //---------------------------------------------------------------------------
     namespace
@@ -23,7 +24,7 @@ namespace CorrReaderEnv
       struct InputKeys_t
       {
 	int                        source_tslice;
-	KeyCGCSU3_t                flavor;         /*!< Target flavor component */
+	int                        twoI_z;         /*!< Target isospin component */
 	KeyCGCIrrepMom_t           irrep_mom;      /*!< Target irrep row and D-1 momentum of this N-particle op */
       };
 
@@ -46,7 +47,7 @@ namespace CorrReaderEnv
 	XMLReader ptop(xml, path);
 
 	read(ptop, "source_tslice", prop.source_tslice);
-	read(ptop, "flavor", prop.flavor);
+	read(ptop, "twoI_z", prop.twoI_z);
 	read(ptop, "irmom", prop.irrep_mom);
       }
 
@@ -67,33 +68,35 @@ namespace CorrReaderEnv
 
       //----------------------------------------------------------------------------------
       //! Create db keys from operator list
-      Array2d<KeyHadronSUNNPartNPtCorr_t> createKeys(const std::vector<KeyHadronSUNNPartIrrepOp_t>& opsxml,
-						     const KeyCGCSU3_t& flavor, const KeyCGCIrrepMom_t& irmom,
-						     int t_source)
+      Array2d<KeyHadronNPartNPtCorr_t> createKeys(const std::vector<KeyHadronNPartIrrepOp_t>& opsxml,
+						  int twoI_z, const KeyCGCIrrepMom_t& irmom,
+						  int t_source)
       {
 	int dim = opsxml.size();
 
-	Array2d<KeyHadronSUNNPartNPtCorr_t> keys(dim, dim);
+	Array2d<KeyHadronNPartNPtCorr_t> keys(dim, dim);
 
 	for(int j_src =  0; j_src < dim; j_src++)
 	{
 	  for(int j_snk = 0; j_snk < dim; j_snk++)
 	  {
-	    KeyHadronSUNNPartNPtCorr_t key;
+	    KeyHadronNPartNPtCorr_t key;
 	    key.npoint.resize(2);
 	    
 	    // The sink op
 	    key.npoint[1].t_slice           = -2;
-	    key.npoint[1].irrep.flavor      = flavor;
-	    key.npoint[1].irrep.irrep_mom   = irmom;
+	    key.npoint[1].irrep.twoI_z      = twoI_z;
+	    key.npoint[1].irrep.row         = irmom.row;
+	    key.npoint[1].irrep.mom         = irmom.mom;
 	    key.npoint[1].irrep.creation_op = false;
 	    key.npoint[1].irrep.smearedP    = true;
 	    key.npoint[1].irrep.op          = opsxml[j_snk];
 
 	    // The source op
 	    key.npoint[2].t_slice           = t_source;
-	    key.npoint[2].irrep.flavor      = flavor;
-	    key.npoint[2].irrep.irrep_mom   = irmom;
+	    key.npoint[2].irrep.twoI_z      = twoI_z;
+	    key.npoint[2].irrep.row         = irmom.row;
+	    key.npoint[2].irrep.mom         = irmom.mom;
 	    key.npoint[2].irrep.creation_op = true;
 	    key.npoint[2].irrep.smearedP    = true;
 	    key.npoint[2].irrep.op          = opsxml[j_src];
@@ -134,9 +137,9 @@ namespace CorrReaderEnv
       private:
 	Params                                            params;
 	std::vector<std::string>                          opsList;
-	std::map<std::string, KeyHadronSUNNPartIrrepOp_t> opsMap;
- 	std::vector<KeyHadronSUNNPartIrrepOp_t>           opsxml;
-	FILEDB::AllConfStoreMultipleDB< ADATIO::SerialDBKey<KeyHadronSUNNPartNPtCorr_t>,  ADATIO::SerialDBData<EnsemScalar<EnsemVectorComplex>::Type_t> > database;
+	std::map<std::string, KeyHadronNPartIrrepOp_t>    opsMap;
+ 	std::vector<KeyHadronNPartIrrepOp_t>              opsxml;
+	FILEDB::AllConfStoreMultipleDB< ADATIO::SerialDBKey<KeyHadronNPartNPtCorr_t>,  ADATIO::SerialDBData<EnsemScalar<EnsemVectorComplex>::Type_t> > database;
       };
 
 
@@ -155,7 +158,7 @@ namespace CorrReaderEnv
 	  // Read the dbtype from the metadata of the first file
 	  std::string dbtype = getDBType(params.dbFnames[0]);
 
-	  if (dbtype != "hadronSUNNPartNPtCorr")
+	  if (dbtype != "hadronNPartNPtCorr")
 	  {
 	    std::cerr << "Error - corr edb dbFname = " << params.dbFnames[0] << "  not appropriate type, found type = " << dbtype << std::endl;
 	    exit(1);
@@ -172,10 +175,10 @@ namespace CorrReaderEnv
 	  opsList = readOpsList(params.opsListFname);
 
 	  // Read the operator maps
-	  opsMap = readOpsMap<KeyHadronSUNNPartIrrepOp_t>(params.opsXMLFiles);
+	  opsMap = readOpsMap<KeyHadronNPartIrrepOp_t>(params.opsXMLFiles);
 
 	  // Find the xml for the desired operator list
-	  opsxml = findOpsXml<KeyHadronSUNNPartIrrepOp_t>(opsMap, opsList);
+	  opsxml = findOpsXml<KeyHadronNPartIrrepOp_t>(opsMap, opsList);
 	}
 	catch(const std::string &e)
 	{
@@ -199,12 +202,12 @@ namespace CorrReaderEnv
 	try
 	{
 	  // And construct the keys
-	  Array2d<KeyHadronSUNNPartNPtCorr_t> keys = createKeys(opsxml, params.KeyParams.flavor, params.KeyParams.irrep_mom, params.KeyParams.source_tslice);
+	  Array2d<KeyHadronNPartNPtCorr_t> keys = createKeys(opsxml, params.KeyParams.twoI_z, params.KeyParams.irrep_mom, params.KeyParams.source_tslice);
 
 	  std::cout << __func__ << ": Will extract nkeys = " << keys.nrows() << std::endl;
 
 	  // Check reading the Db
-	  EnsemVectorComplex Test = printKeyValue<KeyHadronSUNNPartNPtCorr_t, EnsemVectorComplex>(keys(0,0), database);
+	  EnsemVectorComplex Test = printKeyValue<KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys(0,0), database);
 	  int Lt = Test.numElem();
 	  int nbins = peekObs(Test, 0).size();
 	  std::cout << __func__ << ": filedb database (" << params.dbFnames[0] << ") has Lt = " << Lt << ", nbins = " << nbins << std::endl;
@@ -242,7 +245,7 @@ namespace CorrReaderEnv
       //! Local registration flag
       bool registered = false;
 
-      const std::string name = "redstarSUN";
+      const std::string name = "redstar";
     }
 
     //---------------------------------------------------------------------------
@@ -257,6 +260,6 @@ namespace CorrReaderEnv
       return success &= (registered = true);
     }
 
-  }  // namespace RedstarSUNReaderEnv
+  }  // namespace RedstarReaderEnv
 
 } // namespace CorrReaderEnv
