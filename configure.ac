@@ -1,4 +1,4 @@
-AC_INIT(reconfit,2.0,edwards@jlab.org)
+AC_INIT(reconfit,3.0,dudek@jlab.org)
 
 AC_CONFIG_AUX_DIR(config)
 
