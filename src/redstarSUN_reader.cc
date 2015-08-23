@@ -45,6 +45,7 @@ namespace CorrReaderEnv
       {
 	XMLReader ptop(xml, path);
 
+	read(ptop, "source_tslice", prop.source_tslice);
 	read(ptop, "flavor", prop.flavor);
 	read(ptop, "irmom", prop.irrep_mom);
       }

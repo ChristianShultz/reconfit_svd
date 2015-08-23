@@ -72,14 +72,15 @@ namespace CorrReaderEnv
       exit(1);
     }
 
+    std::string irrep;
+    std::string op;
+
+    opsListData >> irrep >> op;
+
     while(! opsListData.eof())
     {
-      std::string irrep;
-      std::string op;
-
-      opsListData >> irrep >> op;
-
       opsList.push_back(op);
+      opsListData >> irrep >> op;
     } // end while
 
     int dim = opsList.size();
