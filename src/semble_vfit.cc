@@ -22,6 +22,8 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
+  bool doReg = CorrReaderEnv::registerAll();
+
   std::string xmlinifile;
   std::istringstream val(argv[1]);
   val >> xmlinifile;

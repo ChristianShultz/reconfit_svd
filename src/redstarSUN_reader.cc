@@ -39,7 +39,6 @@ namespace CorrReaderEnv
 	std::string                opsListFname;
 	std::vector<std::string>   opsXMLFiles;
 	std::string                rephaseMode;
-	std::string                badList;
 	InputPropsRedstarKeys_t    KeyParams;
       };
 
@@ -51,37 +50,18 @@ namespace CorrReaderEnv
 	read(ptop, "irmom", prop.irrep_mom);
       }
 
-      void read(XMLReader& xml, const std::string& path, Params& prop)
-      {
-	XMLReader ptop(xml, path);
-
-	read(ptop, "dbFnames", prop.dbFnames);
-	read(ptop, "opsListFname", prop.opsListFname);
-	read(ptop, "opsXMLFiles", prop.opsXMLFiles);
-	read(ptop, "rephaseMode", prop.rephaseMode);
-	read(ptop, "badList", prop.badList);
-	read(ptop, "KeyParams", prop.KeyParams);
-      }
-
-
-
-
       //----------------------------------------------------------------------------
       // Param stuff
       Params::Params(XMLReader& xml_in, const std::string& path) 
       {
-	try 
-	{
-	  XMLReader paramtop(xml_in, path);
+	XMLReader ptop(xml_in, path);
 
-	  // Read program parameters
-	  read(paramtop, "Param", *this);
-	}
-	catch(const std::string& e) 
-	{
-	  std::cerr << __func__ << ": Caught Exception reading XML: " << e << std::endl;
-	  exit(1);
-	}
+	// Read program parameters
+	read(ptop, "dbFnames", dbFnames);
+	read(ptop, "opsListFname", opsListFname);
+	read(ptop, "opsXMLFiles", opsXMLFiles);
+	read(ptop, "rephaseMode", rephaseMode);
+	read(ptop, "KeyParams", KeyParams);
       }
 
 
@@ -262,7 +242,7 @@ namespace CorrReaderEnv
       //! Local registration flag
       bool registered = false;
 
-      const std::string name = "REDSTAR_SUN";
+      const std::string name = "redstarSUN";
     }
 
     //---------------------------------------------------------------------------
