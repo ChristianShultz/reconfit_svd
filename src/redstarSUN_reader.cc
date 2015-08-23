@@ -5,7 +5,6 @@
 #include "correlator_reader_factory.h"
 #include "correlator_util.h"
 #include "redstarSUN_reader.h"
-//#include "hadron/su2_corr/hadron_npart_npt_corr.h"
 #include "hadron/hadron_sun_npart_npt_corr.h"
 #include <adat/handle.h>
 #include <xml_array2d.h>
@@ -67,7 +66,7 @@ namespace CorrReaderEnv
 
       //----------------------------------------------------------------------------------
       //! Create db keys from operator list
-      Array2d<KeyHadronSUNNPartNPtCorr_t> createKeys(const std::vector<KeyHadronSUNNPartIrrep_t>& opsxml,
+      Array2d<KeyHadronSUNNPartNPtCorr_t> createKeys(const std::vector<KeyHadronSUNNPartIrrepOp_t>& opsxml,
 						     const KeyCGCSU3_t& flavor, const KeyCGCIrrepMom_t& irmom,
 						     int t_source)
       {
@@ -88,7 +87,7 @@ namespace CorrReaderEnv
 	    key.npoint[1].irrep.irrep_mom   = irmom;
 	    key.npoint[1].irrep.creation_op = false;
 	    key.npoint[1].irrep.smearedP    = true;
-	    key.npoint[1].irrep.op          = opsxml[j_snk].op;
+	    key.npoint[1].irrep.op          = opsxml[j_snk];
 
 	    // The source op
 	    key.npoint[2].t_slice           = t_source;
@@ -96,7 +95,7 @@ namespace CorrReaderEnv
 	    key.npoint[2].irrep.irrep_mom   = irmom;
 	    key.npoint[2].irrep.creation_op = true;
 	    key.npoint[2].irrep.smearedP    = true;
-	    key.npoint[2].irrep.op          = opsxml[j_src].op;
+	    key.npoint[2].irrep.op          = opsxml[j_src];
 
 	    keys(j_src,j_snk) = key;
 	    
@@ -132,10 +131,10 @@ namespace CorrReaderEnv
 	virtual std::vector<std::string> getOpsList() const {return opsList;}
 
       private:
-	Params                                          params;
-	std::vector<std::string>                        opsList;
-	std::map<std::string, KeyHadronSUNNPartIrrep_t> opsMap;
- 	std::vector<KeyHadronSUNNPartIrrep_t>           opsxml;
+	Params                                            params;
+	std::vector<std::string>                          opsList;
+	std::map<std::string, KeyHadronSUNNPartIrrepOp_t> opsMap;
+ 	std::vector<KeyHadronSUNNPartIrrepOp_t>           opsxml;
 	FILEDB::AllConfStoreMultipleDB< ADATIO::SerialDBKey<KeyHadronSUNNPartNPtCorr_t>,  ADATIO::SerialDBData<EnsemScalar<EnsemVectorComplex>::Type_t> > database;
       };
 
@@ -172,10 +171,10 @@ namespace CorrReaderEnv
 	  opsList = readOpsList(params.opsListFname);
 
 	  // Read the operator maps
-	  opsMap = readOpsMap<KeyHadronSUNNPartIrrep_t>(params.opsXMLFiles);
+	  opsMap = readOpsMap<KeyHadronSUNNPartIrrepOp_t>(params.opsXMLFiles);
 
 	  // Find the xml for the desired operator list
-	  opsxml = findOpsXml<KeyHadronSUNNPartIrrep_t>(opsMap, opsList);
+	  opsxml = findOpsXml<KeyHadronSUNNPartIrrepOp_t>(opsMap, opsList);
 	}
 	catch(const std::string &e)
 	{
