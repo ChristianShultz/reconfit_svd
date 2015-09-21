@@ -478,7 +478,7 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, FitIniProps_t &prop)
   }
 
   //get db input
-  prop.inputProps  = readXMLGroup(ptop, "InputProps", "dbInputType");
+  prop.inputProps  = readXMLGroup(ptop, "inputProps", "dbInputType");
 
   //assume they are there and try to read, if not there it should default to the else values
   read(ptop, "sortingProps", prop.sortingProps);
