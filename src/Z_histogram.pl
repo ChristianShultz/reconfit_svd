@@ -168,8 +168,9 @@ sub ident_op {
     @isoscalarnames = ('l', 's', 'octet', 'singlet', 'fl', 'fs', 'f1', 'f8', 'etal', 'etas', 'eta1', 'eta8', 'hl', 'hs', 'h1', 'h8', 'omegal', 'omegas', 'omega1', 'omega8');
     
     #baryon syntax   NucleonMG1g1MxD0J0S_J1o2_G1g1
-    #meson syntax    b0xD1_J1__J1_T1 (old)   or   rho_rhoxD0_J0__J1_T1
+    #meson syntax    b0xD1_J1__J1_T1 (old)   or   rho_rhoxD0_J0__J1_T1   or  rho_rhoxD0_J0__J1_T1__000
 
+    $op =~ s/__[0-9][0-9][0-9]$//;     #  get rid of trailing momenta
     @break = split('_', $op);
     $irrep = &removeHelicity($break[-1]);
 
