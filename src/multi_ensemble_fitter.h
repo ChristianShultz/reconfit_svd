@@ -2,7 +2,7 @@
 #ifndef __MULTI_ENSEM_FITTER_H__
 #define __MULTI_ENSEM_FITTER_H__
 
-#include "jackFitter/jackFitter.h"
+#include <jackFitter/jackknife_fitter.h>
   
 // need to read in ensem values from an ensemble
 // compute the covariance

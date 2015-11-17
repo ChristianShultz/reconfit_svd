@@ -13,7 +13,8 @@
  _._._._._._._._._._._._._._._._._._._._._.*/
 
 #include "semble/semble_semble.h"
-#include "semble_load_correlators.h"
+#include "correlator_reader.h"
+#include "correlator_reader_factory.h"
 #include "semble_fit_ini_xml.h"
 #include "semble_multi_t0fit.h"
 #include <itpp/itbase.h>
@@ -30,34 +31,7 @@ using namespace SEMBLE;
 
 
 
-typedef std::pair<SembleRCorrs,std::vector<std::string> > usage_t;
-
-
-SembleRCorrs grab_correlation_matrix(const std::string &ini)
-{
-  // Read parameters from xml ini file
-  FitIniProps_t inikeys;
-
-  try
-  {
-    XMLReader xml_in(ini);
-    read(xml_in, "/FitIniParams", inikeys);
-  }
-  catch(const std::string &e)
-  {
-    cerr << __func__ << ": ERROR: can't read xmlinifile (" << ini << "): " << e << endl;
-    exit(1);
-  }
-
-  //run a sainity check on the ini, this may overwrite some parameters such as the global tmax
-  check_ini(inikeys);
-
-  // Load correlation matrix from appropriate source
-  SembleRCorrs twoPoints;
-  loadCorr(twoPoints, inikeys);
-
-  return twoPoints;
-}
+typedef std::pair< std::vector< SEMBLE::SembleMatrix<double> >, std::vector<std::string> > usage_t;
 
 usage_t usage(int argc, char *argv[])
 {
@@ -105,8 +79,7 @@ usage_t usage(int argc, char *argv[])
   check_ini(inikeys);
 
   // Load correlation matrix from appropriate source
-  SembleRCorrs twoPoints;
-  loadCorr(twoPoints, inikeys);
+  std::vector< SEMBLE::SembleMatrix<double> > twoPoints = CorrReaderEnv::getCorrs(inikeys.inputProps);
 
   return usage_t(twoPoints,commands);
 }
@@ -169,15 +142,68 @@ std::vector<ProjFileLine> read_proj_ops(const std::string &proj_op_listf)
   return proj_ops; 
 }
 
-//**********************************************
 
+//**********************************************
+EnsemVectorReal buildCorr(const std::vector< SEMBLE::SembleMatrix<double> >& twoPoints, const std::vector<double>& vl, const std::vector<double>& vr)
+{
+  int Lt    = twoPoints.size(); 
+  int nbins = twoPoints[0].bins();
+  
+  ENSEM::EnsemVectorReal corr;
+  corr.resize(nbins); 
+  corr.resizeObs(Lt);
+
+  for(int t = 0; t < Lt; ++t)
+  {
+    ENSEM::EnsemReal tmp;
+    tmp.resize(nbins); 
+    tmp = Real(0);
+
+    for(int i = 0; i < vl.size(); ++i)
+      for(int j = 0; j < vr.size(); ++j)
+	tmp += SEMBLE::toScalar(vl[i]*vr[j])*twoPoints[t].getEnsemElement(i,j);
+
+    pokeObs(corr, tmp, t);
+  }
+
+  return corr;
+}
+
+
+//**********************************************
+EnsemVectorReal buildCorr(const std::vector< SEMBLE::SembleMatrix<double> >& twoPoints, const std::vector<double>& vl, int comp_ind)
+{
+  int Lt    = twoPoints.size(); 
+  int nbins = twoPoints[0].bins();
+  
+  ENSEM::EnsemVectorReal corr;
+  corr.resize(nbins); 
+  corr.resizeObs(Lt);
+
+  for(int t = 0; t < Lt; ++t)
+  {
+    ENSEM::EnsemReal tmp;
+    tmp.resize(nbins); 
+    tmp = Real(0);
+
+    for(int i = 0; i < vl.size(); ++i)
+      tmp += SEMBLE::toScalar(vl[i])*twoPoints[t].getEnsemElement(i,comp_ind);
+
+    pokeObs(corr, tmp, t);
+  }
+
+  return corr;
+}
+
+
+//**********************************************
 void  effective_mass(const usage_t &u)
 {
   std::vector<std::string> options = u.second; 
 
   check_exit_pars(2,options," <proj.list> ",__func__); 
 
-  SembleRCorrs twoPoints = u.first;
+  std::vector< SEMBLE::SembleMatrix<double> > twoPoints = u.first;
 
   std::vector<ProjFileLine> proj_ops = read_proj_ops(options[1]); 
 
@@ -190,13 +216,7 @@ void  effective_mass(const usage_t &u)
     v[i] = proj_ops[i].get_weight();
   }
 
-
-  ENSEM::EnsemVectorReal corr = twoPoints.getCij(0,0);
-  corr = SEMBLE::toScalar(double(0.)); 
-
-  for(int i = 0; i < v.size(); ++i)
-    for(int j = 0; j < v.size(); ++j)
-      corr += SEMBLE::toScalar(v[i]*v[j])*twoPoints.getCij(i,j); 
+  ENSEM::EnsemVectorReal corr = buildCorr(twoPoints, v, v);
 
   ENSEM::write(proj_ops[0].proj_op + std::string("_corr.jack"), corr); 
 
@@ -227,11 +247,10 @@ void  check_ortho(const usage_t &u)
 
   check_exit_pars(3,options," <proj_left.list> <proj_right.list> ",__func__); 
 
-  SembleRCorrs twoPoints = u.first;
+  std::vector< SEMBLE::SembleMatrix<double> > twoPoints = u.first;
 
   std::vector<ProjFileLine> proj_ops_l = read_proj_ops(options[1]); 
   std::vector<ProjFileLine> proj_ops_r = read_proj_ops(options[2]); 
-
 
   std::vector<double> vl(proj_ops_l.size()); 
   for(int i =0; i < proj_ops_l.size(); ++i)
@@ -250,12 +269,7 @@ void  check_ortho(const usage_t &u)
 
   std::cout << "vl.size() " << vl.size() << " vr.size() " << vr.size() << std::endl;
 
-  ENSEM::EnsemVectorReal corr = twoPoints.getCij(0,0);
-  corr = SEMBLE::toScalar(double(0.)); 
-
-  for(int i = 0; i < vl.size(); ++i)
-    for(int j = 0; j < vr.size(); ++j)
-      corr += SEMBLE::toScalar(vl[i]*vr[j])*twoPoints.getCij(i,j); 
+  ENSEM::EnsemVectorReal corr = buildCorr(twoPoints, vl, vr);
 
   ENSEM::write(std::string("check_ortho_") + proj_ops_l[0].proj_op + std::string("_") + proj_ops_r[0].proj_op + std::string(".jack"), corr); 
 
@@ -271,7 +285,7 @@ void project_against(const usage_t &u)
   check_exit_pars(3,options," <proj.list> <comp_op> ",__func__); 
 
   // Load correlation matrix from appropriate source
-  SembleRCorrs twoPoints = u.first; 
+  std::vector< SEMBLE::SembleMatrix<double> > twoPoints = u.first;
 
   std::vector<ProjFileLine> proj_ops = read_proj_ops(options[1]); 
 
@@ -283,13 +297,7 @@ void project_against(const usage_t &u)
   for(int i =0; i < proj_ops.size(); ++i)
     v[i] = proj_ops[i].get_weight();
 
-
-  ENSEM::EnsemVectorReal corr = twoPoints.getCij(0,0);
-  corr = SEMBLE::toScalar(double(0.)); 
-
-  // make the correlator 
-  for(int i = 0; i < v.size(); ++i)
-    corr += SEMBLE::toScalar(v[i])*twoPoints.getCij(i,comp_op_index); 
+  ENSEM::EnsemVectorReal corr = buildCorr(twoPoints, v, comp_op_index);
 
   ENSEM::write("project_against_" + proj_ops[0].proj_op + std::string("_op") + options[2] + std::string(".jack"), corr); 
 
@@ -377,9 +385,11 @@ void work_handler(const usage_t &u)
 
 
 
-  int
+int
 main(int argc, char *argv[])
 {
+  bool doReg = CorrReaderEnv::registerAll();
+
   usage_t fred = usage(argc,argv); 
 
   work_handler(fred); 

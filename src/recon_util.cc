@@ -1,5 +1,6 @@
 #include "semble/semble_semble.h"
-#include "semble_load_correlators.h"
+#include "correlator_reader.h"
+#include "correlator_reader_factory.h"
 #include "semble_fit_ini_xml.h"
 #include "semble_multi_t0fit.h"
 #include <itpp/itbase.h>
@@ -16,10 +17,9 @@ using namespace SEMBLE;
 
 
 
-typedef std::pair<SembleRCorrs,std::vector<std::string> > usage_t;
+typedef std::pair< std::vector< SEMBLE::SembleMatrix<double> >, std::vector<std::string> > usage_t;
 
-
-SembleRCorrs grab_correlation_matrix(const std::string &ini)
+std::vector< SEMBLE::SembleMatrix<double> > grab_correlation_matrix(const std::string &ini)
 {
   // Read parameters from xml ini file
   FitIniProps_t inikeys;
@@ -39,8 +39,7 @@ SembleRCorrs grab_correlation_matrix(const std::string &ini)
   check_ini(inikeys);
 
   // Load correlation matrix from appropriate source
-  SembleRCorrs twoPoints;
-  loadCorr(twoPoints, inikeys);
+  std::vector< SEMBLE::SembleMatrix<double> > twoPoints = CorrReaderEnv::getCorrs(inikeys.inputProps);
 
   return twoPoints;
 }
@@ -91,15 +90,14 @@ usage_t usage(int argc, char *argv[])
   check_ini(inikeys);
 
   // Load correlation matrix from appropriate source
-  SembleRCorrs twoPoints;
-  loadCorr(twoPoints, inikeys);
+  std::vector< SEMBLE::SembleMatrix<double> > twoPoints = CorrReaderEnv::getCorrs(inikeys.inputProps);
 
   return usage_t(twoPoints,commands);
 }
 
 void matrix_plot(const usage_t &u)
 {
-  SembleRCorrs tp = u.first; 
+  auto tp = u.first; 
   std::vector<std::string> opts = u.second; 
 
   if ( opts.size() != 2 ) 
@@ -111,7 +109,7 @@ void matrix_plot(const usage_t &u)
   int t = atoi( opts[1].c_str() ); 
 
 
-  SEMBLE::SembleMatrix<double> s = tp.getCt(t); 
+  SEMBLE::SembleMatrix<double> s = tp[t]; 
 
   itpp::Mat<double> m = s.mean();
 
@@ -134,7 +132,7 @@ void matrix_plot(const usage_t &u)
 
 void norm_matrix_plot(const usage_t &u)
 {
-  SembleRCorrs tp = u.first; 
+  auto tp = u.first; 
   std::vector<std::string> opts = u.second; 
 
   if ( opts.size() != 2 ) 
@@ -146,7 +144,7 @@ void norm_matrix_plot(const usage_t &u)
   int t = atoi( opts[1].c_str() ); 
 
 
-  SEMBLE::SembleMatrix<double> s = tp.getCt(t); 
+  SEMBLE::SembleMatrix<double> s = tp[t]; 
 
   itpp::Mat<double> m = s.mean();
 
@@ -173,7 +171,7 @@ namespace
 
 void sign_matrix_plot(const usage_t &u)
 {
-  SembleRCorrs tp = u.first; 
+  auto tp = u.first; 
   std::vector<std::string> opts = u.second; 
 
   if ( opts.size() != 2 ) 
@@ -185,7 +183,7 @@ void sign_matrix_plot(const usage_t &u)
   int t = atoi( opts[1].c_str() ); 
 
 
-  SEMBLE::SembleMatrix<double> s = tp.getCt(t); 
+  SEMBLE::SembleMatrix<double> s = tp[t]; 
 
   itpp::Mat<double> m = s.mean();
 
@@ -207,7 +205,7 @@ void sign_matrix_plot(const usage_t &u)
 
 void compare_correlation_matricies ( const usage_t &u ) 
 {
-  SembleRCorrs tp = u.first;
+  auto tp = u.first;
   std::vector<std::string> opts = u.second;
     
   if ( opts.size() != 3 )
@@ -219,10 +217,10 @@ void compare_correlation_matricies ( const usage_t &u )
   }
 
   int t = atoi ( opts[1].c_str() ) ; 
-  SembleRCorrs tp2 = grab_correlation_matrix(opts[2]); 
+  auto tp2 = grab_correlation_matrix(opts[2]); 
 
-  SEMBLE::SembleMatrix<double> s1 = tp.getCt(t); 
-  SEMBLE::SembleMatrix<double> s2 = tp2.getCt(t);
+  SEMBLE::SembleMatrix<double> s1 = tp[t]; 
+  SEMBLE::SembleMatrix<double> s2 = tp2[t];
 
   int b1,b2,b; 
   b1 = s1.getB(); 
@@ -317,6 +315,8 @@ void work_handler(const usage_t &u)
   int
 main(int argc, char *argv[])
 {
+  bool doReg = CorrReaderEnv::registerAll();
+
   usage_t fred = usage(argc,argv); 
 
   work_handler(fred); 

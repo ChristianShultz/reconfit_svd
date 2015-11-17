@@ -4,7 +4,8 @@
 //
 
 #include "semble/semble_semble.h"
-#include "semble_load_correlators.h"
+#include "correlator_reader.h"
+#include "correlator_reader_factory.h"
 #include "semble_fit_ini_xml.h"
 #include "semble_multi_t0fit.h"
 #include <itpp/itbase.h>
@@ -18,8 +19,30 @@ using namespace std;
 using namespace ENSEM;
 using namespace SEMBLE;
 
+//**********************************************
+EnsemVectorReal buildCorr(const std::vector< SEMBLE::SembleMatrix<double> >& twoPoints, int i, int j)
+{
+  int Lt    = twoPoints.size(); 
+  int nbins = twoPoints[0].bins();
+  
+  ENSEM::EnsemVectorReal corr;
+  corr.resize(nbins); 
+  corr.resizeObs(Lt);
+
+  for(int t = 0; t < Lt; ++t)
+  {
+    pokeObs(corr, twoPoints[t].getEnsemElement(i,j), t);
+  }
+
+  return corr;
+}
+
+
+//**********************************************
 int main(int argc, char *argv[])
 {
+  bool doReg = CorrReaderEnv::registerAll();
+
   if(argc != 5)
     {
       cerr << "usage: " << argv[0] << ": <xmlinifile>  <row> <col> <delta_t>" << endl;
@@ -53,13 +76,12 @@ int main(int argc, char *argv[])
   check_ini(inikeys);
 
   // Load correlation matrix from appropriate source
-  SembleRCorrs twoPoints;
-  loadCorr(twoPoints, inikeys);
+  std::vector< SEMBLE::SembleMatrix<double> > twoPoints = CorrReaderEnv::getCorrs(inikeys.inputProps);
 
   cout << "LOADED " << endl;
 
-  EnsemVectorReal oneCorr = twoPoints.getCij(row,col);
-  const int loopt = twoPoints.getLt() - deltat;
+  EnsemVectorReal oneCorr = buildCorr(twoPoints,row,col);
+  const int loopt = twoPoints.size() - deltat;
 
   ENSEM::write(std::string("oneCorr.jack"),oneCorr); 
 

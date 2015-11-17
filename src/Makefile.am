@@ -34,9 +34,9 @@ libreconfit_a_SOURCES = \
 ##   be built by 'make check' and is not installed.
 #noinst_PROGRAMS = spectrum
 
-bin_PROGRAMS = semble_vfit
+bin_PROGRAMS = semble_vfit proj_op_util effective_mass_onecorr recon_util dispersion_fit 
 noinst_PROGRAMS = 
-check_PROGRAMS =  effective_mass_onecorr recon_util proj_op_util dispersion_fit 
+check_PROGRAMS =  
 EXTRA_PROGRAMS = 
 
 

@@ -2,7 +2,7 @@
 
 #include "ensem/ensem.h"
 #include "adat/handle.h"
-#include "jackFitter/jackFitter.h"
+#include "jackFitter/jackknife_fitter.h"
 
 #include <ostream>
 #include <sstream>
@@ -64,8 +64,8 @@ double DispnLatBoson::operator()(const vector<double>& pars, double x) const{
 //##################################################################################################
 
 
-int main(int argc, char *argv[]){
-
+int main(int argc, char *argv[])
+{
   if(argc < 3){ cerr << "usage: <V1> <listfile1> <V2> <listfile2> ... " << endl; exit(1); }
   
   double pi = 2.0*atan2(1.0,0.0);
