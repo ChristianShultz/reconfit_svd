@@ -157,6 +157,9 @@ std::vector<ProjFileLine> read_proj_ops(const std::string &proj_op_listf)
     std::istringstream foo(aline); 
     std::string proj, op, weight; 
 
+    if (aline.find("version") != std::string::npos)
+      continue;
+
     if(!!!(foo >> proj >> op >> weight))
     {
       std::cerr << "Error reading " << proj_op_listf << std::endl;
@@ -198,7 +201,7 @@ void  effective_mass(const usage_t &u)
     for(int j = 0; j < v.size(); ++j)
       corr += SEMBLE::toScalar(v[i]*v[j])*twoPoints.getCij(i,j); 
 
-  ENSEM::write(proj_ops[0].proj_op + std::string("_corr.jack"), corr); 
+  ENSEM::write(proj_ops[0].proj_op + std::string("_corr.dat"), corr); 
 
   int Lt = corr.numElem(); 
   int deltat = 1; 
@@ -215,7 +218,7 @@ void  effective_mass(const usage_t &u)
 
   effMassPlot.sendToFile(proj_ops[0].proj_op + std::string("__effMass.ax"));
 
-  ENSEM::write(proj_ops[0].proj_op + std::string("_effMass.jack"),effMass); 
+  ENSEM::write(proj_ops[0].proj_op + std::string("_effMass.dat"),effMass); 
 
 }
 
@@ -257,7 +260,7 @@ void  check_ortho(const usage_t &u)
     for(int j = 0; j < vr.size(); ++j)
       corr += SEMBLE::toScalar(vl[i]*vr[j])*twoPoints.getCij(i,j); 
 
-  ENSEM::write(std::string("check_ortho_") + proj_ops_l[0].proj_op + std::string("_") + proj_ops_r[0].proj_op + std::string(".jack"), corr); 
+  ENSEM::write(std::string("check_ortho_") + proj_ops_l[0].proj_op + std::string("_") + proj_ops_r[0].proj_op + std::string(".dat"), corr); 
 
   int Lt = corr.numElem(); 
   int deltat = 1; 
@@ -291,7 +294,7 @@ void project_against(const usage_t &u)
   for(int i = 0; i < v.size(); ++i)
     corr += SEMBLE::toScalar(v[i])*twoPoints.getCij(i,comp_op_index); 
 
-  ENSEM::write("project_against_" + proj_ops[0].proj_op + std::string("_op") + options[2] + std::string(".jack"), corr); 
+  ENSEM::write("project_against_" + proj_ops[0].proj_op + std::string("_op") + options[2] + std::string(".dat"), corr); 
 
   double SVcutoff = 1e-6; 
   double cutoff = 0.2; 
@@ -329,12 +332,12 @@ void project_against(const usage_t &u)
   //write the jackknife fit files
   EnsemReal outcorr = fitCorr.getMass0();
   stringstream filename; 
-  filename << "exp_fit_mass0.jack";  
+  filename << "exp_fit_mass0.dat";  
   write(filename.str(), outcorr );
 
   outcorr = fitCorr.getAmp0();
   stringstream filename2; 
-  filename2 << "exp_fit_amp0.jack"; 
+  filename2 << "exp_fit_amp0.dat"; 
   write(filename2.str(), outcorr );   
 }
 
