@@ -229,6 +229,7 @@ namespace SEMBLE
     bool avgMom;
     std::string momListFname;
     InputPropsRedstarKeys_t KeyParams;
+    std::string useHermiticity;
   };
 
   struct ShiftProps_t

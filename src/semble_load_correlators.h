@@ -114,6 +114,7 @@ namespace SEMBLE
     vector<int> opsListCConj;   // List of operators' charge conjugation
     string foldTimeReversal;   // Fold time reversal option
     string rephaseMode;   // Method to use for rephasing correlators
+    string useHermiticity;   // Use hermiticity 
     vector< Array<int> > momList;   // List of momenta to use
 
     // Various utils

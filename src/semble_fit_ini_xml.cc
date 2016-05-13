@@ -468,6 +468,11 @@ void SEMBLE::read(XMLReader &xml, const std::string &path, InputPropsRedstar_t &
   else
     prop.momListFname = "";
 
+  if(ptop.count("useHermiticity") > 0)
+    read(ptop, "useHermiticity", prop.useHermiticity);
+  else
+    prop.useHermiticity = "none";
+
   if(ptop.count("KeyParams") > 0)
     read(ptop, "KeyParams", prop.KeyParams);
   else
@@ -913,6 +918,7 @@ std::string SEMBLE::write_params(const InputPropsRedstar_t &prop)
   ss << "badList " << prop.badList << n;
   ss << "avgMom " << prop.avgMom << n;
   ss << "momListFname " << prop.momListFname << n;
+  ss << "useHermiticity " << prop.useHermiticity << n;
   ss << "KeyParams " << prop.KeyParams << n;
   ss << n << n;
 
