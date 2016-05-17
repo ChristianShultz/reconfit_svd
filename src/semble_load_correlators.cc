@@ -51,7 +51,7 @@ namespace SEMBLE
 
 
 // Load correlators from filedb (redstar) database
-  void SembleRCorrs::loadRephaseComplexCorrs(const string &dbfile, const string &opslistfile, const Array<string>& opsxmlfiles, Array<int> avgRows, double avgTol, const string &badlistfile, const string &foldTimeReversal_, const string &rephaseMode_, const bool avgMom, const string &momListFile, InputPropsRedstarKeys_t keyParams)
+  void SembleRCorrs::loadRephaseComplexCorrs(const string &dbfile, const string &opslistfile, const Array<string>& opsxmlfiles, Array<int> avgRows, double avgTol, const string &badlistfile, const string &foldTimeReversal_, const string &rephaseMode_, const bool avgMom, const string &momListFile, const string &useHermiticity_, InputPropsRedstarKeys_t keyParams)
   {
     cout << __func__ << ": loading the real correlators from complex correlators in database" << endl;
 
@@ -64,6 +64,7 @@ namespace SEMBLE
     irrepdim = avgRows.size();
     foldTimeReversal = foldTimeReversal_;
     rephaseMode = rephaseMode_;
+    useHermiticity = useHermiticity_;
     readOpsList(opslistfile);
 
     if(avgMom)
@@ -77,7 +78,7 @@ namespace SEMBLE
       }
 
     SembleCCorrs ComplexCorrs;
-    ComplexCorrs.loadFromDB(dbfile, opsList, opsListCConj, opsxmlfiles, avgRows, avgTol, badlistfile, avgMom, momList, keyParams);
+    ComplexCorrs.loadFromDB(dbfile, opsList, opsListCConj, opsxmlfiles, avgRows, avgTol, badlistfile, avgMom, momList, useHermiticity, keyParams);
 
     doRephasing(ComplexCorrs);
 
@@ -1154,7 +1155,7 @@ namespace SEMBLE
 // filedb (redstar) database specific functions
 
 // Load from database
-  void SembleCCorrs::loadFromDB(const string &dbfile, vector<string> opsList_, vector<int> opsListCConj_, const Array<string>& opsxmlfiles, Array<int> avgRows, double avgTol, const string &badlistfile, bool avgMom, vector< Array<int> > momList_, InputPropsRedstarKeys_t keyParams)
+  void SembleCCorrs::loadFromDB(const string &dbfile, vector<string> opsList_, vector<int> opsListCConj_, const Array<string>& opsxmlfiles, Array<int> avgRows, double avgTol, const string &badlistfile, bool avgMom, vector< Array<int> > momList_, const string useHermiticity, InputPropsRedstarKeys_t keyParams)
   {
     cout << __func__ << ": started loading the complex correlators" << endl;
 
@@ -1202,7 +1203,7 @@ namespace SEMBLE
 
         // Get correlators from database (keys to match are specified in keys)
         // Average over rows and/or momenta if required
-        Ct = loadCorrs(database, keys, avgRows, avgTol, badlistfile, avgMom);
+        Ct = loadCorrs(database, keys, avgRows, avgTol, badlistfile, avgMom, useHermiticity);
 
         // Debugging
         // for (int j_src = 0; j_src < dim; j_src++)
@@ -1257,7 +1258,7 @@ namespace SEMBLE
             for(int i = 0; i < irrepdim; i++)
               {
                 for(int i_mom = 0; i_mom < momList.size(); i_mom++)
-                  {
+                   {
                     // cout << count << ": " << j_src << ", " << j_snk << ", " << i << ", " << i_mom << endl;
                     keys[count].ensemble = keyParams.ensemble;
                     keys[count].npoint.resize(2);  // This is a 2-point correlator. N.B. THIS IS Array1d0 - A ONE BASED ARRAY
@@ -1380,7 +1381,7 @@ namespace SEMBLE
 
 
 // Get correlators from database, averaging over lorentz/spin if required
-  vector<SembleMatrix<std::complex<double> > > SembleCCorrs::loadCorrs(FILEDB::AllConfStoreDB< SerialDBKey<Hadron::KeyHadronNPartNPtCorr_t>,  SerialDBData<SV> >& database,  Array<Hadron::KeyHadronNPartNPtCorr_t> keys, const Array<int> avgRows, double avgTol, const string &badlistfile, bool avgMom)
+  vector<SembleMatrix<std::complex<double> > > SembleCCorrs::loadCorrs(FILEDB::AllConfStoreDB< SerialDBKey<Hadron::KeyHadronNPartNPtCorr_t>,  SerialDBData<SV> >& database,  Array<Hadron::KeyHadronNPartNPtCorr_t> keys, const Array<int> avgRows, double avgTol, const string &badlistfile, bool avgMom, const string useHermiticity)
   {
     SembleMatrix<std::complex<double> > dum(nbins, dim, dim);
     vector<SembleMatrix<std::complex<double> > > ComplexCorrs;
@@ -1416,6 +1417,7 @@ namespace SEMBLE
 
     int count = 0;
 
+//EDIT HERE
     for(int j_src = 0; j_src < dim; j_src++)
       {
         for(int j_snk = 0; j_snk < dim; j_snk++)
@@ -1431,7 +1433,7 @@ namespace SEMBLE
             for(int i = 1; i < avgdim; i++)
               {
                 TempCorrs[i] = printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[count], database);
-                // cout << __func__ << ": getting from db key: " << keys[count];
+                 cout << __func__ << ": getting from db key: " << keys[count];
                 TempCorr += TempCorrs[i];
                 count++;
               }
@@ -1978,6 +1980,7 @@ namespace SEMBLE
                                           inikeys.inputPropsRedstar.rephaseMode,
                                           inikeys.inputPropsRedstar.avgMom,
                                           inikeys.inputPropsRedstar.momListFname,
+                                          inikeys.inputPropsRedstar.useHermiticity,
                                           inikeys.inputPropsRedstar.KeyParams);
       }
 

@@ -30,7 +30,7 @@ namespace SEMBLE
 
     void loadFromDB(const string &dbfile, vector<string> opsList_, vector<int> opsListCConj_, int irrepdim_, FF::KeyHadron2PtCorr_t DefaultKeys, const string &avgMode, double avgTol, const string &badlistfile, bool avgMom, vector< Array<int> > momList_, const bool readSmearings_, const vector<string>& opsListSmear_);
 
-    void loadFromDB(const string &dbfile, vector<string> opsList_, vector<int> opsListCConj_, const Array<string>& opsxmlfiles, Array<int> avgRows, double avgTol, const string &badlistfile, bool avgMom, vector< Array<int> > momList_, InputPropsRedstarKeys_t keyParams);
+    void loadFromDB(const string &dbfile, vector<string> opsList_, vector<int> opsListCConj_, const Array<string>& opsxmlfiles, Array<int> avgRows, double avgTol, const string &badlistfile, bool avgMom, vector< Array<int> > momList_, const string useHermiticity, InputPropsRedstarKeys_t keyParams);
 
     vector<SembleMatrix<double> > rephaseCorrs(const string &rephaseMode, const string &foldTimeReversal, int tmax); //tmax is new
 
@@ -61,7 +61,7 @@ namespace SEMBLE
     Array<Hadron::KeyHadronNPartNPtCorr_t> createRedstarKeys(const Array<string>& opsxmlfiles, InputPropsRedstarKeys_t keyParams, const Array<int> avgRows, bool avgMom);
 
     vector<SembleMatrix<std::complex<double> > > loadCorrs(FILEDB::AllConfStoreDB< SerialDBKey<FF::KeyHadron2PtCorr_t>,  SerialDBData<SV> >& database,  Array<FF::KeyHadron2PtCorr_t> keys, const string &avgMode, double avgTol, const string &badlistfile, bool avgMom);
-    vector<SembleMatrix<std::complex<double> > > loadCorrs(FILEDB::AllConfStoreDB< SerialDBKey<Hadron::KeyHadronNPartNPtCorr_t>,  SerialDBData<SV> >& database,  Array<Hadron::KeyHadronNPartNPtCorr_t> keys, const Array<int> avgRows, double avgTol, const string &badlistfile, bool avgMom);
+    vector<SembleMatrix<std::complex<double> > > loadCorrs(FILEDB::AllConfStoreDB< SerialDBKey<Hadron::KeyHadronNPartNPtCorr_t>,  SerialDBData<SV> >& database,  Array<Hadron::KeyHadronNPartNPtCorr_t> keys, const Array<int> avgRows, double avgTol, const string &badlistfile, bool avgMom, const string useHermiticity);
 
     Array<Hadron::KeyHadronNPartIrrep_t> readOpsxml(const Array<string>& opsxmlfiles);
   };
@@ -76,7 +76,7 @@ namespace SEMBLE
 
     void loadRephaseComplexCorrs(const string &dbfile, const string &opslistfile, int irrepdim_, FF::KeyHadron2PtCorr_t DefaultKeys,  const string &avgMode, double avgTol, string const &badlistfile, const string &foldTimeReversal_, const string &rephaseMode_, bool avgMom, const string &momListFile, const bool readSmearings);
 
-    void loadRephaseComplexCorrs(const string &dbfile, const string &opslistfile, const Array<string>& opsxmlfiles, Array<int> avgRows, double avgTol, const string &badlistfile, const string &foldTimeReversal_, const string &rephaseMode_, const bool avgMom, const string &momListFile, InputPropsRedstarKeys_t keyParams);
+    void loadRephaseComplexCorrs(const string &dbfile, const string &opslistfile, const Array<string>& opsxmlfiles, Array<int> avgRows, double avgTol, const string &badlistfile, const string &foldTimeReversal_, const string &rephaseMode_, const bool avgMom, const string &momListFile, const string &useHermiticity_, InputPropsRedstarKeys_t keyParams);
 
     void loadFromEnsemFiles(int dim_, const string &filepath);
     void loadFromEnsemFile(const string &ensemfilename);
