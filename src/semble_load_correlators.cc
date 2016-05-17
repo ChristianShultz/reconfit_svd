@@ -1423,7 +1423,18 @@ namespace SEMBLE
         for(int j_snk = 0; j_snk < dim; j_snk++)
           {
             Array<EnsemVectorComplex> TempCorrs(avgdim);
-            TempCorrs[0] = printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[count], database);
+	    
+	    if (useHermiticity == "upper")
+	     {
+               if (j_src > j_snk)
+               TempCorrs[0] = printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[j_snk*dim + j_src], database);
+               else
+               TempCorrs[0] = printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[count], database);
+             }
+	    else if (useHermiticity == "lower") //implement this later
+              exit(0);
+	    else if (useHermiticity == "none")	
+              TempCorrs[0] = printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[count], database);
             //  cout << __func__ << ": ----- start of avg for " << j_src << "," << j_snk << " -----" << endl;
             //  cout << __func__ << ": getting from db key: " << keys[count];
             EnsemVectorComplex TempCorr = TempCorrs[0];
@@ -1433,7 +1444,7 @@ namespace SEMBLE
             for(int i = 1; i < avgdim; i++)
               {
                 TempCorrs[i] = printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[count], database);
-                 cout << __func__ << ": getting from db key: " << keys[count];
+                // cout << __func__ << ": getting from db key: " << keys[count];
                 TempCorr += TempCorrs[i];
                 count++;
               }
