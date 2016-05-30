@@ -55,6 +55,7 @@
     <badList>bad_list</badList>
     <avgMom>false</avgMom>
     <momListFname></momListFname>
+    <useHermiticity>none</useHermiticity>
     <KeyParams>
       <ensemble>szscl3_16_128_b1p50_t_x4p300_um0p0743_n1p265_per</ensemble>
       <mom>0 0 0</mom> <!--Ignored if avgMom is true-->
