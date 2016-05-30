@@ -1427,16 +1427,29 @@ namespace SEMBLE
 	    if (useHermiticity == "upper")
 	     {
                if (j_src > j_snk)
-               TempCorrs[0] = printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[j_snk*dim + j_src], database);
+               TempCorrs[0] = conj(printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[j_snk*dim + j_src], database));
                else
                TempCorrs[0] = printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[count], database);
              }
-	    else if (useHermiticity == "lower") //implement this later
-              exit(0);
+	    else if (useHermiticity == "lower") 
+	     {
+               if (j_snk > j_src)
+               TempCorrs[0] = conj(printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[j_src*dim + j_snk], database));
+               else
+               TempCorrs[0] = printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[count], database);
+             }
 	    else if (useHermiticity == "none")	
-              TempCorrs[0] = printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[count], database);
-            //  cout << __func__ << ": ----- start of avg for " << j_src << "," << j_snk << " -----" << endl;
-            //  cout << __func__ << ": getting from db key: " << keys[count];
+	     {
+               TempCorrs[0] = printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[count], database);
+               //  cout << __func__ << ": ----- start of avg for " << j_src << "," << j_snk << " -----" << endl;
+               //  cout << __func__ << ": getting from db key: " << keys[count];
+ 	     }
+	    else
+	     {
+		std::cerr << "useHermiticity should be either upper, lower or none" << std::endl;
+		exit(0);
+	     }
+
             EnsemVectorComplex TempCorr = TempCorrs[0];
             count++;
 
