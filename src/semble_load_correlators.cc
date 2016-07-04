@@ -1417,13 +1417,43 @@ namespace SEMBLE
 
     int count = 0;
 
-//EDIT HERE
+    cout << __func__ << ": useHermiticity set to " << useHermiticity << endl;
+
     for(int j_src = 0; j_src < dim; j_src++)
       {
         for(int j_snk = 0; j_snk < dim; j_snk++)
           {
             Array<EnsemVectorComplex> TempCorrs(avgdim);
 	    
+            if (useHermiticity == "true")
+	     {
+               SerialDBKey<Hadron::KeyHadronNPartNPtCorr_t> key;
+               key.key() = keys[count];
+               std::vector< SerialDBData<EnsemScalar<EnsemVectorComplex>::Type_t> > vals;
+	       int ret;
+               if((ret = database.get(key, vals)) != 0)
+                 {
+                    TempCorrs[0] = conj(printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[j_snk*dim + j_src], database));
+                    std::cout << __func__ << ": key of C(" << j_src << "," << j_snk << ") not found, using hermitian conjugate instead" << std::endl;
+                 }
+               else
+                 {
+                    TempCorrs[0] = printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[count], database);
+                 }
+             }
+	    else if (useHermiticity == "none")	
+	     {
+               TempCorrs[0] = printKeyValue<Hadron::KeyHadronNPartNPtCorr_t, EnsemVectorComplex>(keys[count], database);
+               //  cout << __func__ << ": ----- start of avg for " << j_src << "," << j_snk << " -----" << endl;
+               //  cout << __func__ << ": getting from db key: " << keys[count];
+ 	     }
+	    else
+	     {
+		std::cerr << "useHermiticity should be either true or none" << std::endl;
+		exit(0);
+	     }
+
+#if 0
 	    if (useHermiticity == "upper")
 	     {
                if (j_src > j_snk)
@@ -1449,6 +1479,7 @@ namespace SEMBLE
 		std::cerr << "useHermiticity should be either upper, lower or none" << std::endl;
 		exit(0);
 	     }
+#endif
 
             EnsemVectorComplex TempCorr = TempCorrs[0];
             count++;
